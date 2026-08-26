@@ -1,0 +1,2 @@
+import {api} from '../../@libs/axios/axios.instances';import type{SaveStudyProfileRequest}from'../dto/request/studyProfile.request';import type{StudyProfileResponse}from'../dto/response/studyProfile.response';
+export const StudyProfileService={async get(){return(await api.get<StudyProfileResponse>('/study-profile')).data},async save(request:SaveStudyProfileRequest){return(await api.put<StudyProfileResponse>('/study-profile',request)).data}};

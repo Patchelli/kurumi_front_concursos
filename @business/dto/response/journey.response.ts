@@ -1,0 +1,46 @@
+import type { EJourneyStage } from '../../enum/EJourneyStage';
+
+export type JourneySummaryResponse = {
+  id: string;
+  title: string;
+  institution?: string | null;
+  position?: string | null;
+  examDate?: string | null;
+  stage: EJourneyStage;
+  knowledgeAreas: number;
+  logoUrl?: string | null;
+  progress?: number | null;
+  studiedMinutes?: number | null;
+  studyDays?: number | null;
+  questionsSolved?: number | null;
+  correctAnswers?: number | null;
+};
+
+export type JourneyDetailsResponse = Omit<JourneySummaryResponse, 'knowledgeAreas'> & {
+  examBoard?: string | null;
+  salary?: number | null;
+  openings?: number | null;
+  noticeUrl?: string | null;
+  includeInStatistics: boolean;
+  knowledgeAreas: KnowledgeAreaResponse[];
+};
+
+export type KnowledgeAreaResponse = {
+  id: string;
+  title: string;
+  order: number;
+  weight?: number | null;
+  expectedQuestions?: number | null;
+  nodes: SyllabusNodeResponse[];
+};
+
+export type SyllabusNodeResponse = {
+  id: string;
+  parentId?: string | null;
+  title: string;
+  order: number;
+  progress: number;
+  studyStartedOn?: string | null;
+  studiedOn?: string | null;
+  children: SyllabusNodeResponse[];
+};

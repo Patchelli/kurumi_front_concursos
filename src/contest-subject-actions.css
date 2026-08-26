@@ -1,0 +1,11 @@
+.subject-row,.topic-node-row{display:flex;align-items:center;width:100%;background:#fff}
+.subject-row{padding:0;border-top:1px solid #ece6ed}
+.subject-row>button:first-child,.topic-node-row>button:first-child{flex:1;border:0;background:transparent;display:flex;align-items:center;text-align:left;gap:11px;cursor:pointer;padding:14px 16px}
+.subject-row>button:first-child>div{display:flex;flex:1;flex-direction:column}
+.topic-node-row>button:first-child{padding:10px}
+.topic-node-row>button:first-child>strong{flex:1;font-size:12px}
+.topic-node-row>button:first-child>small{min-width:25px;text-align:center;color:#776e7b;background:#eee8f1;border-radius:99px;padding:4px}
+.tree-remove{border:0;background:transparent;color:#9b3445;font-size:20px;line-height:1;cursor:pointer;padding:10px 14px;border-radius:10px}
+.tree-remove:hover{background:#fbe9ed}
+.subtopic-panel li .tree-remove{margin-left:auto;padding:2px 7px;font-size:16px}
+.trash-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}

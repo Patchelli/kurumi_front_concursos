@@ -1,0 +1,7 @@
+.path-map.completed-flow{grid-template-columns:repeat(4,1fr)}
+.path-map.completed-flow li:nth-child(3){display:none}
+.tree-chevron{position:relative;color:transparent!important;overflow:hidden}
+.tree-chevron::before{content:'';position:absolute;width:8px;height:8px;border-right:2px solid #604979;border-bottom:2px solid #604979;transform:rotate(-45deg);transition:transform .18s ease}
+.tree-area:has(+.tree-topics)>.tree-chevron::before,.tree-topic:has(>ul)>div>.tree-chevron::before{transform:rotate(45deg)}
+.tree-topic li>span{font-size:0;width:18px;height:18px;display:inline-grid;place-items:center;margin-right:6px;vertical-align:middle}
+.tree-topic li>span::before{content:'';width:10px;height:10px;border-left:1.8px solid #846c9c;border-bottom:1.8px solid #846c9c;border-radius:0 0 0 3px;transform:translateY(-2px)}

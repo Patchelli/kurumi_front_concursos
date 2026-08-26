@@ -1,0 +1,304 @@
+.journey-card {
+  min-height: 590px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.journey-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--card-accent) 35%, #e4dee7); box-shadow: 0 18px 42px #392d4317; }
+.journey-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--card-accent) 55%, transparent); outline-offset: 3px; }
+
+.insight-strip.general-statistics {
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+}
+
+.general-statistics-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 19px 22px 16px;
+  border-bottom: 1px solid #ebe5ed;
+  background: linear-gradient(100deg, #faf6ff, #fff);
+}
+
+.general-statistics-heading h2 {
+  margin: 4px 0 0;
+  color: #302a36;
+  font-size: 21px;
+  letter-spacing: -.025em;
+}
+
+.general-statistics-heading p {
+  margin: 0;
+  color: #746d78;
+  font-size: 12px;
+}
+
+.general-statistics article:last-child { border-right: 0; }
+.insight-icon.amber { color: #7a4d00; background: #ffddb0; }
+
+.journey-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 142px;
+  margin: 16px 0 14px;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, .32), transparent 28%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #65558f) 82%, #1d192b), var(--card-accent, #65558f));
+}
+
+.journey-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgba(20, 18, 27, .65));
+  pointer-events: none;
+}
+
+.journey-cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.journey-cover > span {
+  color: #fff;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+}
+
+.level-badge {
+  position: absolute;
+  z-index: 1;
+  right: 12px;
+  bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 13px;
+  background: rgba(29, 25, 43, .72);
+  backdrop-filter: blur(10px);
+}
+
+.level-badge small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  opacity: .72;
+}
+
+.level-badge strong {
+  font-size: 12px;
+}
+
+.card-performance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 12px;
+}
+
+.card-performance > div {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 75px;
+  padding: 10px 39px 10px 11px;
+  border-radius: 16px;
+}
+
+.card-performance span {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  color: #fff;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .16);
+  font-weight: 900;
+}
+
+.card-performance strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+}
+
+.card-performance small {
+  color: rgba(255,255,255,.92);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.card-performance .metric-performance { background: linear-gradient(135deg, #347cba, #45a3d8); }
+.card-performance .metric-hours { background: linear-gradient(135deg, #438f35, #72ce3f); }
+.card-performance .metric-questions { background: linear-gradient(135deg, #e64d0b, #ff8a18); }
+.card-performance .metric-average { background: linear-gradient(135deg, #e99b13, #f5c94f); }
+
+.journey-progress {
+  margin-bottom: 12px;
+  padding: 11px 12px;
+  border: 1px solid #e9e3ee;
+  border-radius: 16px;
+  background: #fcf9ff;
+}
+
+.journey-progress > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  color: #39323f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.journey-progress > div strong {
+  color: var(--card-accent, #65558f);
+}
+
+.journey-progress .progress-track {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9e2eb;
+}
+
+.journey-progress .progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--card-accent, #65558f), color-mix(in srgb, var(--card-accent, #65558f) 55%, #ffcf5c));
+}
+
+.journey-progress > small {
+  display: block;
+  margin-top: 6px;
+  color: #77707c;
+  font-size: 9px;
+}
+
+@media (max-width: 720px) {
+  .insight-strip.general-statistics { grid-template-columns: 1fr 1fr; }
+  .general-statistics-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .general-statistics article:nth-child(2) { border-right: 0; }
+  .general-statistics article:nth-child(-n+2) { border-bottom: 1px solid #ebe5ed; }
+  .journey-card { min-height: 570px; }
+  .journey-cover { height: 130px; }
+}
+
+/* FAB — oculto no desktop */
+.hub-fab { display: none; }
+
+/* ── Mobile ≤ 560px: layout vertical, um card de cada vez ── */
+@media (max-width: 560px) {
+  /* Botão topo some — FAB assume */
+  .hub-create-top { display: none; }
+
+  /* FAB flutuante */
+  .hub-fab {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    width: 58px;
+    height: 58px;
+    border: 0;
+    border-radius: 18px;
+    background: #66558f;
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 50;
+    box-shadow: 0 6px 22px #39285e45, 0 2px 6px #39285e28;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .hub-fab:active { transform: scale(.93); box-shadow: 0 2px 8px #39285e30; }
+
+  /* Topbar compacto */
+  .hub-profile-name { display: none; }
+  .logout-button { padding: 0 11px; font-size: 0; gap: 0; }
+  .logout-button svg { width: 20px; height: 20px; }
+
+  /* Welcome */
+  .hub-welcome h1 { font-size: clamp(26px, 7.5vw, 34px); }
+  .hub-welcome p { font-size: 14px; }
+
+  /* Stats: 1 coluna em vez de 2 */
+  .insight-strip.general-statistics { grid-template-columns: 1fr; margin: 20px 0 28px; border-radius: 20px; }
+  .general-statistics article { border-right: 0; border-bottom: 1px solid #ebe5ed; }
+  .general-statistics article:last-child { border-bottom: 0; }
+  .general-statistics-heading { padding: 13px 14px 11px; }
+  .insight-strip article { padding: 13px 15px; gap: 11px; }
+  .insight-strip article strong { font-size: 20px; }
+  .insight-icon { width: 34px; height: 34px; border-radius: 11px; font-size: 15px; }
+
+  /* Carrossel centralizado: padding = (viewport - card) / 2
+     card = 100vw - 52px → padding = 26px cada lado
+     resultado: card centrado + 12px peek do próximo visível */
+  .journey-carousel {
+    padding: 4px 26px 22px;
+    gap: 14px;
+    scroll-padding-inline: 26px;
+  }
+  .journey-card, .journey-add-card {
+    flex: 0 0 calc(100vw - 52px);
+    min-height: 0;
+  }
+
+  /* Card — conteúdo mais compacto */
+  .journey-card { padding: 18px; }
+  .journey-cover { height: 105px; margin: 10px 0 8px; }
+  .card-performance { gap: 6px; margin: 8px 0 7px; }
+  .card-performance > div { min-height: 60px; padding: 8px 33px 8px 10px; }
+  .card-performance strong { font-size: 15px; }
+  .card-performance small { font-size: 9px; }
+  .journey-progress { padding: 9px 10px; margin-bottom: 8px; }
+  .journey-meta { padding: 10px 12px; margin-top: 10px; }
+  .open-journey { height: 40px; font-size: 13px; border-radius: 13px; }
+
+  /* Add card */
+  .journey-add-card { height: 180px; }
+  .add-orbit { width: 50px; height: 50px; font-size: 23px; border-radius: 16px; margin-bottom: 10px; }
+  .journey-add-card strong { font-size: 15px; }
+  .journey-add-card small { font-size: 12px; margin-top: 4px; }
+
+  /* Section heading */
+  .section-heading { margin-bottom: 12px; }
+  .section-heading h2 { font-size: 21px; }
+  .drag-tip { font-size: 10px; }
+}
+
+/* ── Muito pequeno ≤ 400px ── */
+@media (max-width: 400px) {
+  .hub-topbar { height: 60px; }
+  .hub-logo { width: 33px; height: 33px; border-radius: 11px; }
+  .hub-brand { font-size: 17px; gap: 8px; }
+  .hub-profile { height: 36px; padding: 0 9px 0 3px; }
+  .hub-avatar { width: 30px; height: 30px; font-size: 11px; }
+  .logout-button { height: 36px; padding: 0 9px; }
+  .logout-button svg { width: 18px; height: 18px; }
+  .insight-strip article strong { font-size: 18px; }
+  .journey-card, .journey-add-card { flex: 0 0 calc(100vw - 28px); }
+  .journey-carousel { padding-inline: 2px; gap: 10px; }
+  .journey-add-card { height: 160px; }
+}

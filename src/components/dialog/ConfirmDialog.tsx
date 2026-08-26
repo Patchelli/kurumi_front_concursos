@@ -1,0 +1,3 @@
+import { MaterialDialog } from './MaterialDialog';
+type Props={open:boolean;title:string;description:string;confirmLabel?:string;cancelLabel?:string;danger?:boolean;onConfirm():void;onClose():void};
+export function ConfirmDialog({open,title,description,confirmLabel='Confirmar',cancelLabel='Cancelar',danger,onConfirm,onClose}:Props){return <MaterialDialog open={open} title={title} description={description} icon={<span>!</span>} onClose={onClose} actions={<><button className="md-text-button" onClick={onClose}>{cancelLabel}</button><button className={danger?'md-danger-button':'md-filled-button'} onClick={onConfirm}>{confirmLabel}</button></>}/>}

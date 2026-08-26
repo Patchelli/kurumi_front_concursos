@@ -1,0 +1,33 @@
+.journey-syllabus>article{display:block;padding:0;border-bottom:1px solid #eee8ef}
+.journey-area-row,.journey-topic-row{display:grid;align-items:center;gap:10px;cursor:pointer}
+.syllabus-toggle{flex:none;width:22px;height:22px;border-radius:7px;background:#ede6f4;color:#66558f;display:grid;place-items:center;font-size:16px;font-weight:700;line-height:1;transition:background .15s,color .15s}
+.syllabus-toggle.open{background:#66558f;color:#fff}
+.syllabus-toggle.small{width:18px;height:18px;border-radius:6px;font-size:13px}
+.journey-area-row{grid-template-columns:24px 1fr auto 34px 34px;padding:16px 20px}
+.journey-topic-list{padding:4px 18px 14px 48px;background:#faf7fb}
+.journey-topic{border:1px solid #e3dce5;border-radius:13px;background:#fff;margin-top:8px;overflow:hidden}
+.journey-topic-row{grid-template-columns:20px 1fr auto 32px 32px;padding:11px}
+.journey-area-row>small,.journey-topic-row>small{color:#817986}
+.journey-area-row>strong,.journey-topic-row>strong{min-width:0;word-break:break-word;line-height:1.4}
+.journey-area-row>button,.journey-topic-row>button,.journey-topic li>button{border:0;background:transparent;cursor:pointer;font-size:18px;border-radius:9px}
+.journey-topic ul{list-style:none;margin:0;padding:6px 14px 10px 42px;background:#f7f2f8;border-top:1px solid #ebe4ed}
+.journey-topic li{display:flex;align-items:flex-start;gap:8px;padding:7px 0;font-size:13px;color:#5f5863}
+.journey-topic li>span:nth-child(2){flex:1;min-width:0;word-break:break-word;line-height:1.4}
+.journey-syllabus .syllabus-delete{color:#9b3445}
+.journey-syllabus .syllabus-delete:hover{background:#fbe9ed}
+.journey-syllabus .topic-empty{padding:14px;color:#817986}
+@media(max-width:768px){
+  /* Grid: chevron | título | contagem | delete (remove coluna do ＋ inline) */
+  .journey-area-row{grid-template-columns:22px 1fr auto 34px;padding:14px 16px;gap:8px}
+  .journey-topic-row{grid-template-columns:18px 1fr auto 30px;gap:8px}
+  /* Restaura contagem de tópicos/subtópicos */
+  .journey-area-row>small,.journey-topic-row>small{display:block;font-size:11px;white-space:nowrap}
+  /* Esconde o botão ＋ inline (add tópico/subtópico), mantém o ⌫ */
+  .journey-area-row>button:not(.syllabus-delete),.journey-topic-row>button:not(.syllabus-delete){display:none}
+  .journey-topic-list{padding-left:14px}
+  .journey-topic{border-radius:10px}
+  .journey-topic-row{padding:10px}
+  /* Subtópico: manter ⌫ visível */
+  .journey-topic li{padding:6px 0;font-size:12px}
+  .journey-topic li>button{font-size:15px}
+}

@@ -1,0 +1,4 @@
+.journey-dashboard{height:100vh;min-height:0;overflow:hidden}
+.journey-dashboard>aside{position:relative;top:auto;height:100vh;overflow:hidden}
+.journey-dashboard>section{height:100vh;min-width:0;overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:600px){.journey-dashboard{height:100vh;display:block;overflow:hidden}.journey-dashboard>section{height:100vh;overflow-y:auto}}

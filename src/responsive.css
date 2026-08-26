@@ -1,0 +1,201 @@
+/* Breakpoints compartilhados: desktop, tablet e telefone. */
+.contest-dashboard-preview.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+.contest-dashboard-preview > aside { transition: width .2s ease; }
+.contest-drawer-body { min-height: 0; }
+.contest-form-stage { min-width: 0; padding-bottom: 56px; }
+.contest-live-preview { min-width: 0; padding-bottom: 56px; }
+.contest-live-preview::after { display: none; }
+.contest-drawer-actions { position: relative; z-index: 2; flex: none; background: #fcf9fd; }
+.sidebar-toggle { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; height: 44px!important; padding: 0 12px!important; border: 1px solid #554761!important; border-radius: 14px!important; background: #382e44!important; color: #ded3e5!important; font-size: 16px; cursor: pointer; }
+.sidebar-toggle span { font-size: 11px; font-weight: 800; }
+.sidebar-collapsed .dashboard-brand strong,
+.sidebar-collapsed > aside > button:not(.sidebar-toggle) span,
+.sidebar-collapsed .dashboard-contest-mini div { display: none; }
+.sidebar-collapsed .sidebar-toggle span { display: none; }
+.sidebar-collapsed .dashboard-contest-mini { padding: 5px; }
+.sidebar-collapsed .sidebar-toggle { padding: 0!important; }
+.sidebar-collapsed > aside > button:not(.sidebar-toggle) { padding: 0; text-align: center; font-size: 18px; }
+
+@media (max-width: 1024px) {
+  .hub-content { padding-inline: 28px; }
+  .insight-strip.general-statistics { grid-template-columns: repeat(2, 1fr); }
+  .general-statistics article:nth-of-type(2) { border-right: 0; }
+  .general-statistics article:nth-of-type(-n+2) { border-bottom: 1px solid #ebe5ed; }
+  .contest-creation-drawer { width: min(920px, 96vw); }
+  .contest-drawer-body { grid-template-columns: minmax(0, 1fr) 280px; }
+  .contest-form-stage { padding-inline: 30px; }
+}
+
+@media (max-width: 760px) {
+  /* Listagem de matérias (syllabus-review) */
+  .syllabus-review li { gap: 8px; padding: 14px 13px; align-items: flex-start; flex-wrap: wrap; }
+  .syllabus-review li > div { flex: 1; min-width: 0; }
+  .syllabus-review li .topic-count { display: none; }
+  .syllabus-review li > .area-order { padding-top: 2px; }
+  .syllabus-review li > button { width: 32px; height: 32px; flex: none; }
+  /* Tree areas */
+  .tree-area { padding: 14px 13px; gap: 10px; min-height: 52px; }
+  .tree-area > div strong { font-size: 14px; }
+  .tree-area > div small { font-size: 11px; }
+  .sidebar-toggle { display: none; }
+  .hub-topbar { height: 66px; padding-inline: 18px; }
+  .hub-content { padding: 30px 16px 52px; }
+  .hub-welcome { align-items: stretch; flex-direction: column; gap: 20px; }
+  .hub-welcome h1 { font-size: 38px; }
+  .hub-create { justify-content: center; width: 100%; }
+  .general-statistics-heading { padding: 16px; }
+  .insight-strip article { padding: 15px; }
+  .journey-tools { flex-wrap: wrap; }
+  .journey-card, .journey-add-card { flex-basis: min(340px, calc(100vw - 38px)); }
+  .journey-card { min-height: 0; }
+  .contest-creation-drawer { width: 100%; height: 100dvh; }
+  .contest-drawer-header { flex: 0 0 72px; height: 72px; padding-inline: 18px; }
+  .contest-drawer-header h2 { font-size: 22px; }
+  .contest-stepper { flex: none; scrollbar-width: none; }
+  .contest-stepper::-webkit-scrollbar { display: none; }
+  .contest-drawer-body { display: block; overscroll-behavior: contain; }
+  .contest-form-stage { min-width: 0; padding: 26px 18px 42px; overflow-x: hidden; }
+  .contest-form-stage > h3 { font-size: 29px; }
+  .contest-kind-grid button, .planning-options button { min-height: 132px; padding: 19px; }
+  .contest-kind-grid button > span { margin-bottom: 14px; }
+  .image-field > div { height: auto; min-height: 88px; flex-wrap: wrap; }
+  .image-button { flex: 1; min-width: 145px; }
+  .contest-drawer-actions { flex: none; min-height: 74px; height: auto; padding: 11px 16px max(11px, env(safe-area-inset-bottom)); background: #fcf9fd; }
+  .contest-drawer-actions .filled-button { flex: 1; }
+  .contest-summary { padding: 18px; }
+  .contest-summary dl { grid-template-columns: 1fr; }
+  .material-dialog { width: calc(100vw - 28px); max-height: calc(100dvh - 28px); overflow: auto; }
+  .contest-subject-tree { width: 100%; max-width: 100%; }
+  .contest-subject-tree > header { gap: 10px; }
+  .contest-subject-tree > header > div { min-width: 0; }
+  .contest-subject-tree > header strong,
+  .contest-subject-tree > header small { overflow-wrap: anywhere; }
+  .subject-row { min-width: 0; padding-inline: 12px; }
+  .subject-row > div { min-width: 0; }
+  .subject-row > div strong { overflow-wrap: anywhere; }
+  .subject-icon, .chevron { flex: none; }
+  .subject-content { min-width: 0; padding: 10px 10px 14px; }
+  .topic-node > button { min-width: 0; gap: 7px; }
+  .topic-node > button > strong { min-width: 0; overflow-wrap: anywhere; }
+  .subtopic-panel { min-width: 0; padding: 7px 9px 12px; }
+  .subtopic-panel li { min-width: 0; overflow-wrap: anywhere; }
+  .inline-node-add { width: 100%; min-width: 0; }
+  .inline-node-add input { width: 0; min-width: 0; }
+  .contest-json-import { width: 100%; max-width: 100%; }
+  .contest-json-import textarea { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .hub-topbar { padding-inline: 16px; }
+  .hub-brand > span:last-child { font-size: 18px; }
+  .insight-strip.general-statistics { grid-template-columns: 1fr; }
+  .general-statistics article { border-right: 0; border-bottom: 1px solid #ebe5ed; }
+  .general-statistics article:last-child { border-bottom: 0; }
+  .general-statistics-heading p { line-height: 1.4; }
+  .card-performance { grid-template-columns: 1fr 1fr; }
+  .card-performance > div { min-height: 78px; padding-right: 34px; }
+  .summary-content-counts { gap: 5px; }
+  .summary-content-counts article { padding: 10px 7px; }
+  .confirmation-details dl { flex-wrap: wrap; }
+  .contest-drawer-actions > button { min-width: 88px; padding-inline: 10px; }
+  .contest-dashboard-preview h1 { font-size: 34px; }
+  .dashboard-metrics { gap: 8px; }
+  .dashboard-metrics article { padding: 14px 10px; }
+  .dashboard-metrics strong { font-size: 20px; }
+  .dashboard-subjects > header { align-items: flex-start; gap: 12px; }
+  .subject-row > div small { white-space: normal; }
+  /* Listagem de matérias muito pequena */
+  .syllabus-review li { padding: 10px 11px; gap: 6px; }
+  .syllabus-review li .area-order { display: none; }
+  /* Tree do workspace */
+  .tree-area { gap: 6px; padding: 10px 11px; }
+  .tree-area > div strong { font-size: 13px; }
+}
+
+@media (max-width: 400px) {
+  .hub-content { padding: 22px 14px 48px; }
+  .hub-welcome h1 { font-size: 26px; }
+  .contest-drawer-header { padding-inline: 14px; }
+  .contest-form-stage { padding: 20px 14px 36px; }
+  .contest-form-stage > h3 { font-size: 25px; }
+  .contest-kind-grid button, .planning-options button { padding: 15px; min-height: 115px; }
+  .registration-content { width: calc(100% - 20px); }
+  .step-body h1 { font-size: 26px; }
+}
+
+/* Dashboard da jornada: contenção e leitura em telas pequenas */
+@media (max-width: 768px) {
+  .jd-shell,.jd-main,.jd-center,.jd-insights-row,.jd-card,.jd-ring-card,.jd-subject-card,.jd-flashcards-section,.jd-errors-grid,.jd-edital-card,.jd-losses-full { min-width: 0; max-width: 100%; }
+  .jd-topbar-left,.jd-topbar-right,.jd-card-header>div,.jd-subject-card-header>div { min-width: 0; }
+  .jd-topbar { align-items: flex-start; }
+  .jd-topbar { position: relative; padding-top: 62px; }
+  .jd-topbar-left { width: 100%; }
+  .jd-topbar-left h1 { font-size: 23px; line-height: 1.15; }
+  .jd-topbar-left p { margin-top: 5px; line-height: 1.45; }
+  .jd-topbar-left h1,.jd-topbar-left p { overflow-wrap: anywhere; }
+  .jd-topbar-right { width: 100%; height: 0; justify-content: space-between; }
+  .jd-topbar-right .jd-back-link { position: absolute; top: 16px; left: 16px; }
+  .jd-topbar-right .jd-period-filters { position: absolute; top: 16px; right: 16px; margin: 0; }
+  .jd-period-filters { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .jd-period-filters::-webkit-scrollbar { display: none; }
+  .jd-card-header,.jd-subject-card-header { flex-wrap: wrap; align-items: flex-start; }
+  .jd-card-header h3,.jd-subject-card-header h3 { min-width: 0; overflow-wrap: anywhere; }
+  .jd-card-header small,.jd-subject-card-header small { text-align: left; overflow-wrap: anywhere; }
+  .jd-chart-header-actions { max-width: 100%; flex-wrap: wrap; justify-content: flex-start; }
+  .jd-chart-period { flex: none; }
+  .jd-stats-strip { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .jd-stat-pill { min-width: 0; padding: 11px; gap: 8px; }
+  .jd-stat-pill-icon { width: 32px; height: 32px; }
+  .jd-stat-pill-val { font-size: 17px; }
+  .jd-stat-pill-lbl { white-space: normal; line-height: 1.25; }
+  .jd-evol-chart,.jd-weekday-chart { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+  .jd-flashcards-heading { align-items: flex-start; }
+  .jd-flashcards-heading h2 { overflow-wrap: anywhere; }
+  .jd-flashcards-grid .jd-card-header { position: relative; padding-right: 42px; }
+  .jd-flashcards-grid .jd-card-header > .jd-collapse-button { position: absolute; top: 0; right: 0; }
+  .jd-flashcards-grid .jd-card-header > h3 { max-width: 100%; }
+  .jd-flashcards-grid .jd-card-header > small { width: 100%; padding-right: 0; }
+  .jd-flashcards-total { min-width: 104px; padding: 9px 10px; }
+  .jd-flashcard-row span,.jd-difficulty-row span,.jd-effort-name,.jd-loss-name { min-width: 0; }
+  .jd-difficulty-grid > section,.jd-difficulty-list,.jd-difficulty-row,.jd-difficulty-row > div:first-child { min-width: 0; max-width: 100%; }
+  .jd-difficulty-row > div:first-child { align-items: flex-start; }
+  .jd-difficulty-row span { flex: 1; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+  .jd-difficulty-row strong { flex: none; min-width: 38px; text-align: right; }
+  .jd-discipline-metrics { width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+  .jd-discipline-columns,.jd-discipline-metric-row { min-width: 390px; grid-template-columns: minmax(160px,1fr) 58px 68px 54px; gap: 7px; }
+  .jd-error-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+  .jd-error-table { min-width: 660px; }
+  .jd-edital-area-header { min-width: 0; padding-inline: 11px; gap: 7px; }
+  .jd-edital-card > .jd-card-header { position: relative; padding-right: 42px; }
+  .jd-edital-card > .jd-card-header > .jd-collapse-button { position: absolute; top: 0; right: 0; }
+  .jd-edital-card > .jd-card-header > div:first-child,
+  .jd-edital-card > .jd-card-header > .jd-domain-legend { max-width: 100%; }
+  .jd-discipline-overview-card > .jd-subject-card-header { position: relative; padding-right: 42px!important; }
+  .jd-discipline-overview-card > .jd-subject-card-header > .jd-collapse-button { position: absolute; top: 0; right: 0; }
+  .jd-discipline-overview-card > .jd-subject-card-header > div:first-child { width: 100%; max-width: 100%; }
+  .jd-edital-area-name { white-space: normal; overflow-wrap: anywhere; }
+  .jd-edital-area-count { display: none; }
+  .jd-losses-full { width: auto; }
+  .jd-loss-row { grid-template-columns: 25px minmax(0,1fr) 42px; padding-inline: 7px; }
+  .jd-loss-name { white-space: normal; overflow-wrap: anywhere; }
+  .journey-mobile-nav { max-width: 100vw; overflow: hidden; }
+  .journey-mobile-nav button { min-width: 0; }
+  .journey-mobile-nav button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+}
+
+@media (max-width: 420px) {
+  .jd-topbar-right { align-items: stretch; flex-direction: column; }
+  .jd-back-link { width: fit-content; }
+  .jd-stats-strip { gap: 6px; }
+  .jd-stat-pill { align-items: flex-start; flex-direction: column; min-height: 92px; }
+  .jd-today-strip { margin-inline: 10px; }
+  .jd-center,.jd-insights-row { padding-inline: 10px; }
+  .jd-flashcards-section,.jd-difficulty-card,.jd-errors-grid,.jd-edital-card,.jd-losses-full { margin-inline: 10px; }
+  .jd-card,.jd-ring-card { border-radius: 15px; }
+  .jd-card-header { gap: 8px; }
+  .jd-chart-header-actions { width: 100%; }
+  .jd-chart-header-actions .jd-collapse-button { margin-left: auto; }
+  .jd-difficulty-card .jd-card-header>div { width: calc(100% - 38px); }
+  .jd-flashcards-heading { flex-direction: column; }
+  .jd-flashcards-total { width: 100%; align-items: flex-start; }
+}
