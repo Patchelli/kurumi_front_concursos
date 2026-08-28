@@ -24,7 +24,7 @@ export function RegisterController() {
     setLoading(true);
     setError('');
     try {
-      const authentication = await authenticationService.register({ name: name.trim(), email: email.trim(), password });
+      const authentication = await authenticationService.register({ personalData: { fullName: name.trim() }, email: email.trim(), password });
       saveAuthentication(authentication);
       navigate('/', { replace: true });
     } catch (requestError) {
