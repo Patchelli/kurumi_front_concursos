@@ -59,7 +59,6 @@
 .hub-journeys-panel>header>div{display:flex;flex-direction:column}
 .hub-journeys-panel>header h2{margin:3px 0 0;font-size:20px;letter-spacing:-.025em}
 .hub-journeys-panel .search-field{width:min(230px,42vw);height:38px}
-.hub-journeys-panel .journey-loading{min-height:180px;display:flex;align-items:center;justify-content:center}
 .hub-journeys-panel .hub-error{margin:14px 20px 0}
 
 /* Journey rows */

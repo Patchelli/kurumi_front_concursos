@@ -1,3 +1,14 @@
-import React from 'react'; import ReactDOM from 'react-dom/client'; import { BrowserRouter } from 'react-router-dom'; import { Toaster } from 'sonner'; import App from './App'; import './styles.css'; import './journey-overrides.css'; import './contest-creation.css'; import './contest-dashboard.css'; import './journey-fixed-layout.css'; import './journey-syllabus.css'; import './contest-json.css'; import './contest-subject-tree.css'; import './contest-subject-actions.css'; import './contest-confirmation.css'; import './central-overrides.css'; import './material-dialog.css'; import './home-card-progress.css'; import './home-dashboard.css'; import './journey-dashboard-redesign.css'; import './responsive.css'; import {configureAxios} from '../@libs/axios/axios.intercept';
+import React from 'react'; import ReactDOM from 'react-dom/client'; import { BrowserRouter } from 'react-router-dom'; import { Toaster } from 'sonner'; import App from './App'; import './styles/base/global.css'; import './styles/journey/overrides.css'; import './styles/contest/creation.css'; import './styles/contest/dashboard.css'; import './styles/journey/fixed-layout.css'; import './styles/journey/syllabus.css'; import './styles/contest/json-import.css'; import './styles/contest/subject-tree.css'; import './styles/contest/subject-actions.css'; import './styles/contest/confirmation.css'; import './styles/components/central-overrides.css'; import './styles/components/material-dialog.css'; import './styles/home/card-progress.css'; import './styles/home/dashboard.css'; import './styles/journey/dashboard.css'; import './styles/base/responsive.css'; import {configureAxios} from '../@libs/axios/axios.intercept';
+import './styles/study-plan.css';
+import './styles/study-topic-dialog.css';
+import './styles/subject.css';
+import './styles/components/study-loading.css';
+import './styles/components/flashcard-creator.css';
+import './styles/capsule.css';
+import './styles/calendar.css';
+import './styles/simulados.css';
+import { CapsuleDeliveryProvider } from './pages/private/capsule/CapsuleDelivery.context';
+import { CapsuleDeliveryPopup } from './pages/private/capsule/Capsule.widgets';
+import { PomodoroProvider } from './components/fab/Pomodoro.context';
 configureAxios();
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><BrowserRouter><App/><Toaster position="top-right" richColors /></BrowserRouter></React.StrictMode>);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><BrowserRouter><PomodoroProvider><CapsuleDeliveryProvider><App/><CapsuleDeliveryPopup /><Toaster position="top-right" richColors closeButton /></CapsuleDeliveryProvider></PomodoroProvider></BrowserRouter></React.StrictMode>);

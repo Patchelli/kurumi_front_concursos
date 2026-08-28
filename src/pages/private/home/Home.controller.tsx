@@ -30,15 +30,18 @@ export function HomeController() {
   }, [journeys, query]);
 
   useEffect(() => {
-    journeyService.findAll().then(setJourneys)
-      .catch(requestError => setError(getRequestErrorMessage(requestError, 'Não foi possível carregar seus concursos.')))
-      .finally(() => setLoading(false));
+    let active = true;
+    journeyService.findAll().then(data => { if (active) setJourneys(data); })
+      .catch(requestError => { if (active) setError(getRequestErrorMessage(requestError, 'Não foi possível carregar seus concursos.')); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   async function createContest(request: SaveJourneyStructureRequest) {
     setError('');
-    await journeyService.register(request);
-    setJourneys(await journeyService.findAll());
+    const created = await journeyService.register(request);
+    navigate(`/jornadas/${created.id}`);
+    return created.id;
   }
 
   async function updateContest(request: SaveJourneyStructureRequest) {
@@ -63,7 +66,7 @@ export function HomeController() {
       node.scrollLeft = drag.current.scrollLeft - distance * 1.15;
     }
   }
-  async function removeContest(id: string) {
+  async function removeContest(id: number) {
     setError('');
     try {
       await journeyService.remove(id);

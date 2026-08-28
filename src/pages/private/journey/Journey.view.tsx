@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { EJourneyStage } from '../../../../@business/enum/EJourneyStage';
+import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { JourneyViewProps } from './Journey.type';
+import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { journeyTokens } from './Journey.tokens';
 
 type DisciplineSort = 'discipline' | 'study' | 'coverage' | 'accuracy';
@@ -108,9 +110,9 @@ export function JourneyView(props: JourneyViewProps) {
   const [retentionPeriod, setRetentionPeriod] = useState<'4'|'8'>('8');
   const [disciplineSort, setDisciplineSort] = useState<{ key: DisciplineSort; direction: 'asc'|'desc' }>({ key: 'accuracy', direction: 'desc' });
   const [errorSort, setErrorSort] = useState<{ key: ErrorSort; direction: 'asc'|'desc' }>({ key: 'errors', direction: 'desc' });
-  const [openArea, setOpenArea] = useState<string | null>(null);
+  const [openArea, setOpenArea] = useState<number | null>(null);
 
-  if (loading) return <main className="journey-entry"><p>Carregando…</p></main>;
+  if (loading) return <StudyLoading label="Buscando os dados do concurso…" />;
   if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
 
   const totalTopics = journey.knowledgeAreas.reduce((t, a) => t + a.nodes.length, 0);
@@ -180,19 +182,19 @@ export function JourneyView(props: JourneyViewProps) {
             <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             <span>Visão geral</span>
           </button>
-          <button>
+          <button onClick={props.onOpenStudyPlan}>
             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
             <span>Plano de estudos</span>
           </button>
-          <button>
-            <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Revisões</span>
-          </button>
-          <button>
+          <button onClick={props.onOpenSimulados}>
             <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             <span>Simulados</span>
           </button>
-          <button>
+          <button onClick={props.onOpenCapsule}>
+            <svg viewBox="0 0 24 24"><path d="M5 2h14M5 22h14M7 2v6l5 4-5 4v6M17 2v6l-5 4 5 4v6"/></svg>
+            <span>Cápsula</span>
+          </button>
+          <button onClick={props.onOpenContent}>
             <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
             <span>Conteúdo</span>
           </button>
@@ -640,18 +642,14 @@ export function JourneyView(props: JourneyViewProps) {
 
       </main>
 
-      <div className="jd-floating-actions" aria-label="Ações rápidas">
-        <button className="jd-fab-action flashcard" type="button" title="Novo flashcard" aria-label="Novo flashcard" onClick={props.onCreateFlashcard}><span aria-hidden="true">＋</span><strong>Novo flashcard</strong></button>
-        <button className="jd-fab-action pomodoro" type="button" title="Pomodoro" aria-label="Pomodoro" onClick={props.onOpenPomodoro}><span aria-hidden="true">◷</span><strong>Pomodoro</strong></button>
-      </div>
+      <ContestFAB areas={journey.knowledgeAreas} />
 
       {/* Mobile nav */}
       <nav className="journey-mobile-nav">
         <button className="active">◎<span>Visão geral</span></button>
-        <button>◷<span>Plano</span></button>
-        <button>✓<span>Revisões</span></button>
-        <button>▤<span>Simulados</span></button>
-        <button>☰<span>Conteúdo</span></button>
+        <button onClick={props.onOpenStudyPlan}>◷<span>Plano</span></button>
+        <button onClick={props.onOpenCapsule}>✉<span>Cápsula</span></button>
+        <button onClick={props.onOpenContent}>☰<span>Conteúdo</span></button>
       </nav>
     </div>
   );

@@ -6,7 +6,7 @@ class AxiosDomain {
   constructor(private readonly baseURL: string, private readonly headers: Headers) {}
 
   initInstance(): AxiosInstance {
-    return axios.create({ baseURL: this.baseURL, headers: this.headers });
+    return axios.create({ baseURL: this.baseURL, headers: this.headers, timeout: 15_000 });
   }
 }
 

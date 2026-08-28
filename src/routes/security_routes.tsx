@@ -20,9 +20,17 @@ export function PrivateRoute({ children }: { children: ReactNode }) {
     };
 
     const expiration = getTokenExpiration(token);
-    const timeout = expiration === null
-      ? undefined
-      : window.setTimeout(updateToken, Math.max(0, expiration - Date.now()));
+    let timeout: number | undefined;
+    const scheduleExpirationCheck = () => {
+      if (expiration === null) return;
+      const remaining = expiration - Date.now();
+      timeout = window.setTimeout(() => {
+        const nextToken = getAccessToken();
+        setToken(nextToken);
+        if (nextToken === token) scheduleExpirationCheck();
+      }, Math.max(0, Math.min(remaining, 2_147_000_000)));
+    };
+    scheduleExpirationCheck();
 
     return () => {
       if (timeout !== undefined) window.clearTimeout(timeout);

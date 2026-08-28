@@ -16,7 +16,7 @@ export function InputDialog({ open, title, description, placeholder, maxLength =
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (open) { setValue(''); setTimeout(() => inputRef.current?.focus(), 80); } }, [open]);
+  useEffect(() => { if (!open) return; setValue(''); const timer = window.setTimeout(() => inputRef.current?.focus(), 80); return () => window.clearTimeout(timer); }, [open]);
 
   const handleConfirm = () => {
     const trimmed = value.trim();

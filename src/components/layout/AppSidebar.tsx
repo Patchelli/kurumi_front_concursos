@@ -5,7 +5,7 @@ type AppSidebarProps = { firstName: string; onLogout(): void };
 
 const menuItems = [
   { label: 'Jornadas', route: '/', icon: '▤', enabled: true },
-  { label: 'Agenda', route: '/agenda', icon: '□', enabled: false },
+  { label: 'Calendário', route: '/calendario', icon: '□', enabled: true },
   { label: 'Desempenho', route: '/desempenho', icon: '⌁', enabled: false },
 ] as const;
 

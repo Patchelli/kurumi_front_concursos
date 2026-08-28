@@ -1,6 +1,6 @@
 import type { AuthenticationResponse } from '../../@business/dto/response/authentication.response';
 
-const accessTokenKey = 'kurumi_concursos_access_token';
+const accessTokenKey = 'kurumi_concursos_access_token_v2';
 const userKey = 'kurumi_concursos_user';
 export const authenticationChangedEvent = 'kurumi-authentication-changed';
 

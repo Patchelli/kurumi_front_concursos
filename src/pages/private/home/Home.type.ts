@@ -28,14 +28,14 @@ export type HomeViewProps = {
   onOpenCreation(): void;
   onCloseCreation(): void;
   onFormChange(field: keyof JourneyForm, value: string | EJourneyStage): void;
-  onCreate(request: SaveJourneyStructureRequest): Promise<void>;
-  onRemove(id: string): void;
+  onCreate(request: SaveJourneyStructureRequest): Promise<number>;
+  onRemove(id: number): void;
   onRequestRemove(contest: JourneySummaryResponse): void;
   onCancelRemove(): void;
   onRequestEdit(contest: JourneySummaryResponse): void;
   onCancelEdit(): void;
   onSaveEdit(request: SaveJourneyStructureRequest): Promise<void>;
-  onOpenJourney(id: string): void;
+  onOpenJourney(id: number): void;
   onScroll(direction: number): void;
   onPointerDown(event: React.PointerEvent<HTMLDivElement>): void;
   onPointerMove(event: React.PointerEvent<HTMLDivElement>): void;

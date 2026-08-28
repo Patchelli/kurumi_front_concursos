@@ -1,7 +1,7 @@
 import type { EJourneyStage } from '../../enum/EJourneyStage';
 
 export type SaveJourneyRequest = {
-  id?: string | null;
+  id?: number | null;
   title: string;
   institution?: string | null;
   examBoard?: string | null;
@@ -33,8 +33,8 @@ export type SaveJourneyStructureRequest = {
 };
 
 export type SaveKnowledgeAreaRequest = {
-  id?: string | null;
-  journeyId: string;
+  id?: number | null;
+  journeyId: number;
   title: string;
   order: number;
   weight?: number | null;
@@ -42,9 +42,9 @@ export type SaveKnowledgeAreaRequest = {
 };
 
 export type SaveSyllabusNodeRequest = {
-  id?: string | null;
-  knowledgeAreaId: string;
-  parentId?: string | null;
+  id?: number | null;
+  knowledgeAreaId: number;
+  parentId?: number | null;
   title: string;
   order: number;
 };

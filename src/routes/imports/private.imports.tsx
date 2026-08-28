@@ -1,4 +1,10 @@
 import { lazy } from 'react';
 export const Home = lazy(() => import('../../pages/private/home/Home'));
 export const Journey = lazy(() => import('../../pages/private/journey/Journey'));
+export const StudyPlan = lazy(() => import('../../pages/private/studyPlan/StudyPlan'));
 export const JourneyRegistration = lazy(() => import('../../pages/private/journeyRegistration/JourneyRegistration'));
+export const SubjectList = lazy(() => import('../../pages/private/subject/Subject'));
+export const SubjectDetail = lazy(() => import('../../pages/private/subject/SubjectDetail'));
+export const Capsule = lazy(() => import('../../pages/private/capsule/Capsule'));
+export const Calendar = lazy(() => import('../../pages/private/calendar/Calendar'));
+export const Simulados = lazy(() => import('../../pages/private/simulados/Simulados'));

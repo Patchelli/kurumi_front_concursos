@@ -1,7 +1,7 @@
 import type { EJourneyStage } from '../../enum/EJourneyStage';
 
 export type JourneySummaryResponse = {
-  id: string;
+  id: number;
   title: string;
   institution?: string | null;
   position?: string | null;
@@ -26,7 +26,7 @@ export type JourneyDetailsResponse = Omit<JourneySummaryResponse, 'knowledgeArea
 };
 
 export type KnowledgeAreaResponse = {
-  id: string;
+  id: number;
   title: string;
   order: number;
   weight?: number | null;
@@ -35,8 +35,8 @@ export type KnowledgeAreaResponse = {
 };
 
 export type SyllabusNodeResponse = {
-  id: string;
-  parentId?: string | null;
+  id: number;
+  parentId?: number | null;
   title: string;
   order: number;
   progress: number;

@@ -6,6 +6,7 @@ import { journeyService } from '../../../../@business/service/Journey.service';
 import { ConfirmDialog } from '../../../components/dialog/ConfirmDialog';
 import { InputDialog } from '../../../components/dialog/InputDialog';
 import { JourneyView } from './Journey.view';
+import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 
 type InputState = { title: string; description?: string; placeholder: string; maxLength: number; onConfirm(value: string): void };
 type ConfirmState = { title: string; description: string; onConfirm(): void };
@@ -18,10 +19,24 @@ export function JourneyController() {
   const [inputDialog, setInputDialog] = useState<InputState | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmState | null>(null);
 
-  const load = async () => { if (id) setJourney(await journeyService.findById(id)); };
-  useEffect(() => { load().finally(() => setLoading(false)); }, [id]);
+  const journeyId = Number(id);
+  const validJourneyId = Number.isSafeInteger(journeyId) && journeyId > 0;
+  const load = async () => { if (!validJourneyId) return; setJourney(await journeyService.findById(journeyId)); };
+  useEffect(() => {
+    if (!validJourneyId) { setJourney(null); setLoading(false); return; }
+    let active = true;
+    setLoading(true);
+    journeyService.findById(journeyId)
+      .then(data => { if (active) setJourney(data); })
+      .catch(error => { if (active) { setJourney(null); toast.error(getRequestErrorMessage(error, 'Não foi possível carregar o concurso.')); } })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [journeyId, validJourneyId]);
 
-  const mutate = async (operation: () => Promise<unknown>, successMsg?: string) => { await operation(); await load(); if (successMsg) toast.success(successMsg); };
+  const mutate = async (operation: () => Promise<unknown>, successMsg?: string) => {
+    try { await operation(); await load(); if (successMsg) toast.success(successMsg); }
+    catch (error) { toast.error(getRequestErrorMessage(error, 'Não foi possível concluir a operação.')); }
+  };
 
   return (
     <>
@@ -29,12 +44,13 @@ export function JourneyController() {
         journey={journey}
         loading={loading}
         onBack={() => navigate('/')}
+        onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
         onAddArea={() => setInputDialog({
           title: 'Nova matéria',
           description: 'Adicione uma disciplina ao edital deste concurso.',
           placeholder: 'Ex: Direito Constitucional, Português…',
           maxLength: 180,
-          onConfirm: title => { if (id) void mutate(() => journeyService.addArea({ id: null, journeyId: id, title, order: journey?.knowledgeAreas.length ?? 0, weight: null, expectedQuestions: null }), 'Matéria adicionada com sucesso!'); },
+          onConfirm: title => { if (id) void mutate(() => journeyService.addArea({ id: null, journeyId: Number(id), title, order: journey?.knowledgeAreas.length ?? 0, weight: null, expectedQuestions: null }), 'Matéria adicionada com sucesso!'); },
         })}
         onRemoveArea={areaId => {
           const area = journey?.knowledgeAreas.find(a => a.id === areaId);
@@ -68,6 +84,9 @@ export function JourneyController() {
         }}
         onCreateFlashcard={() => toast.info('A criação de flashcards ainda será conectada ao backend.')}
         onOpenPomodoro={() => toast.info('O temporizador Pomodoro ainda será implementado.')}
+        onOpenContent={() => navigate(`/jornadas/${id}/materias`)}
+        onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)}
+        onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)}
       />
       <InputDialog
         open={Boolean(inputDialog)}
