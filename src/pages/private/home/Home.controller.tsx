@@ -39,6 +39,7 @@ export function HomeController() {
 
   async function createContest(request: SaveJourneyStructureRequest) {
     setError('');
+    if (request.journey.id != null) throw new Error('Uma jornada existente não pode ser cadastrada novamente.');
     const created = await journeyService.register(request);
     navigate(`/jornadas/${created.id}`);
     return created.id;
@@ -46,6 +47,7 @@ export function HomeController() {
 
   async function updateContest(request: SaveJourneyStructureRequest) {
     setError('');
+    if (!editingContest || request.journey.id !== editingContest.id) throw new Error('Não foi possível identificar a jornada que será editada.');
     const updated = await journeyService.update(request);
     if (!updated) throw new Error('Não foi possível atualizar o concurso.');
     setJourneys(await journeyService.findAll());
