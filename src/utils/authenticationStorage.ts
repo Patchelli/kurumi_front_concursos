@@ -2,6 +2,7 @@ import type { AuthenticationResponse } from '../../@business/dto/response/authen
 
 const accessTokenKey = 'kurumi_concursos_access_token_v2';
 const userKey = 'kurumi_concursos_user';
+const rolesKey = 'kurumi_concursos_roles';
 export const authenticationChangedEvent = 'kurumi-authentication-changed';
 
 type JwtPayload = {
@@ -61,8 +62,22 @@ export function getAccessToken() {
   return token;
 }
 
+export function saveUserRoles(roles: string[]) {
+  localStorage.setItem(rolesKey, JSON.stringify(roles));
+}
+
+export function getCachedRoles(): string[] | null {
+  try {
+    const stored = localStorage.getItem(rolesKey);
+    return stored ? (JSON.parse(stored) as string[]) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function clearAuthentication() {
   localStorage.removeItem(accessTokenKey);
   localStorage.removeItem(userKey);
+  localStorage.removeItem(rolesKey);
   window.dispatchEvent(new Event(authenticationChangedEvent));
 }

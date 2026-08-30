@@ -57,13 +57,15 @@ export function HomeController() {
     const node = carouselRef.current;
     if (!node || (event.target as HTMLElement).closest('button,a')) return;
     drag.current = { active: true, moved: false, startX: event.clientX, scrollLeft: node.scrollLeft };
-    node.setPointerCapture(event.pointerId);
   }
   function pointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const node = carouselRef.current;
     if (node && drag.current.active) {
       const distance = event.clientX - drag.current.startX;
-      if (Math.abs(distance) > 6) drag.current.moved = true;
+      if (Math.abs(distance) > 6) {
+        drag.current.moved = true;
+        if (!node.hasPointerCapture(event.pointerId)) node.setPointerCapture(event.pointerId);
+      }
       node.scrollLeft = drag.current.scrollLeft - distance * 1.15;
     }
   }
@@ -87,7 +89,7 @@ export function HomeController() {
     onRemove={removeContest} onRequestRemove={setRemovingContest} onCancelRemove={() => setRemovingContest(null)}
     onRequestEdit={setEditingContest} onCancelEdit={() => setEditingContest(null)}
     onSaveEdit={updateContest}
-    onOpenJourney={id => navigate(`/jornadas/${id}`)}
+    onOpenJourney={id => { if (!drag.current.moved) navigate(`/jornadas/${id}`); }}
     onScroll={direction => carouselRef.current?.scrollBy({ left: direction * 370, behavior: 'smooth' })}
     onPointerDown={pointerDown} onPointerMove={pointerMove}
     onPointerUp={() => { drag.current.active = false; setTimeout(() => { drag.current.moved = false; }, 0); }}

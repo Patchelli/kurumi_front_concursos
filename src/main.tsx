@@ -7,6 +7,7 @@ import './styles/components/flashcard-creator.css';
 import './styles/capsule.css';
 import './styles/calendar.css';
 import './styles/simulados.css';
+import './styles/admin.css';
 import { CapsuleDeliveryProvider } from './pages/private/capsule/CapsuleDelivery.context';
 import { CapsuleDeliveryPopup } from './pages/private/capsule/Capsule.widgets';
 import { PomodoroProvider } from './components/fab/Pomodoro.context';

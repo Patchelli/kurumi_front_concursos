@@ -9,7 +9,7 @@ import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 const TYPE_SLUG: Record<string, string> = { Teoria: 'teoria', Questões: 'questoes', Revisão: 'revisao' };
 const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 
-export function StudyPlanView({ journey, loading, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
+export function StudyPlanView({ journey, loading, configuration, onSaveConfiguration, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [selectedTopic, setSelectedTopic] = useState<StudyTopicTarget | null>(null);
   const pomodoro = usePomodoro();
@@ -271,6 +271,8 @@ export function StudyPlanView({ journey, loading, onBack, onOverview, onOpenCont
       open={configOpen}
       onClose={() => setConfigOpen(false)}
       areas={journey.knowledgeAreas}
+      configuration={configuration}
+      onSave={onSaveConfiguration}
     />
     <ContestFAB areas={journey.knowledgeAreas} />
     </>

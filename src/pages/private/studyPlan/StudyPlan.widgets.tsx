@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import type { KnowledgeAreaResponse, SyllabusNodeResponse } from '../../../../@business/dto/response/journey.response';
+import type { StudyRoutineConfigurationRequest } from '../../../../@business/dto/request/studyRoutine.request';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -95,12 +96,22 @@ const AFFINITY_TO_PRIORITY: Record<Affinity, { label: string; color: string }> =
   'Muito baixa': { label: 'Alta',   color: '#b03055' },
 };
 
+const AFFINITY_MULTIPLIER: Record<Affinity, number> = {
+  'Muito alta':  0.5,
+  'Alta':        0.75,
+  'Neutra':      1.0,
+  'Baixa':       1.5,
+  'Muito baixa': 2.0,
+};
+
 const CONFIG_STEPS = ['Matérias', 'Afinidade', 'Prioridades', 'Disponibilidade'];
 
-export function PlanConfigWizard({ open, onClose, areas }: {
+export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }: {
   open: boolean;
   onClose(): void;
   areas: KnowledgeAreaResponse[];
+  configuration?: StudyRoutineConfigurationRequest;
+  onSave(configuration: StudyRoutineConfigurationRequest): Promise<void>;
 }) {
   const [step, setStep] = useState<ConfigStep>(1);
   const [enabled, setEnabled] = useState<Set<number>>(() => new Set(areas.map(a => a.id)));
@@ -111,10 +122,51 @@ export function PlanConfigWizard({ open, onClose, areas }: {
   const [availability, setAvailability] = useState<Record<Day, string>>(
     () => Object.fromEntries(DAYS.map(d => [d, ''])) as Record<Day, string>
   );
+  const [hoursPerTopic, setHoursPerTopic] = useState('2');
+  const [reviewIntervalDays, setReviewIntervalDays] = useState('7');
+  const [studyPercentage, setStudyPercentage] = useState('50');
+  const [reviewPercentage, setReviewPercentage] = useState('25');
+  const [questionsPercentage, setQuestionsPercentage] = useState('25');
+  const [areaHoursOverride, setAreaHoursOverride] = useState<Map<number, string>>(new Map());
+  const [nodeHoursOverride, setNodeHoursOverride] = useState<Map<number, string>>(new Map());
+  const [expandedLoadAreas, setExpandedLoadAreas] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!open || !configuration) return;
+    setEnabled(new Set(configuration.knowledgeAreaIds));
+    setAffinity(new Map(Object.entries(configuration.affinity).map(([id, value]) => [Number(id), value as Affinity])));
+    setHoursPerTopic(String(configuration.hoursPerTopic));
+    setReviewIntervalDays(String(configuration.reviewIntervalDays));
+    setStudyPercentage(String(configuration.studyPercentage));
+    setReviewPercentage(String(configuration.reviewPercentage));
+    setQuestionsPercentage(String(configuration.questionsPercentage));
+    setAvailability(Object.fromEntries(DAYS.map(day => [day, configuration.availability[day] ? String(configuration.availability[day]) : ''])) as Record<Day, string>);
+    setAreaHoursOverride(new Map(Object.entries(configuration.areaHoursOverride).map(([id, value]) => [Number(id), String(value)])));
+    setNodeHoursOverride(new Map(Object.entries(configuration.nodeHoursOverride).map(([id, value]) => [Number(id), String(value)])));
+  }, [open, configuration]);
+
 
   if (!open) return null;
 
   const activeAreas = areas.filter(a => enabled.has(a.id));
+  const parsedHours = Math.max(0.5, parseFloat(hoursPerTopic) || 2);
+
+  const effectiveAreaHpt = (areaId: number) => {
+    const ov = areaHoursOverride.get(areaId);
+    return ov !== undefined ? Math.max(0.5, parseFloat(ov) || 0.5) : parsedHours;
+  };
+  const effectiveNodeHpt = (nodeId: number, areaId: number) => {
+    const ov = nodeHoursOverride.get(nodeId);
+    return ov !== undefined ? Math.max(0.5, parseFloat(ov) || 0.5) : effectiveAreaHpt(areaId);
+  };
+  const toggleLoadExpand = (areaId: number) => setExpandedLoadAreas(prev => {
+    const n = new Set(prev); n.has(areaId) ? n.delete(areaId) : n.add(areaId); return n;
+  });
+
+  const weeklyHours = DAYS.reduce((sum, d) => sum + (parseFloat(availability[d]) || 0), 0);
+  const totalPlanHours = activeAreas.reduce((sum, area) =>
+    sum + area.nodes.reduce((s, node) => s + effectiveNodeHpt(node.id, area.id), 0), 0);
+  const weeksNeeded = weeklyHours > 0 ? totalPlanHours / weeklyHours : null;
 
   const toggleArea = (id: number) => setEnabled(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
@@ -125,7 +177,7 @@ export function PlanConfigWizard({ open, onClose, areas }: {
 
   const goNext = () => {
     if (step < 4) setStep(s => (s + 1) as ConfigStep);
-    else { toast.success('Ciclo de estudos gerado!'); onClose(); }
+    else { const configuration: StudyRoutineConfigurationRequest = { knowledgeAreaIds: activeAreas.map(area => area.id), affinity: Object.fromEntries(affinity), hoursPerTopic: parsedHours, reviewIntervalDays: Math.max(1, parseInt(reviewIntervalDays) || 7), studyPercentage: Math.max(0, parseInt(studyPercentage) || 0), reviewPercentage: Math.max(0, parseInt(reviewPercentage) || 0), questionsPercentage: Math.max(0, parseInt(questionsPercentage) || 0), availability: Object.fromEntries(DAYS.map(day => [day, parseFloat(availability[day]) || 0])), areaHoursOverride: Object.fromEntries([...areaHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])), nodeHoursOverride: Object.fromEntries([...nodeHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])) }; if (configuration.studyPercentage + configuration.reviewPercentage + configuration.questionsPercentage !== 100) { toast.error('Os percentuais devem totalizar 100%.'); return; } onSave(configuration).then(() => { toast.success('Ciclo de estudos salvo!'); onClose(); }).catch(() => toast.error('Não foi possível salvar o ciclo de estudos.')); }
   };
 
   return (
@@ -236,17 +288,21 @@ export function PlanConfigWizard({ open, onClose, areas }: {
 
         {step === 3 && (
           <div className="sp-wz-stage">
-            <p className="sp-wz-desc">Baseado na sua afinidade, cada matéria recebe uma prioridade no ciclo.</p>
+            <p className="sp-wz-desc">Baseado na sua afinidade, cada matéria recebe uma prioridade e uma frequência de revisão no ciclo — menor afinidade significa revisões mais frequentes.</p>
             <div className="sp-drawer-priorities">
               {activeAreas.map(area => {
                 const aff = affinity.get(area.id) ?? 'Neutra';
                 const { label, color } = AFFINITY_TO_PRIORITY[aff];
+                const mult = AFFINITY_MULTIPLIER[aff];
                 return (
                   <div key={area.id} className="sp-drawer-priority-row">
                     <strong>{area.title}</strong>
-                    <span className="sp-prio-badge" style={{ background: `${color}18`, color }}>
-                      PRIORIDADE {label.toUpperCase()}
-                    </span>
+                    <div className="sp-prio-badges">
+                      <span className="sp-prio-badge" style={{ background: `${color}18`, color }}>
+                        PRIORIDADE {label.toUpperCase()}
+                      </span>
+                      <span className="sp-prio-mult">×{mult} revisão</span>
+                    </div>
                   </div>
                 );
               })}
@@ -256,7 +312,104 @@ export function PlanConfigWizard({ open, onClose, areas }: {
 
         {step === 4 && (
           <div className="sp-wz-stage">
-            <p className="sp-wz-desc">Informe quantas horas você tem por dia. Deixe em branco os dias de folga.</p>
+            {/* Hours per topic */}
+            <div className="sp-hours-config">
+              <div className="sp-hours-config-label">
+                <strong>Horas por tópico</strong>
+                <small>Tempo de teoria. Clique na tabela para ajustar por matéria.</small>
+              </div>
+              <label className="sp-hours-input-wrap">
+                <input
+                  type="number"
+                  min="0.5"
+                  max="20"
+                  step="0.5"
+                  value={hoursPerTopic}
+                  onChange={e => setHoursPerTopic(e.target.value)}
+                />
+                <span>h por tópico</span>
+              </label>
+            </div>
+
+            {/* Per-subject load table */}
+            <div className="sp-area-load">
+              <div className="sp-area-load-header">
+                <span>Matéria</span>
+                <span>Tópicos</span>
+                <span>h/tópico</span>
+                <span>Total teoria</span>
+              </div>
+              {activeAreas.map(area => {
+                const areaOv = areaHoursOverride.has(area.id);
+                const areaDisplay = areaOv ? (areaHoursOverride.get(area.id) ?? '') : String(parsedHours);
+                const areaTotal = Math.round(area.nodes.reduce((s, n) => s + effectiveNodeHpt(n.id, area.id), 0) * 10) / 10;
+                const expanded = expandedLoadAreas.has(area.id);
+                return (
+                  <div key={area.id}>
+                    {/* Area row */}
+                    <div className={`sp-area-load-row sp-area-load-row--area${expanded ? ' expanded' : ''}`}>
+                      <span className="sp-area-load-name">
+                        <button type="button" className={`sp-area-load-expand${expanded ? ' expanded' : ''}`} onClick={() => toggleLoadExpand(area.id)} aria-label={expanded ? 'Recolher' : 'Expandir tópicos'}>
+                          <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </button>
+                        {area.title}
+                      </span>
+                      <span>{area.nodes.length}</span>
+                      <span className="sp-area-load-hpt">
+                        <input
+                          type="number"
+                          className={`sp-area-load-hpt-input${areaOv ? ' overridden' : ''}`}
+                          min="0.5" max="20" step="0.5"
+                          value={areaDisplay}
+                          title="h/tópico padrão para esta matéria"
+                          onChange={e => setAreaHoursOverride(prev => new Map(prev).set(area.id, e.target.value))}
+                          onFocus={e => { if (!areaOv) { setAreaHoursOverride(prev => new Map(prev).set(area.id, areaDisplay)); e.target.select(); } }}
+                        />
+                        <span>h</span>
+                        {areaOv && <button type="button" className="sp-area-load-reset" title="Restaurar padrão global" onClick={() => setAreaHoursOverride(prev => { const n = new Map(prev); n.delete(area.id); return n; })}>↺</button>}
+                      </span>
+                      <span className="sp-area-load-total">{areaTotal}h</span>
+                    </div>
+
+                    {/* Topic sub-rows */}
+                    {expanded && area.nodes.map(node => {
+                      const nodeOv = nodeHoursOverride.has(node.id);
+                      const nodeDisplay = nodeOv ? (nodeHoursOverride.get(node.id) ?? '') : String(effectiveAreaHpt(area.id));
+                      return (
+                        <div key={node.id} className="sp-area-load-row sp-area-load-row--node">
+                          <span className="sp-area-load-name sp-area-load-node-name">{node.title}</span>
+                          <span />
+                          <span className="sp-area-load-hpt">
+                            <input
+                              type="number"
+                              className={`sp-area-load-hpt-input${nodeOv ? ' overridden' : ''}`}
+                              min="0.5" max="20" step="0.5"
+                              value={nodeDisplay}
+                              title="h para este tópico"
+                              onChange={e => setNodeHoursOverride(prev => new Map(prev).set(node.id, e.target.value))}
+                              onFocus={e => { if (!nodeOv) { setNodeHoursOverride(prev => new Map(prev).set(node.id, nodeDisplay)); e.target.select(); } }}
+                            />
+                            <span>h</span>
+                            {nodeOv && <button type="button" className="sp-area-load-reset" title="Restaurar padrão da matéria" onClick={() => setNodeHoursOverride(prev => { const n = new Map(prev); n.delete(node.id); return n; })}>↺</button>}
+                          </span>
+                          <span className="sp-area-load-total">{effectiveNodeHpt(node.id, area.id)}h</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="sp-hours-config">
+              <label>Intervalo de revisÃ£o (dias)<input type="number" min="1" value={reviewIntervalDays} onChange={e => setReviewIntervalDays(e.target.value)} /></label>
+              <label>Estudo (%)<input type="number" min="0" max="100" value={studyPercentage} onChange={e => setStudyPercentage(e.target.value)} /></label>
+              <label>RevisÃ£o (%)<input type="number" min="0" max="100" value={reviewPercentage} onChange={e => setReviewPercentage(e.target.value)} /></label>
+              <label>QuestÃµes (%)<input type="number" min="0" max="100" value={questionsPercentage} onChange={e => setQuestionsPercentage(e.target.value)} /></label>
+            </div>
+
+            {/* Daily availability */}
+            <p className="sp-wz-desc" style={{ marginTop: 28 }}>Disponibilidade semanal — deixe em branco os dias de folga.</p>
             <div className="sp-drawer-availability">
               {DAYS.map(day => (
                 <label key={day} className="sp-drawer-day">
@@ -274,6 +427,30 @@ export function PlanConfigWizard({ open, onClose, areas }: {
                 </label>
               ))}
             </div>
+
+            {/* Plan summary */}
+            {totalPlanHours > 0 && (
+              <div className="sp-plan-summary">
+                <div className="sp-plan-summary-stat">
+                  <strong>{Math.round(totalPlanHours)}h</strong>
+                  <small>de teoria no total</small>
+                </div>
+                <div className="sp-plan-summary-divider" />
+                <div className="sp-plan-summary-stat">
+                  <strong>{activeAreas.reduce((s, a) => s + a.nodes.length, 0)}</strong>
+                  <small>tópicos no ciclo</small>
+                </div>
+                {weeksNeeded !== null && (
+                  <>
+                    <div className="sp-plan-summary-divider" />
+                    <div className="sp-plan-summary-stat">
+                      <strong>{Math.ceil(weeksNeeded)} sem.</strong>
+                      <small>com {weeklyHours}h/semana</small>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 

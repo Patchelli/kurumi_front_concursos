@@ -1,2 +1,3 @@
-export type CalendarEventType = 'prova' | 'boleto' | 'edital' | 'inscricao' | 'lembrete';
-export type CalendarEvent = { id: string; date: string; title: string; type: CalendarEventType; note: string };
+import type { ECalendarEventType } from '../../../../@business/enum/ECalendarEventType';
+export type CalendarEvent = { id: number; date: string; title: string; type: ECalendarEventType; note?: string | null };
+export type CalendarEventDraft = { id: number | null; date: string; title: string; type: ECalendarEventType; note: string };

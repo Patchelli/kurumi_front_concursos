@@ -211,6 +211,54 @@
 .sp-drawer-day input::-webkit-inner-spin-button,.sp-drawer-day input::-webkit-outer-spin-button{-webkit-appearance:none}
 .sp-drawer-day>small{font-size:11px;color:#9080a8;font-weight:600}
 
+/* ── Multiplier badge (Step 3) ── */
+.sp-prio-badges{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sp-prio-mult{padding:5px 10px;border-radius:99px;background:#f2ecf9;color:#543c78;font-size:9px;font-weight:800;letter-spacing:.06em}
+
+/* ── Hours per topic config (Step 4) ── */
+.sp-hours-config{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:18px 20px;border:1.5px solid #d0c4de;border-radius:16px;background:#faf7fc;margin-bottom:20px}
+.sp-hours-config-label{display:flex;flex-direction:column;gap:4px}
+.sp-hours-config-label strong{font-size:14px;color:#1e1829}
+.sp-hours-config-label small{font-size:12px;color:#9080a8;max-width:380px;line-height:1.5}
+.sp-hours-input-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sp-hours-input-wrap input{width:76px;height:46px;border:1.5px solid #d0c4de;border-radius:11px;background:#fff;text-align:center;font-size:22px;font-weight:800;color:#3d2b5a;outline:none;padding:0}
+.sp-hours-input-wrap input:focus{border-color:#9472c8}
+.sp-hours-input-wrap input::-webkit-inner-spin-button,.sp-hours-input-wrap input::-webkit-outer-spin-button{-webkit-appearance:none}
+.sp-hours-input-wrap>span{font-size:12px;font-weight:700;color:#9080a8;white-space:nowrap}
+
+/* ── Area load table (Step 4) ── */
+.sp-area-load{border:1px solid #e5dfe8;border-radius:14px;overflow:hidden}
+.sp-area-load-header{display:grid;grid-template-columns:1fr 60px 72px 80px;gap:0;padding:9px 16px;background:#f4eef7;font-size:10px;font-weight:800;letter-spacing:.07em;color:#9080a8;text-transform:uppercase}
+.sp-area-load-row{display:grid;grid-template-columns:1fr 60px 72px 80px;gap:0;padding:11px 16px;border-top:1px solid #ede7f2;font-size:13px;color:#2a2330;align-items:center;transition:background .1s}
+.sp-area-load-row:hover{background:#faf6fc}
+.sp-area-load-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-area-load-total{font-weight:800;color:#66558f}
+.sp-area-load-row--area{cursor:default}
+.sp-area-load-row--area.expanded{background:#faf6fc}
+.sp-area-load-expand{width:22px;height:22px;border:0;background:transparent;color:#9080a8;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:6px;transition:background .1s,transform .2s;vertical-align:middle;margin-right:6px}
+.sp-area-load-expand:hover{background:#ede7f5;color:#66558f}
+.sp-area-load-expand svg{width:14px;height:14px;stroke:currentColor;fill:none;transition:transform .2s}
+.sp-area-load-expand.expanded svg{transform:rotate(180deg)}
+.sp-area-load-row--node{background:#f7f3fb;padding-left:36px !important}
+.sp-area-load-node-name{font-size:12px;color:#5f536d;font-weight:500}
+.sp-area-load-hpt{display:flex;align-items:center;gap:4px}
+.sp-area-load-hpt>span{font-size:12px;color:#9080a8;font-weight:600}
+.sp-area-load-hpt-input{width:52px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:center;font:inherit;font-size:13px;font-weight:700;color:#66558f;padding:4px 2px;outline:none;cursor:pointer;transition:border-color .12s,background .12s}
+.sp-area-load-hpt-input::-webkit-inner-spin-button,.sp-area-load-hpt-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.sp-area-load-hpt-input:hover{border-color:#d0c4de;background:#f7f2fc}
+.sp-area-load-hpt-input:focus{border-color:#9472c8;background:#fff;cursor:text}
+.sp-area-load-hpt-input.overridden{color:#3d2b5a;font-weight:800}
+.sp-area-load-reset{border:0;background:transparent;color:#9472c8;font-size:13px;cursor:pointer;padding:0 2px;line-height:1;opacity:.7}
+.sp-area-load-reset:hover{opacity:1}
+
+/* ── Plan summary (Step 4) ── */
+.sp-plan-summary{display:flex;align-items:center;gap:0;margin-top:20px;padding:18px 22px;border-radius:16px;background:linear-gradient(135deg,#2e2040,#5b4474);color:#fff}
+.sp-plan-summary-stat{display:flex;flex-direction:column;gap:2px;flex:1;text-align:center}
+.sp-plan-summary-stat strong{font-size:26px;font-weight:800;letter-spacing:-.03em}
+.sp-plan-summary-stat small{font-size:11px;color:#d0c3e8}
+.sp-plan-summary-divider{width:1px;height:36px;background:#ffffff22;flex-shrink:0}
+@media(max-width:600px){.sp-hours-config{flex-direction:column}.sp-area-load-header,.sp-area-load-row{grid-template-columns:1fr 52px 60px}}
+
 /* ════════════════════════════════════════════
    Study Topic Drawer
    ════════════════════════════════════════════ */

@@ -1,9 +1,11 @@
+import { ECalendarEventType } from '../../../../@business/enum/ECalendarEventType';
+
 export const calendarTokens = {
   eventTypes: {
-    prova: { label: 'Prova', color: 'var(--error)' },
-    boleto: { label: 'Boleto', color: 'var(--tertiary)' },
-    edital: { label: 'Edital', color: 'var(--primary)' },
-    inscricao: { label: 'Inscrição', color: 'var(--secondary)' },
-    lembrete: { label: 'Lembrete', color: 'var(--primary)' },
+    [ECalendarEventType.Exam]: { label: 'Prova', color: 'var(--error)' },
+    [ECalendarEventType.Payment]: { label: 'Boleto', color: 'var(--tertiary)' },
+    [ECalendarEventType.Notice]: { label: 'Edital', color: 'var(--primary)' },
+    [ECalendarEventType.Registration]: { label: 'Inscrição', color: 'var(--secondary)' },
+    [ECalendarEventType.Reminder]: { label: 'Lembrete', color: 'var(--primary)' },
   },
 } as const;
