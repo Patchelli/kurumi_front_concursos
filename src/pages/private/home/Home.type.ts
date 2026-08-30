@@ -1,6 +1,6 @@
 import type { JourneySummaryResponse } from '../../../../@business/dto/response/journey.response';
 import type { EJourneyStage } from '../../../../@business/enum/EJourneyStage';
-import type { SaveJourneyStructureRequest } from '../../../../@business/dto/request/journey.request';
+import type { JourneyRegisterRequest, JourneyUpdateRequest } from '../../../../@business/dto/request/journey.request';
 
 export type JourneyForm = {
   title: string;
@@ -28,13 +28,13 @@ export type HomeViewProps = {
   onOpenCreation(): void;
   onCloseCreation(): void;
   onFormChange(field: keyof JourneyForm, value: string | EJourneyStage): void;
-  onCreate(request: SaveJourneyStructureRequest): Promise<number>;
+  onCreate(request: JourneyRegisterRequest): Promise<number>;
   onRemove(id: number): void;
   onRequestRemove(contest: JourneySummaryResponse): void;
   onCancelRemove(): void;
   onRequestEdit(contest: JourneySummaryResponse): void;
   onCancelEdit(): void;
-  onSaveEdit(request: SaveJourneyStructureRequest): Promise<void>;
+  onSaveEdit(request: JourneyUpdateRequest): Promise<void>;
   onOpenJourney(id: number): void;
   onScroll(direction: number): void;
   onPointerDown(event: React.PointerEvent<HTMLDivElement>): void;

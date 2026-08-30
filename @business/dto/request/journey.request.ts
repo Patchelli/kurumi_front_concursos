@@ -1,7 +1,6 @@
 import type { EJourneyStage } from '../../enum/EJourneyStage';
 
-export type SaveJourneyRequest = {
-  id?: number | null;
+export type JourneyRegisterDataRequest = {
   title: string;
   institution?: string | null;
   examBoard?: string | null;
@@ -15,24 +14,25 @@ export type SaveJourneyRequest = {
   logoUrl?: string | null;
 };
 
-export type SaveSyllabusNodeStructureRequest = {
+export type JourneyUpdateDataRequest = JourneyRegisterDataRequest & { id: number };
+
+export type SyllabusNodeStructureRequest = {
   title: string;
   order: number;
-  children: SaveSyllabusNodeStructureRequest[];
+  children: SyllabusNodeStructureRequest[];
 };
 
-export type SaveKnowledgeAreaStructureRequest = {
+export type KnowledgeAreaStructureRequest = {
   title: string;
   order: number;
-  nodes: SaveSyllabusNodeStructureRequest[];
+  nodes: SyllabusNodeStructureRequest[];
 };
 
-export type SaveJourneyStructureRequest = {
-  journey: SaveJourneyRequest;
-  knowledgeAreas: SaveKnowledgeAreaStructureRequest[];
-};
+export type JourneyRegisterRequest = JourneyRegisterDataRequest & { knowledgeAreas: KnowledgeAreaStructureRequest[] };
 
-export type SaveKnowledgeAreaRequest = {
+export type JourneyUpdateRequest = JourneyUpdateDataRequest & { knowledgeAreas: KnowledgeAreaStructureRequest[] };
+
+export type KnowledgeAreaRegisterRequest = {
   id?: number | null;
   journeyId: number;
   title: string;
@@ -41,7 +41,7 @@ export type SaveKnowledgeAreaRequest = {
   expectedQuestions?: number | null;
 };
 
-export type SaveSyllabusNodeRequest = {
+export type SyllabusNodeRegisterRequest = {
   id?: number | null;
   knowledgeAreaId: number;
   parentId?: number | null;

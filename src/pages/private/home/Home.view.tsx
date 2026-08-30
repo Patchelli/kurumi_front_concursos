@@ -45,7 +45,7 @@ export function HomeView(props: HomeViewProps) {
 
     <button className="hub-fab" type="button" onClick={props.onOpenCreation} aria-label="Nova jornada">＋</button>
     {props.creationOpen && !props.editingContest && <ContestCreationDrawer mode="create" open onClose={props.onCloseCreation} onCreate={props.onCreate} />}
-    {props.editingContest && <ContestCreationDrawer mode="edit" open initialData={props.editingContest} onClose={props.onCancelEdit} onCreate={props.onCreate} onSave={props.onSaveEdit} />}
+    {props.editingContest && <ContestCreationDrawer mode="edit" open initialData={props.editingContest} onClose={props.onCancelEdit} onSave={props.onSaveEdit} />}
     <ConfirmDialog open={Boolean(props.removingContest)} title="Remover concurso?" description={`“${props.removingContest?.title ?? ''}” será retirado da sua central. Esta ação não poderá ser desfeita.`} confirmLabel="Remover" danger onClose={props.onCancelRemove} onConfirm={() => props.removingContest && props.onRemove(props.removingContest.id)} />
   </div>;
 }

@@ -70,7 +70,7 @@ export function JourneyRegistrationController() {
     setSaving(true); setError('');
     try {
       const journey = await journeyService.register({
-        journey: { id: null, title: form.title.trim(), institution: form.institution.trim() || null, examBoard: form.examBoard.trim() || null, position: form.position.trim() || null, salary: null, openings: form.openings ? Number(form.openings) : null, noticeUrl: null, examDate: form.stage === EJourneyStage.PostNotice ? form.examDate : null, stage: form.intent === 'completed' ? EJourneyStage.Completed : form.stage, includeInStatistics: form.includeInStatistics },
+        title: form.title.trim(), institution: form.institution.trim() || null, examBoard: form.examBoard.trim() || null, position: form.position.trim() || null, salary: null, openings: form.openings ? Number(form.openings) : null, noticeUrl: null, examDate: form.stage === EJourneyStage.PostNotice ? form.examDate : null, stage: form.intent === 'completed' ? EJourneyStage.Completed : form.stage, includeInStatistics: form.includeInStatistics,
         knowledgeAreas: form.areas.map((area, areaOrder) => ({ title: area.title, order: areaOrder, nodes: area.topics.map((topic, topicOrder) => ({ title: topic.title, order: topicOrder, children: topic.children.map((child, childOrder) => ({ title: child.title, order: childOrder, children: [] })) })) }))
       });
       navigate(`/jornadas/${journey.id}`, { replace: true });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { SaveJourneyStructureRequest } from '../../../../@business/dto/request/journey.request';
+import type { JourneyRegisterRequest, JourneyUpdateRequest } from '../../../../@business/dto/request/journey.request';
 import type { JourneySummaryResponse } from '../../../../@business/dto/response/journey.response';
 import { EJourneyStage } from '../../../../@business/enum/EJourneyStage';
 import { journeyService } from '../../../../@business/service/Journey.service';
@@ -37,17 +37,16 @@ export function HomeController() {
     return () => { active = false; };
   }, []);
 
-  async function createContest(request: SaveJourneyStructureRequest) {
+  async function createContest(request: JourneyRegisterRequest) {
     setError('');
-    if (request.journey.id != null) throw new Error('Uma jornada existente não pode ser cadastrada novamente.');
     const created = await journeyService.register(request);
     navigate(`/jornadas/${created.id}`);
     return created.id;
   }
 
-  async function updateContest(request: SaveJourneyStructureRequest) {
+  async function updateContest(request: JourneyUpdateRequest) {
     setError('');
-    if (!editingContest || request.journey.id !== editingContest.id) throw new Error('Não foi possível identificar a jornada que será editada.');
+    if (!editingContest || request.id !== editingContest.id) throw new Error('Não foi possível identificar a jornada que será editada.');
     const updated = await journeyService.update(request);
     if (!updated) throw new Error('Não foi possível atualizar o concurso.');
     setJourneys(await journeyService.findAll());

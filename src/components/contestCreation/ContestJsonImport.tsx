@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Subject } from './ContestCreationDrawer';
 
 type Props = { onImport(subjects: Subject[]): void };
@@ -21,7 +21,16 @@ function parse(value: string): Subject[] {
 }
 export function ContestJsonImport({ onImport }: Props) {
   const [value, setValue] = useState(''); const [message, setMessage] = useState('');
-  function load(content: string) { try { const subjects = parse(content); onImport(subjects); setMessage(`${subjects.length} disciplinas importadas e combinadas.`); } catch (error) { setMessage(error instanceof Error ? error.message : 'JSON inválido.'); } }
-  async function file(selected?: File) { if (!selected) return; const content = await selected.text(); setValue(content); load(content); }
-  return <section className="contest-json-import"><header><div><span>⇩</span><div><strong>Importar conteúdo</strong><small>O conteúdo será somado ao que já foi informado.</small></div></div><label>Importar JSON<input type="file" accept=".json,application/json" onChange={event => file(event.target.files?.[0])}/></label></header><textarea value={value} onChange={event => { setValue(event.target.value); setMessage(''); }} placeholder={'{\n  "materias": [{ "nome": "Português", "topicos": [] }]\n}'}/><button className="json-apply-button" type="button" disabled={!value.trim()} onClick={() => load(value)}>Aplicar JSON</button>{message && <p className={message.includes('combinadas') ? 'success' : 'error'}>{message}</p>}</section>;
+  const onImportRef = useRef(onImport);
+  useEffect(() => { onImportRef.current = onImport; }, [onImport]);
+  useEffect(() => {
+    if (!value.trim()) { setMessage(''); return; }
+    const timeout = window.setTimeout(() => {
+      try { const subjects = parse(value); onImportRef.current(subjects); setMessage(`${subjects.length} disciplinas importadas e combinadas.`); }
+      catch (error) { setMessage(error instanceof Error ? error.message : 'JSON inválido.'); }
+    }, 400);
+    return () => window.clearTimeout(timeout);
+  }, [value]);
+  async function file(selected?: File) { if (selected) setValue(await selected.text()); }
+  return <section className="contest-json-import"><header><div><span>⇩</span><div><strong>Importar conteúdo</strong><small>O conteúdo será somado ao que já foi informado.</small></div></div><label>Importar JSON<input type="file" accept=".json,application/json" onChange={event => file(event.target.files?.[0])}/></label></header><textarea value={value} onChange={event => { setValue(event.target.value); setMessage(''); }} placeholder={'{\n  "materias": [{ "nome": "Português", "topicos": [] }]\n}'}/>{message && <p className={message.includes('combinadas') ? 'success' : 'error'}>{message}</p>}</section>;
 }

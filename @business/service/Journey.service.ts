@@ -1,18 +1,23 @@
-import type { SaveJourneyStructureRequest, SaveKnowledgeAreaRequest, SaveSyllabusNodeRequest } from '../dto/request/journey.request';
+import type { JourneyRegisterRequest, JourneyUpdateRequest, KnowledgeAreaRegisterRequest, SyllabusNodeRegisterRequest } from '../dto/request/journey.request';
 import type { JourneyDetailsResponse, JourneySummaryResponse } from '../dto/response/journey.response';
 import { HttpMethod } from '../enum/httpMethod.enum';
 import { clientRequest } from './base/httpHandler.service';
 
 const journeyDetailsRequests = new Map<number, Promise<JourneyDetailsResponse>>();
+let journeyListRequest: Promise<JourneySummaryResponse[]> | null = null;
 
-async function findAll() {
-  return clientRequest<JourneySummaryResponse[]>({ url: '/journeys/list', method: HttpMethod.Get });
+function findAll() {
+  if (journeyListRequest) return journeyListRequest;
+
+  journeyListRequest = clientRequest<JourneySummaryResponse[]>({ url: '/journeys/list', method: HttpMethod.Get })
+    .finally(() => { journeyListRequest = null; });
+  return journeyListRequest;
 }
 
-async function register(request: SaveJourneyStructureRequest) {
+async function register(request: JourneyRegisterRequest) {
   return clientRequest<{ id: number }>({ url: '/journeys/register', method: HttpMethod.Post, body: request });
 }
-async function update(request: SaveJourneyStructureRequest) {
+async function update(request: JourneyUpdateRequest) {
   return clientRequest<boolean>({ url: '/journeys/update', method: HttpMethod.Put, body: request });
 }
 
@@ -40,13 +45,13 @@ async function remove(id: number) {
   return clientRequest<void>({ url: '/journeys/delete', method: HttpMethod.Delete, axiosConfig: { params: { id } } });
 }
 
-async function addArea(request: SaveKnowledgeAreaRequest) {
+async function addArea(request: KnowledgeAreaRegisterRequest) {
   return clientRequest<boolean>({ url: '/journeys/areas', method: HttpMethod.Post, body: request });
 }
 async function removeArea(id: number) {
   return clientRequest<boolean>({ url: '/journeys/areas', method: HttpMethod.Delete, axiosConfig: { params: { id } } });
 }
-async function addNode(request: SaveSyllabusNodeRequest) {
+async function addNode(request: SyllabusNodeRegisterRequest) {
   return clientRequest<boolean>({ url: '/journeys/nodes', method: HttpMethod.Post, body: request });
 }
 async function removeNode(id: number) {
