@@ -8,3 +8,4 @@ export const SubjectDetail = lazy(() => import('../../pages/private/subject/Subj
 export const Capsule = lazy(() => import('../../pages/private/capsule/Capsule'));
 export const Calendar = lazy(() => import('../../pages/private/calendar/Calendar'));
 export const Simulados = lazy(() => import('../../pages/private/simulados/Simulados'));
+export const Profile = lazy(() => import('../../pages/private/profile/Profile'));

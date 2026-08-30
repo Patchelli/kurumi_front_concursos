@@ -3,6 +3,7 @@ import type { HomeViewProps } from './Home.type';
 import { ContestCreationDrawer } from '../../../components/contestCreation/ContestCreationDrawer';
 import { ConfirmDialog } from '../../../components/dialog/ConfirmDialog';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
+import { UserMenu } from '@components/layout/UserMenu';
 import { JourneyCard, NewJourneyCard } from './Home.widgets';
 
 function formatMinutes(value: number) { const h = Math.floor(value / 60); const m = value % 60; return h ? `${h}h${m ? ` ${m}min` : ''}` : `${m}min`; }
@@ -19,7 +20,7 @@ export function HomeView(props: HomeViewProps) {
     <header className="hub-topbar">
       <a className="hub-brand" href="/" aria-label="Kurumí"><span className="hub-logo">S</span><span>Kurumí</span></a>
       <nav className="hub-nav" aria-label="Navegação principal"><button className="active" type="button">Jornadas</button><a href="/calendario">Calendário</a><button type="button" disabled>Desempenho</button></nav>
-      <div className="hub-user"><div className="hub-profile"><span className="hub-avatar">{props.firstName.charAt(0).toUpperCase()}</span><span className="hub-profile-name">{props.firstName}</span></div><button className="logout-button" type="button" onClick={props.onLogout} aria-label="Sair da conta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v2H5V5h5v2H7v10h3Zm4.59-10.41L20 12l-5.41 5.41L13.17 16l3-3H9v-2h7.17l-3-3 1.42-1.41Z" /></svg><span>Sair</span></button></div>
+      <UserMenu firstName={props.firstName} onLogout={props.onLogout} />
     </header>
 
     <main className="hub-content">

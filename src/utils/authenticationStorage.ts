@@ -38,6 +38,16 @@ export function saveAuthentication(authentication: AuthenticationResponse) {
   window.dispatchEvent(new Event(authenticationChangedEvent));
 }
 
+export function updateStoredUserName(name: string) {
+  try {
+    const authentication = JSON.parse(localStorage.getItem(userKey) ?? '') as AuthenticationResponse;
+    localStorage.setItem(userKey, JSON.stringify({ ...authentication, name }));
+    window.dispatchEvent(new Event(authenticationChangedEvent));
+  } catch {
+    // The profile was saved remotely even if the local session metadata is unavailable.
+  }
+}
+
 export function getAccessToken() {
   const token = localStorage.getItem(accessTokenKey);
   if (!token) return null;
