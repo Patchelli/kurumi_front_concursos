@@ -1,7 +1,9 @@
 import type { AxiosInstance } from 'axios';
 import { AxiosBuilder } from './axios.builder';
 
-const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
+// Keep an environment override for local/staging deployments, but make sure
+// the published frontend talks to the Concurso API when no build variable is set.
+export const baseUrl = import.meta.env.VITE_API_URL || 'https://api-concursos.okurumi.com.br/api';
 
 export interface IAxiosInstances {
   public: AxiosInstance;

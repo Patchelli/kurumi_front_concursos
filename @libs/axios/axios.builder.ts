@@ -17,5 +17,6 @@ export class AxiosBuilder {
   static build() { return new AxiosBuilder(); }
   withUrl(url: string) { this.baseURL = url; return this; }
   withDefaultHeader() { this.headers = { 'Content-Type': 'application/json' }; return this; }
+  withHeaders(headers: Headers) { this.headers = { ...headers }; return this; }
   toDomain() { return new AxiosDomain(this.baseURL, this.headers); }
 }
