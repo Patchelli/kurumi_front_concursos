@@ -774,7 +774,7 @@
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .cp-main { padding: 20px 16px 120px; }
+  .cp-main { padding: 20px 16px 120px; overflow-y: visible; }
   .cp-grid { grid-template-columns: 1fr; }
   .cp-date-row { grid-template-columns: 1fr; }
   .cp-goal-grid { grid-template-columns: 1fr; }

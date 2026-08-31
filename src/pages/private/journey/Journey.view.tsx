@@ -4,7 +4,8 @@ import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { JourneyViewProps } from './Journey.type';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { journeyTokens } from './Journey.tokens';
-import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 type DisciplineSort = 'discipline' | 'study' | 'coverage' | 'accuracy';
 type ErrorSort = 'discipline' | 'errors' | 'withReason' | 'coverage';
@@ -177,7 +178,7 @@ export function JourneyView(props: JourneyViewProps) {
 
   return (
     <div className="jd-shell">
-      <JourneyMobileProfileLink />
+      <JourneyMobileMenu active="overview" onStudyPlan={props.onOpenStudyPlan} onSimulados={props.onOpenSimulados} onCapsule={props.onOpenCapsule} onContent={props.onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar ── */}
       <aside className="jd-sidebar">
@@ -650,14 +651,6 @@ export function JourneyView(props: JourneyViewProps) {
 
       <ContestFAB areas={journey.knowledgeAreas} />
 
-      {/* Mobile nav */}
-      <nav className="journey-mobile-nav">
-        <button className="active">◎<span>Visão geral</span></button>
-        <button onClick={props.onOpenStudyPlan}>◷<span>Plano</span></button>
-        <button onClick={props.onOpenSimulados}>✎<span>Simulados</span></button>
-        <button onClick={props.onOpenCapsule}>✉<span>Cápsula</span></button>
-        <button onClick={props.onOpenContent}>☰<span>Conteúdo</span></button>
-      </nav>
     </div>
   );
 }

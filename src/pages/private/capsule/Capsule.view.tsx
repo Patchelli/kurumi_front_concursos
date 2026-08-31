@@ -3,7 +3,8 @@ import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { Capsule, CapsuleViewProps } from './Capsule.type';
 import { CapsuleCard, CapsuleEmpty, CreateCapsuleDialog, RevealDialog } from './Capsule.widgets';
-import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 type Tab = 'scheduled' | 'delivered' | 'opened';
 
@@ -32,7 +33,7 @@ export function CapsuleView({
 
   return (
     <div className="jd-shell">
-      <JourneyMobileProfileLink />
+      <JourneyMobileMenu active="capsule" onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onContent={onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar estática ── */}
       <aside className="jd-sidebar">
@@ -156,14 +157,6 @@ export function CapsuleView({
         )}
       </main>
 
-      {/* ── Mobile nav ── */}
-      <nav className="journey-mobile-nav">
-        <button onClick={onOverview}>◎<span>Visão geral</span></button>
-        <button onClick={onOpenStudyPlan}>◷<span>Plano</span></button>
-        <button onClick={onOpenSimulados}>✎<span>Simulados</span></button>
-        <button className="active">✉<span>Cápsula</span></button>
-        <button onClick={onOpenContent}>☰<span>Conteúdo</span></button>
-      </nav>
 
       {/* ── Dialogs ── */}
       <CreateCapsuleDialog

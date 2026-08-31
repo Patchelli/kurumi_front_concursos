@@ -598,7 +598,7 @@
   .sp-drawer-availability{grid-template-columns:repeat(4,1fr)}
 }
 @media(max-width:640px){
-  .sp-main{padding:20px 16px 88px}
+  .sp-main{padding:20px 16px 20px;overflow-y:visible}
   .sp-header{flex-direction:column;gap:12px}
   .sp-progress-strip{flex-wrap:wrap;gap:12px}
   .sp-ps-bar-wrap{order:3;flex-basis:100%}
@@ -629,3 +629,37 @@
 .sp-review-group--amanhã { color: #28636a; background: #e6f5f3; }
 .sp-review-group--futuras { color: #49618f; background: #eaf0fb; }
 .sp-review-group--atrasadas { color: #9a4c4c; background: #fbeaea; }
+
+/* ── Wizard responsive (mobile) ── */
+@media(max-width:640px){
+  .sp-wizard{left:0!important}
+  .sp-wizard-top{padding:0 16px;height:60px}
+  .sp-wizard-title{font-size:18px}
+  .sp-wizard-close span{display:none}
+  .sp-wizard-stepper{padding:0 16px;overflow-x:auto;gap:0;flex-wrap:nowrap}
+  .sp-wz-step{padding:12px 14px 12px 0;white-space:nowrap}
+  .sp-wz-step small{font-size:10px}
+  .sp-wizard-body{padding:20px 16px}
+  .sp-wizard-footer{padding:14px 16px}
+  .sp-wz-next{width:100%;justify-content:center;text-align:center}
+  .sp-wz-back{width:auto}
+  .sp-drawer-availability{grid-template-columns:repeat(3,1fr)!important;gap:8px}
+  .sp-drawer-day{padding:12px 6px}
+  .sp-drawer-day input{height:38px;font-size:16px}
+  .sp-drawer-affinity-row{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+  .sp-drawer-affinity-row select{min-width:0;width:100%}
+  .sp-drawer-priority-row{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+  .sp-prio-badges{display:flex;flex-wrap:wrap;gap:6px}
+  .sp-hours-config{flex-direction:column;gap:12px;padding:14px}
+  .sp-area-load-header{grid-template-columns:1fr 50px 60px!important;font-size:9px}
+  .sp-area-load-header span:nth-child(4){display:none}
+  .sp-area-load-row{grid-template-columns:1fr 50px 60px!important;padding:10px 12px;font-size:12px}
+  .sp-area-load-row span:nth-child(4){display:none}
+  .sp-area-load-row--node{padding-left:24px!important}
+  .sp-metric-fields{grid-template-columns:1fr 1fr!important;gap:8px}
+  .sp-metric-field{padding:10px 12px}
+  .sp-metric-input-wrap input{width:50px;height:36px;font-size:16px}
+  .sp-plan-summary{flex-wrap:wrap;padding:14px 16px;gap:8px}
+  .sp-plan-summary-stat strong{font-size:20px}
+  .sp-plan-summary-divider{height:1px;width:100%;background:#ffffff22}
+}

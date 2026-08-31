@@ -416,7 +416,7 @@
   .jd-stats-strip { padding: 0 16px; }
   .jd-center, .jd-bottom, .jd-insights-row { padding: 0 16px; gap: 8px; }
   .jd-edital-card { margin: 8px 16px 0; }
-  .jd-bottom { padding-bottom: 88px; }
+  .jd-bottom { padding-bottom: 20px; }
   .jd-ring-wrap { width: 120px; height: 120px; }
   .jd-ring-wrap svg { width: 120px; height: 120px; }
   .jd-ring-pct { font-size: 24px; }

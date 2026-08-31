@@ -4,7 +4,7 @@ export const simuladosTokens = {
   action: 'inline-flex items-center gap-1 rounded-[9px] border-[1.5px] border-transparent px-2.5 text-[11px] font-bold whitespace-nowrap transition',
   /* Shell & layout */
   shell: 'jd-shell bg-[#f7f4f9]',
-  main: 'min-w-0 flex min-h-0 flex-col gap-5 overflow-y-auto px-[clamp(22px,4vw,52px)] pb-[60px] pt-7 max-sm:px-4 max-sm:pb-[88px]',
+  main: 'min-w-0 flex min-h-0 flex-col gap-5 overflow-y-auto px-[clamp(22px,4vw,52px)] pb-[60px] pt-7 max-sm:px-4 max-sm:pb-[88px] max-sm:overflow-y-visible',
 
   /* Header */
   header: 'flex flex-wrap items-start justify-between gap-5 max-sm:flex-col max-sm:gap-3',
@@ -96,7 +96,7 @@ export const simuladosTokens = {
   field: 'flex flex-col gap-[5px] min-w-0',
   fieldLabel: 'text-[9px] font-extrabold tracking-[0.08em] uppercase text-[#9080a8] whitespace-nowrap overflow-hidden text-ellipsis',
   fieldLabelEm: 'font-semibold opacity-65 normal-case tracking-normal',
-  fieldInput: 'h-10 border-[1.5px] border-[#e0d8ea] rounded-xl bg-[#faf7fc] text-[#1e1829] text-[13px] font-semibold px-[14px] outline-none transition-colors w-full box-border focus:border-[#9472c8] focus:bg-white',
+  fieldInput: 'h-10 border-[1.5px] border-[#e0d8ea] rounded-xl bg-[#faf7fc] text-[#1e1829] text-[13px] max-sm:text-base font-semibold px-[14px] outline-none transition-colors w-full box-border focus:border-[#9472c8] focus:bg-white',
   fieldInputReadonly: 'bg-[#f4f0f8] text-[#66558f] cursor-default',
   fieldRow: 'grid grid-cols-2 gap-3 max-sm:grid-cols-1',
   fieldRow3: 'grid grid-cols-3 gap-3 max-sm:grid-cols-1',
@@ -111,7 +111,7 @@ export const simuladosTokens = {
   mfQuick: 'flex items-center gap-1.5 shrink-0 max-sm:flex-wrap',
   mfInputWrap: 'flex flex-col items-center gap-0.5',
   mfInputLabel: 'text-[8px] font-bold tracking-[0.06em] uppercase text-[#b0a0c8] whitespace-nowrap',
-  mfInput: 'w-[62px] min-w-[62px] max-w-[62px] h-8 border-[1.5px] border-[#e0d8ea] rounded-[9px] bg-white text-[#1e1829] text-[13px] font-bold text-center px-1.5 outline-none transition-colors box-border focus:border-[#9472c8] disabled:bg-[#f1edf5] disabled:text-[#b8aec3] disabled:cursor-not-allowed disabled:border-[#e8e1ed] placeholder:text-[#ccc0dc] placeholder:font-normal placeholder:text-[11px]',
+  mfInput: 'w-[62px] min-w-[62px] max-w-[62px] h-8 border-[1.5px] border-[#e0d8ea] rounded-[9px] bg-white text-[#1e1829] text-[13px] max-sm:text-base font-bold text-center px-1.5 outline-none transition-colors box-border focus:border-[#9472c8] disabled:bg-[#f1edf5] disabled:text-[#b8aec3] disabled:cursor-not-allowed disabled:border-[#e8e1ed] placeholder:text-[#ccc0dc] placeholder:font-normal placeholder:text-[11px]',
   mfErros: 'text-[11px] font-extrabold text-[#9c2843] bg-[#fce8ef] rounded-full py-0.5 px-2 whitespace-nowrap shrink-0',
   mfToggle: 'h-7 px-3 border-[1.5px] border-[#ddd0ee] rounded-lg bg-white text-[#66558f] text-[10px] font-extrabold cursor-pointer shrink-0 transition-colors whitespace-nowrap hover:bg-[#f4eefa] hover:border-[#b8a0d0]',
   mfToggleOpen: 'bg-[#f0eafa] border-[#b8a0d0]',
@@ -128,9 +128,9 @@ export const simuladosTokens = {
   mfMotivos: 'grid grid-cols-2 gap-[5px] max-sm:grid-cols-1',
   mfMotivoRow: 'flex items-center gap-2 py-1.5 px-2.5 rounded-[9px] bg-white border border-[#ede7f2] min-w-0',
   mfMotivoLabel: 'text-[11px] font-semibold text-[#3d2b5a] flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis',
-  mfMotivoInput: 'w-[46px] h-7 shrink-0 border-[1.5px] border-[#e0d8ea] rounded-[7px] bg-[#faf7fc] text-[#1e1829] text-xs font-bold text-center p-0 outline-none transition-colors box-border focus:border-[#9472c8]',
+  mfMotivoInput: 'w-[46px] h-7 shrink-0 border-[1.5px] border-[#e0d8ea] rounded-[7px] bg-[#faf7fc] text-[#1e1829] text-xs max-sm:text-base font-bold text-center p-0 outline-none transition-colors box-border focus:border-[#9472c8]',
 
   /* Obs textarea */
-  obs: 'w-full min-h-16 resize-y border-[1.5px] border-[#e0d8ea] rounded-[10px] bg-[#faf7fc] text-[#1e1829] text-xs font-medium leading-[1.5] py-2 px-3 outline-none transition-colors font-[inherit] box-border focus:border-[#9472c8] focus:bg-white',
+  obs: 'w-full min-h-16 resize-y border-[1.5px] border-[#e0d8ea] rounded-[10px] bg-[#faf7fc] text-[#1e1829] text-xs max-sm:text-base font-medium leading-[1.5] py-2 px-3 outline-none transition-colors font-[inherit] box-border focus:border-[#9472c8] focus:bg-white',
   obsCount: 'text-[9px] text-[#b0a0bc] text-right mt-px',
 } as const;

@@ -7,7 +7,8 @@ import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
 import { isStudyCompleted } from '@business/studyProgress';
-import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 const TYPE_SLUG: Record<string, string> = { Teoria: 'teoria', Questões: 'questoes', Revisão: 'revisao' };
 const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -90,7 +91,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
   return (
     <>
     <div className="jd-shell sp-shell">
-      <JourneyMobileProfileLink />
+      <JourneyMobileMenu active="plan" onOverview={onOverview} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar ── */}
       <aside className="jd-sidebar">
@@ -312,14 +313,6 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
         </>}{/* end !configOpen */}
       </main>
 
-      {/* ── Mobile nav ── */}
-      <nav className="journey-mobile-nav">
-        <button onClick={onOverview}>◎<span>Visão geral</span></button>
-        <button className="active">◷<span>Plano</span></button>
-        <button onClick={onOpenSimulados}>✎<span>Simulados</span></button>
-        <button onClick={onOpenCapsule}>✉<span>Cápsula</span></button>
-        <button onClick={onOpenContent}>☰<span>Conteúdo</span></button>
-      </nav>
 
     </div>
 

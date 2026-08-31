@@ -391,3 +391,12 @@
   .sb-review-dialog>footer{display:grid;grid-template-columns:minmax(0,1fr);padding:12px 16px}
   .sb-review-dialog>footer button{width:100%;min-height:42px;height:auto;padding:9px 12px}
 }
+
+/* ── Subject mobile ── */
+@media(max-width:768px){
+  .sb-main{overflow-y:visible;padding-bottom:20px}
+  .sb-topbar{padding:20px 16px 16px;flex-direction:column;gap:10px}
+  .sb-area-section{padding:0 16px 32px}
+  .sb-area-card{grid-template-columns:1fr auto;gap:8px;padding:14px}
+  .sb-area-progress-wrap{min-width:60px}
+}

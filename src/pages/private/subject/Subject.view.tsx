@@ -4,7 +4,8 @@ import { TopicRow } from './Subject.widgets';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { isStudyCompleted } from '@business/studyProgress';
-import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 function Sidebar({ active, journeyTitle, journeyInstitution, logoUrl, onOverview, onStudyPlan, onOpenCapsule, onOpenSimulados }: {
   active: 'overview' | 'plan' | 'content' | 'capsule';
@@ -59,7 +60,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
 
   return (
     <div className="jd-shell">
-      <JourneyMobileProfileLink />
+      <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
       <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
       <main className="sb-main">
         <div className="sb-topbar">
@@ -106,12 +107,6 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
           )}
         </div>
       </main>
-      <nav className="journey-mobile-nav">
-        <button onClick={onOpenOverview}>◎<span>Visão geral</span></button>
-        <button onClick={onOpenStudyPlan}>◷<span>Plano</span></button>
-        <button onClick={onOpenSimulados}>▤<span>Simulados</span></button>
-        <button className="active">☰<span>Conteúdo</span></button>
-      </nav>
       <ContestFAB areas={journey.knowledgeAreas} />
     </div>
   );
@@ -136,7 +131,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
 
   return (
     <div className="jd-shell">
-      <JourneyMobileProfileLink />
+      <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
       <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
       <main className="sb-main">
 
@@ -195,12 +190,6 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
           )}
         </div>
       </main>
-      <nav className="journey-mobile-nav">
-        <button onClick={onOpenOverview}>◎<span>Visão geral</span></button>
-        <button onClick={onOpenStudyPlan}>◷<span>Plano</span></button>
-        <button onClick={onOpenSimulados}>▤<span>Simulados</span></button>
-        <button className="active">☰<span>Conteúdo</span></button>
-      </nav>
       <ContestFAB areas={journey.knowledgeAreas} />
     </div>
   );
