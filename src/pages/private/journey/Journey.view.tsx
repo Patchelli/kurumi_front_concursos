@@ -4,6 +4,7 @@ import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { JourneyViewProps } from './Journey.type';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { journeyTokens } from './Journey.tokens';
+import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 
 type DisciplineSort = 'discipline' | 'study' | 'coverage' | 'accuracy';
 type ErrorSort = 'discipline' | 'errors' | 'withReason' | 'coverage';
@@ -89,9 +90,12 @@ function mockCoverage(i: number) { return MOCK_AREA_COVERAGE[i % MOCK_AREA_COVER
 function mockFlashcards(i: number) { return MOCK_FLASHCARDS[i % MOCK_FLASHCARDS.length]; }
 function mockFlashcardReviews(i: number) { return MOCK_FLASHCARD_REVIEWS[i % MOCK_FLASHCARD_REVIEWS.length]; }
 function mockFlashcardRecall(i: number) { return MOCK_FLASHCARD_RECALL[i % MOCK_FLASHCARD_RECALL.length]; }
-function areaCoverage(nodes: Array<{ progress?: number | null }>, fallback: number) {
+function areaCoverage(nodes: Array<{ progress?: number | string | null }>, fallback: number) {
   const validProgress = nodes.flatMap(node => {
-    const progress = Number(node.progress);
+    const progress = typeof node.progress === 'string'
+      ? node.progress.toLowerCase() === 'studied' || node.progress === '3' ? 100
+        : node.progress.toLowerCase() === 'inprogress' || node.progress === '2' ? 50 : 0
+      : Number(node.progress);
     return Number.isFinite(progress) && node.progress !== null && node.progress !== undefined
       ? [Math.min(100, Math.max(0, progress))]
       : [];
@@ -173,6 +177,7 @@ export function JourneyView(props: JourneyViewProps) {
 
   return (
     <div className="jd-shell">
+      <JourneyMobileProfileLink />
 
       {/* ── Sidebar ── */}
       <aside className="jd-sidebar">
@@ -199,6 +204,7 @@ export function JourneyView(props: JourneyViewProps) {
             <span>Conteúdo</span>
           </button>
         </nav>
+        <JourneyProfileLink />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0,2).toUpperCase()}
@@ -648,6 +654,7 @@ export function JourneyView(props: JourneyViewProps) {
       <nav className="journey-mobile-nav">
         <button className="active">◎<span>Visão geral</span></button>
         <button onClick={props.onOpenStudyPlan}>◷<span>Plano</span></button>
+        <button onClick={props.onOpenSimulados}>✎<span>Simulados</span></button>
         <button onClick={props.onOpenCapsule}>✉<span>Cápsula</span></button>
         <button onClick={props.onOpenContent}>☰<span>Conteúdo</span></button>
       </nav>

@@ -1,14 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserMenu } from '@components/layout/UserMenu';
 import type { ProfileViewProps } from './Profile.type';
 
 export function ProfileView(props: ProfileViewProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const origin = (location.state as { from?: unknown } | null)?.from;
+  const returnTo = typeof origin === 'string' && origin.startsWith('/') && origin !== '/perfil' ? origin : '/inicio';
+  const returnLabel = returnTo.startsWith('/jornadas/') ? 'Voltar ao concurso' : 'Voltar';
+
   return (
     <div className="journey-hub">
       <header className="hub-topbar">
-        <Link className="hub-brand" to="/" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></Link>
+        <Link className="hub-brand" to="/inicio" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></Link>
         <nav className="hub-nav" aria-label="Navegação principal">
-          <a href="/">Jornadas</a>
+          <a href="/inicio">Jornadas</a>
           <a href="/calendario">Calendário</a>
           <button type="button" disabled>Desempenho</button>
         </nav>
@@ -17,6 +23,9 @@ export function ProfileView(props: ProfileViewProps) {
 
       <main className="profile-page">
         <div className="profile-container">
+          <button type="button" className="profile-mobile-back" onClick={() => navigate(returnTo)} aria-label={returnLabel}>
+            <span aria-hidden="true">‹</span> {returnLabel}
+          </button>
           <header className="profile-header">
             <div className="profile-avatar-lg">{props.firstName.charAt(0).toUpperCase()}</div>
             <div>

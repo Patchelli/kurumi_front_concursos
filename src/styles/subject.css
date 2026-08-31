@@ -165,7 +165,8 @@
   line-height: 1;
 }
 .sb-topic-card.sb-open .sb-expand-btn { background: #eee7f5; border-color: #c8b0e0; }
-.sb-chevron-icon { display: inline-block; font-style: normal; user-select: none; }
+.sb-chevron-svg { width: 14px; height: 14px; transition: transform .2s ease; transform: rotate(-90deg); }
+.sb-chevron-svg--open { transform: rotate(0deg); }
 
 .sb-topic-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .sb-topic-name {
@@ -336,3 +337,57 @@
 }
 .sb-review-overlay{position:fixed;inset:0;z-index:600;display:grid;place-items:center;padding:20px;background:#241a3099;backdrop-filter:blur(4px)}.sb-review-dialog{width:min(500px,100%);border-radius:18px;background:#faf8fc;box-shadow:0 24px 70px #180d2860;overflow:hidden}.sb-review-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid #e7dfe9;background:#fff}.sb-review-dialog>header span{font-size:9px;font-weight:900;letter-spacing:.1em;color:#8067a8}.sb-review-dialog h2{margin:4px 0;font-size:21px;color:#2a2130}.sb-review-dialog header p{margin:0;font-size:11px;color:#887d8e}.sb-review-dialog>header>button{width:34px;height:34px;border:0;border-radius:9px;background:#f1ebf4;color:#675872;font-size:20px;cursor:pointer}.sb-review-body{display:flex;flex-direction:column;gap:15px;padding:22px}.sb-review-toggle{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid #dfd5e5;border-radius:12px;background:#fff;cursor:pointer}.sb-review-toggle input{width:17px;height:17px;accent-color:#66558f}.sb-review-toggle strong,.sb-review-toggle small{display:block}.sb-review-toggle strong{font-size:12px;color:#302638}.sb-review-toggle small{margin-top:3px;font-size:10px;color:#918596}.sb-review-field span{display:block;margin-bottom:5px;font-size:10px;font-weight:800;color:#75667c}.sb-review-field select,.sb-review-field input{width:100%;height:40px;padding:0 10px;border:1.5px solid #ded4e5;border-radius:9px;background:#fff;color:#34293d;font-size:11px}.sb-review-dialog>footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid #e7dfe9;background:#fff}.sb-review-dialog>footer button{height:40px;padding:0 15px;border:0;border-radius:10px;background:transparent;color:#66558f;font-size:11px;font-weight:800;cursor:pointer}.sb-review-dialog>footer .filled-button{background:#66558f;color:#fff}
 .sb-delete-btn{color:#a74c61!important}.sb-delete-btn:hover{background:#fff1f3!important;border-color:#dda8b4!important}
+
+/* ── Content Viewer ─────────────────────────────────────── */
+.cv-overlay{position:fixed;inset:0;z-index:700;background:#0009;display:grid;place-items:center;padding:16px}
+.cv-shell{display:flex;flex-direction:column;width:min(1080px,100%);height:calc(100vh - 32px);border-radius:14px;overflow:hidden;box-shadow:0 24px 80px #00000060;background:#1a1520}
+.cv-url-form{width:min(480px,100%);border-radius:14px;overflow:hidden;box-shadow:0 24px 80px #00000060;background:#1a1520}
+.cv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#231b30;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0}
+.cv-title{font-size:12px;font-weight:600;color:#c5b8d8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.cv-bar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cv-external{font-size:11px;font-weight:700;color:#a78bfa;text-decoration:none;padding:4px 10px;border-radius:6px;border:1px solid rgba(167,139,250,0.3);transition:background .15s}
+.cv-external:hover{background:rgba(167,139,250,0.15)}
+.cv-close{width:28px;height:28px;border:0;border-radius:7px;background:rgba(255,255,255,0.07);color:#c5b8d8;font-size:18px;cursor:pointer;display:grid;place-items:center;transition:background .15s}
+.cv-close:hover{background:rgba(255,255,255,0.13)}
+.cv-loading{position:absolute;inset:0;display:grid;place-items:center;color:#9080b0;font-size:13px;pointer-events:none}
+.cv-frame{flex:1;width:100%;border:none;background:#fff;opacity:0;transition:opacity .2s}
+.cv-frame--visible{opacity:1}
+.cv-blocked{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;padding:40px;text-align:center;color:#c5b8d8}
+.cv-blocked-icon{font-size:36px;opacity:.8}
+.cv-blocked strong{font-size:16px;color:#e8def8}
+.cv-blocked p{margin:0;font-size:13px;line-height:1.5;color:#9a8eb0;max-width:380px}
+.cv-blocked b{color:#c5b8d8}
+.cv-blocked-open{margin-top:8px;display:inline-flex;align-items:center;height:42px;padding:0 22px;border-radius:999px;background:#a78bfa;color:#1a1520;font-size:13px;font-weight:800;text-decoration:none;transition:filter .12s}
+.cv-blocked-open:hover{filter:brightness(1.1)}
+/* URL form */
+.cv-form-body{padding:22px 20px 20px;display:flex;flex-direction:column;gap:12px}
+.cv-form-label{display:block;font-size:12px;font-weight:700;color:#c5b8d8}
+.cv-form-hint{display:block;font-size:10px;font-weight:400;color:#7a6e8a;margin-top:3px}
+.cv-url-input{width:100%;background:#120e1a;border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:#f0ebf8;font-size:13px;outline:none;box-sizing:border-box;transition:border-color .15s}
+.cv-url-input:focus{border-color:#7c3aed}
+.cv-url-input::placeholder{color:#584d68}
+.cv-form-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:4px}
+.cv-remove-btn{background:none;border:0;color:#f87171;font-size:11px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px}
+.cv-remove-btn:hover{background:rgba(248,113,113,0.1)}
+.cv-save-btn{padding:8px 18px;background:linear-gradient(135deg,#5b21b6,#7c3aed);color:#fff;border:0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.cv-save-btn:disabled{opacity:.45;cursor:not-allowed}
+.cv-save-btn:not(:disabled):hover{opacity:.88}
+/* Has material indicator */
+.sb-btn-has-material{color:#a78bfa!important;border-color:rgba(167,139,250,0.4)!important}
+
+/* Content viewer can be opened from inside a subtopic without inheriting its button layout. */
+.sp-subtopic-list .cv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sp-subtopic-list .cv-bar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sp-subtopic-list .cv-external{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 10px;white-space:nowrap;text-align:center}
+.sp-subtopic-list .cv-close{display:grid;place-items:center;width:28px;min-width:28px;height:28px;min-height:28px;padding:0;border:0;border-radius:7px;background:rgba(255,255,255,.07);color:#c5b8d8;font-size:18px;line-height:1;text-align:center;overflow:visible}
+.sp-subtopic-list .cv-close:hover{background:rgba(255,255,255,.13)}
+@media(max-width:480px){.sp-subtopic-list .cv-external{font-size:0}.sp-subtopic-list .cv-external::before{content:'↗ Abrir';font-size:11px}}
+
+/* Review dialog footer must remain inside the modal on narrow screens. */
+.sb-review-dialog>footer button{display:inline-flex;align-items:center;justify-content:center;min-width:0;max-width:100%;white-space:nowrap;line-height:1;text-align:center}
+.sb-review-dialog>footer .sb-review-clear-pending{margin-right:auto;color:#a66b12;background:#fff7e7;border:1px solid #e3bd73}
+@media(max-width:420px){
+  .sb-review-overlay{padding:12px}
+  .sb-review-dialog>footer{display:grid;grid-template-columns:minmax(0,1fr);padding:12px 16px}
+  .sb-review-dialog>footer button{width:100%;min-height:42px;height:auto;padding:9px 12px}
+}

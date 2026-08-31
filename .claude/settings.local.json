@@ -5,7 +5,12 @@
       "Bash(npm install:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(python3:*)",
+      "Bash(node:*)"
     ]
   }
 }

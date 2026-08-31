@@ -39,7 +39,7 @@ export type SyllabusNodeResponse = {
   parentId?: number | null;
   title: string;
   order: number;
-  progress: number;
+  progress: number | string;
   studyStartedOn?: string | null;
   studiedOn?: string | null;
   children: SyllabusNodeResponse[];

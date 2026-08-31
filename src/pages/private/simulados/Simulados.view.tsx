@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import type { SimuladosViewProps } from './Simulados.type';
+import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { simuladosTokens as t } from './Simulados.tokens';
 
 /* ── Constants ── */
 const MOTIVOS = [
@@ -83,14 +85,14 @@ function entryToForm(e: SimuladoEntry, areaIds: number[]): FormState {
 function ScoreRing({ score }: { score: number }) {
   const r = 24, circ = 2 * Math.PI * r;
   return (
-    <div className="sm-score-ring">
-      <svg viewBox="0 0 56 56" aria-hidden>
+    <div className={t.scoreRing}>
+      <svg className={t.scoreRingSvg} viewBox="0 0 56 56" aria-hidden>
         <circle cx="28" cy="28" r={r} fill="none" stroke="#ede7f6" strokeWidth="5"/>
         <circle cx="28" cy="28" r={r} fill="none" stroke={scoreColor(score)} strokeWidth="5"
           strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - score / 100)}
           transform="rotate(-90 28 28)"/>
       </svg>
-      <span style={{ color: scoreColor(score) }}>{score}%</span>
+      <span className={t.scoreRingLabel} style={{ color: scoreColor(score) }}>{score}%</span>
     </div>
   );
 }
@@ -117,67 +119,67 @@ function MateriaFormBlock({
   }
 
   return (
-    <div className={`sm-mf-block${expanded ? ' sm-mf-block--open' : ''}`}>
-      <div className="sm-mf-head">
-        <span className="sm-mf-title">{title}</span>
-        <div className="sm-mf-quick">
-          <div className="sm-mf-input-wrap">
-            <span className="sm-mf-input-label">Questões{maxQuestoes > 0 ? ` (máx ${maxQuestoes})` : ''}</span>
-            <input className="sm-no-spin" type="number" min="0" max={maxQuestoes || undefined} placeholder="—"
+    <div className={`${t.mfBlock}${expanded ? ` ${t.mfBlockOpen}` : ''}`}>
+      <div className={t.mfHead}>
+        <span className={t.mfTitle}>{title}</span>
+        <div className={t.mfQuick}>
+          <div className={t.mfInputWrap}>
+            <span className={t.mfInputLabel}>Questões{maxQuestoes > 0 ? ` (máx ${maxQuestoes})` : ''}</span>
+            <input className={`${t.mfInput} ${t.noSpin}`} type="number" min="0" max={maxQuestoes || undefined} placeholder="—"
               disabled={maxQuestoes === 0 && q === 0}
               value={data.questoes}
               onChange={ev => onChange({ questoes: clampQ(ev.target.value) })}/>
           </div>
-          <div className="sm-mf-input-wrap">
-            <span className="sm-mf-input-label">Acertos</span>
-            <input className="sm-no-spin" type="number" min="0" max={q || undefined} placeholder="—"
+          <div className={t.mfInputWrap}>
+            <span className={t.mfInputLabel}>Acertos</span>
+            <input className={`${t.mfInput} ${t.noSpin}`} type="number" min="0" max={q || undefined} placeholder="—"
               value={data.acertos}
               onChange={ev => onChange({ acertos: String(Math.min(parseInt(ev.target.value) || 0, q)) })}/>
           </div>
-          {q > 0 && <span className="sm-mf-erros">{erros} erros</span>}
+          {q > 0 && <span className={t.mfErros}>{erros} erros</span>}
         </div>
-        <button type="button" className="sm-mf-toggle" onClick={onToggle}>
+        <button type="button" className={t.mfToggle} onClick={onToggle}>
           {expanded ? 'Fechar' : 'Detalhar'}
         </button>
       </div>
 
       {expanded && (
-        <div className="sm-mf-detail">
+        <div className={t.mfDetail}>
 
-          <div className="sm-mf-row">
-            <label className="sm-field sm-field--sm">
-              <span>Anuladas</span>
-              <input className="sm-no-spin" type="number" min="0" placeholder="0"
+          <div className={t.mfRow}>
+            <div className={`${t.field} ${t.fieldSm}`}>
+              <span className={t.fieldLabel}>Anuladas</span>
+              <input className={`${t.fieldInput} ${t.fieldSmInput} ${t.noSpin}`} type="number" min="0" placeholder="0"
                 value={data.anuladas} onChange={ev => onChange({ anuladas: ev.target.value })}/>
-            </label>
+            </div>
           </div>
 
-          <div className="sm-mf-motivos-header">
+          <div className={t.mfMotivosHeader}>
             <span>Motivos dos erros</span>
             {erros > 0 && (
-              <span className={`sm-mf-dist-badge${distribuido === erros ? ' sm-mf-dist-badge--ok' : ''}`}>
+              <span className={`${t.mfDistBadge}${distribuido === erros ? ` ${t.mfDistBadgeOk}` : ''}`}>
                 {distribuido}/{erros} distribuídos
               </span>
             )}
           </div>
-          <div className="sm-mf-motivos">
+          <div className={t.mfMotivos}>
             {MOTIVOS.map(motivo => (
-              <label key={motivo} className="sm-mf-motivo-row">
-                <span>{motivo}</span>
-                <input className="sm-no-spin" type="number" min="0" placeholder="0"
+              <div key={motivo} className={t.mfMotivoRow}>
+                <span className={t.mfMotivoLabel}>{motivo}</span>
+                <input className={`${t.mfMotivoInput} ${t.noSpin}`} type="number" min="0" placeholder="0"
                   value={data.motivosErros[motivo]}
                   onChange={ev => onChange({ motivosErros: { ...data.motivosErros, [motivo]: ev.target.value } })}/>
-              </label>
+              </div>
             ))}
           </div>
 
-          <label className="sm-field sm-field--sm" style={{ marginTop: 8 }}>
-            <span>Observações <em>(opcional)</em></span>
-            <textarea className="sm-obs" maxLength={500} rows={3}
+          <div className={t.field} style={{ marginTop: 8 }}>
+            <span className={t.fieldLabel}>Observações <em className={t.fieldLabelEm}>(opcional)</em></span>
+            <textarea className={t.obs} maxLength={500} rows={3}
               placeholder="Assuntos das questões erradas, percepções…"
               value={data.observacoes} onChange={ev => onChange({ observacoes: ev.target.value })}/>
-            <span className="sm-obs-count">{data.observacoes.length}/500</span>
-          </label>
+            <span className={t.obsCount}>{data.observacoes.length}/500</span>
+          </div>
         </div>
       )}
     </div>
@@ -346,7 +348,8 @@ export function SimuladosView({
 
   return (
     <>
-    <div className="jd-shell sm-shell">
+    <div className={t.shell}>
+      <JourneyMobileProfileLink />
 
       <aside className="jd-sidebar">
         <div className="jd-brand"><span>K</span><strong>Kurumí</strong></div>
@@ -372,6 +375,7 @@ export function SimuladosView({
             <span>Conteúdo</span>
           </button>
         </nav>
+        <JourneyProfileLink />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt=""/> : journey.title.slice(0, 2).toUpperCase()}
@@ -380,36 +384,42 @@ export function SimuladosView({
         </div>
       </aside>
 
-      <main className="sm-main">
-        <header className="sm-header">
+      <main className={t.main}>
+        <header className={t.header}>
           <div>
             <span className="jd-page-context">SIMULADOS</span>
             <h1>Registro de resultados</h1>
-            <p className="sm-header-sub">{journey.title} · {entries.length} simulado{entries.length !== 1 ? 's' : ''} registrado{entries.length !== 1 ? 's' : ''}</p>
+            <p className={t.headerSub}>{journey.title} · {entries.length} simulado{entries.length !== 1 ? 's' : ''} registrado{entries.length !== 1 ? 's' : ''}</p>
           </div>
-          <button className="sm-create-btn" onClick={openCreate}>
+          <div className={t.headerActions}>
+          <button type="button" className={t.createButton} onClick={openCreate}>
             <svg viewBox="0 0 24 24" fill="none" width="14" height="14" aria-hidden>
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
             Registrar simulado
           </button>
+          <button type="button" className="jd-back-link" onClick={onBack}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Jornadas
+          </button>
+          </div>
         </header>
 
         {stats && (
-          <div className="sm-stats">
-            <div className="sm-stat"><strong>{stats.total}</strong><small>Registrados</small></div>
-            <div className="sm-stat-div"/>
-            <div className="sm-stat"><strong>{stats.totalQ}</strong><small>Questões respondidas</small></div>
-            <div className="sm-stat-div"/>
-            <div className="sm-stat"><strong style={{ color: scoreColor(stats.avg) }}>{stats.avg}%</strong><small>Média de acertos</small></div>
-            <div className="sm-stat-div"/>
-            <div className="sm-stat"><strong style={{ color: scoreColor(stats.best) }}>{stats.best}%</strong><small>Melhor resultado</small></div>
+          <div className={t.stats}>
+            <div className={t.stat}><strong className={t.statValue}>{stats.total}</strong><small className={t.statLabel}>Registrados</small></div>
+            <div className={t.statDivider}/>
+            <div className={t.stat}><strong className={t.statValue}>{stats.totalQ}</strong><small className={t.statLabel}>Questões respondidas</small></div>
+            <div className={t.statDivider}/>
+            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.avg) }}>{stats.avg}%</strong><small className={t.statLabel}>Média de acertos</small></div>
+            <div className={t.statDivider}/>
+            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.best) }}>{stats.best}%</strong><small className={t.statLabel}>Melhor resultado</small></div>
           </div>
         )}
 
         {entries.length === 0 ? (
-          <div className="sm-empty">
-            <div className="sm-empty-icon">
+          <div className={t.empty}>
+            <div className={t.emptyIcon}>
               <svg viewBox="0 0 48 48" fill="none" width="48" height="48" aria-hidden>
                 <rect x="8" y="10" width="32" height="32" rx="6" stroke="#c8b8e0" strokeWidth="2.5"/>
                 <path d="M16 20h16M16 27h10" stroke="#c8b8e0" strokeWidth="2.5" strokeLinecap="round"/>
@@ -418,81 +428,81 @@ export function SimuladosView({
             </div>
             <strong>Nenhum simulado registrado</strong>
             <p>Registre um resultado para acompanhar sua evolução.</p>
-            <button onClick={openCreate}>Registrar primeiro simulado</button>
+            <button type="button" className={t.emptyButton} onClick={openCreate}>Registrar primeiro simulado</button>
           </div>
         ) : (
-          <div className="sm-results">
+          <div className={t.results}>
             {entries.map(e => {
               const score = pct(e.acertosTotal, e.totalQuestoes);
               const isOpen = expandedResult === e.id;
               return (
-                <article key={e.id} className="sm-result-row">
+                <article key={e.id} className={t.resultRow} onClick={() => e.porMateria.length > 0 && setExpandedResult(isOpen ? null : e.id)} onKeyDown={ev => { if ((ev.key === 'Enter' || ev.key === ' ') && e.porMateria.length > 0) { ev.preventDefault(); setExpandedResult(isOpen ? null : e.id); } }} role={e.porMateria.length > 0 ? 'button' : undefined} tabIndex={e.porMateria.length > 0 ? 0 : undefined}>
                   <ScoreRing score={score}/>
 
-                  <div className="sm-result-body">
+                  <div className={t.resultBody}>
                     <strong>{e.name}</strong>
-                    <div className="sm-result-tags">
-                      {e.fonte && <><span>{e.fonte}</span><span className="sm-result-sep">·</span></>}
+                    <div className={t.resultTags}>
+                      {e.fonte && <><span>{e.fonte}</span><span className={t.resultSep}>·</span></>}
                       <span>{e.totalQuestoes} questões</span>
-                      <span className="sm-result-sep">·</span>
+                      <span className={t.resultSep}>·</span>
                       <span>{e.acertosTotal} acertos</span>
-                      <span className="sm-result-sep">·</span>
+                      <span className={t.resultSep}>·</span>
                       <span>{e.totalQuestoes - e.acertosTotal} erros</span>
-                      {(e.horas > 0 || e.minutos > 0) && <><span className="sm-result-sep">·</span><span>{fmtDuration(e.horas, e.minutos)}</span></>}
-                      {e.notaGeral && <><span className="sm-result-sep">·</span><span>Nota: {e.notaGeral}</span></>}
+                      {(e.horas > 0 || e.minutos > 0) && <><span className={t.resultSep}>·</span><span>{fmtDuration(e.horas, e.minutos)}</span></>}
+                      {e.notaGeral && <><span className={t.resultSep}>·</span><span>Nota: {e.notaGeral}</span></>}
                     </div>
-                    <small className="sm-result-date">{new Date(e.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}</small>
+                    <small className={t.resultDate}>{new Date(e.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}</small>
                   </div>
 
-                  <div className="sm-result-actions">
+                  <div className={t.resultActions} onClick={ev => ev.stopPropagation()}>
                     {e.porMateria.length > 0 && (
-                      <button className="sm-action-btn sm-action-btn--ghost"
+                      <button className={`${t.actionBtn} ${t.actionGhost}`}
                         onClick={() => setExpandedResult(isOpen ? null : e.id)}>
                         <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M3 6h18M3 12h12M3 18h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
                         {isOpen ? 'Fechar' : 'Matérias'}
                       </button>
                     )}
-                    <button className="sm-action-btn sm-action-btn--icon" onClick={() => openEdit(e)} title="Editar">
+                    <button className={`${t.actionBtn} ${t.actionIcon}`} onClick={() => openEdit(e)} title="Editar">
                       <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
-                    <button className="sm-action-btn sm-action-btn--danger" onClick={() => deleteEntry(e.id)} title="Apagar">
+                    <button className={`${t.actionBtn} ${t.actionDanger}`} onClick={() => deleteEntry(e.id)} title="Apagar">
                       <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2"/></svg>
                     </button>
                   </div>
 
                   {isOpen && (
-                    <div className="sm-materia-breakdown">
+                    <div className={t.materiaBreakdown}>
                       {e.porMateria.map(m => {
                         const mp = pct(m.acertos, m.questoes);
                         const erros = m.questoes - m.acertos - (m.anuladas || 0);
                         const totalMotivos = MOTIVOS.reduce((s, k) => s + (m.motivosErros[k] || 0), 0);
                         const hasMotivos = totalMotivos > 0;
                         return (
-                          <div key={m.areaId} className="sm-materia-detail-block">
-                            <div className="sm-materia-row">
-                              <span className="sm-materia-name">{m.areaTitle}</span>
-                              <div className="sm-materia-bar-wrap">
-                                <div className="sm-materia-bar" style={{ width: `${mp}%`, background: scoreColor(mp) }}/>
+                          <div key={m.areaId} className={t.materiaDetailBlock}>
+                            <div className={t.materiaRow}>
+                              <span className={t.materiaName}>{m.areaTitle}</span>
+                              <div className={t.materiaBarWrap}>
+                                <div className={t.materiaBar} style={{ width: `${mp}%`, background: scoreColor(mp) }}/>
                               </div>
-                              <span className="sm-materia-pct" style={{ color: scoreColor(mp) }}>{mp}%</span>
-                              <span className="sm-materia-detail">{m.acertos}/{m.questoes}{m.anuladas ? ` · ${m.anuladas} an.` : ''}</span>
+                              <span className={t.materiaPct} style={{ color: scoreColor(mp) }}>{mp}%</span>
+                              <span className={t.materiaDetail}>{m.acertos}/{m.questoes}{m.anuladas ? ` · ${m.anuladas} an.` : ''}</span>
                             </div>
                             {hasMotivos && (
-                              <div className="sm-motivos-chips">
+                              <div className={t.motivosChips}>
                                 {MOTIVOS.filter(k => m.motivosErros[k] > 0).map(k => (
-                                  <span key={k} className="sm-motivo-chip">
+                                  <span key={k} className={t.motivoChip}>
                                     {k}: <strong>{m.motivosErros[k]}</strong>
                                   </span>
                                 ))}
                                 {erros > 0 && totalMotivos < erros && (
-                                  <span className="sm-motivo-chip sm-motivo-chip--warn">
+                                  <span className={`${t.motivoChip} ${t.motivoChipWarn}`}>
                                     Não distr.: <strong>{erros - totalMotivos}</strong>
                                   </span>
                                 )}
                               </div>
                             )}
                             {m.observacoes && (
-                              <p className="sm-materia-obs">"{m.observacoes}"</p>
+                              <p className={t.materiaObs}>"{m.observacoes}"</p>
                             )}
                           </div>
                         );
@@ -520,80 +530,80 @@ export function SimuladosView({
 
     {/* ── Form overlay ── */}
     {formOpen && (
-      <div className="sm-overlay" onMouseDown={() => setFormOpen(false)}>
-        <div className="sm-dialog sm-dialog--create" onMouseDown={e => e.stopPropagation()}>
-          <div className="sm-dialog-header">
+      <div className={t.overlay} onMouseDown={() => setFormOpen(false)}>
+        <div className={t.dialog} onMouseDown={e => e.stopPropagation()}>
+          <div className={t.dialogHeader}>
             <div>
-              <span className="eyebrow">{editingId !== null ? 'EDITAR REGISTRO' : 'NOVO REGISTRO'}</span>
-              <h2>{editingId !== null ? 'Editar simulado' : 'Registrar simulado'}</h2>
+              <span className={t.dialogEyebrow}>{editingId !== null ? 'EDITAR REGISTRO' : 'NOVO REGISTRO'}</span>
+              <h2 className={t.dialogTitle}>{editingId !== null ? 'Editar simulado' : 'Registrar simulado'}</h2>
             </div>
-            <button className="sm-dialog-close" onClick={() => setFormOpen(false)} aria-label="Fechar">
+            <button className={t.dialogClose} onClick={() => setFormOpen(false)} aria-label="Fechar">
               <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </button>
           </div>
 
-          <div className="sm-create-form">
+          <div className={t.createForm}>
 
-            <label className="sm-field">
-              <span>Nome do simulado</span>
-              <input type="text" placeholder="Ex: Simulado CESPE — agosto 2026"
+            <div className={t.field}>
+              <span className={t.fieldLabel}>Nome do simulado</span>
+              <input className={t.fieldInput} type="text" placeholder="Ex: Simulado CESPE — agosto 2026"
                 value={form.name} onChange={ev => setField('name', ev.target.value)}/>
-            </label>
-
-            <div className="sm-field-row">
-              <label className="sm-field">
-                <span>Fonte / banca</span>
-                <input type="text" placeholder="Ex: CESPE, FCC…"
-                  value={form.fonte} onChange={ev => setField('fonte', ev.target.value)}/>
-              </label>
-              <label className="sm-field">
-                <span>Data de realização</span>
-                <input type="date" value={form.date} onChange={ev => setField('date', ev.target.value)}/>
-              </label>
             </div>
 
-            <div className="sm-field">
-              <span>Tempo gasto</span>
-              <div className="sm-field-row">
-                <label className="sm-field">
-                  <span>Horas</span>
-                  <input className="sm-no-spin" type="number" min="0" max="12" placeholder="0"
-                    value={form.horas} onChange={ev => setField('horas', ev.target.value)}/>
-                </label>
-                <label className="sm-field">
-                  <span>Minutos</span>
-                  <input className="sm-no-spin" type="number" min="0" max="59" placeholder="0"
-                    value={form.minutos} onChange={ev => setField('minutos', ev.target.value)}/>
-                </label>
+            <div className={t.fieldRow}>
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Fonte / banca</span>
+                <input className={t.fieldInput} type="text" placeholder="Ex: CESPE, FCC…"
+                  value={form.fonte} onChange={ev => setField('fonte', ev.target.value)}/>
+              </div>
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Data de realização</span>
+                <input className={t.fieldInput} type="date" value={form.date} onChange={ev => setField('date', ev.target.value)}/>
               </div>
             </div>
 
-            <div className="sm-field-row sm-field-row--3">
-              <label className="sm-field">
-                <span>Total de questões</span>
-                <input className="sm-no-spin" type="number" min="1" placeholder="100"
+            <div className={t.field}>
+              <span className={t.fieldLabel}>Tempo gasto</span>
+              <div className={t.fieldRow}>
+                <div className={t.field}>
+                  <span className={t.fieldLabel}>Horas</span>
+                  <input className={`${t.fieldInput} ${t.noSpin}`} type="number" min="0" max="12" placeholder="0"
+                    value={form.horas} onChange={ev => setField('horas', ev.target.value)}/>
+                </div>
+                <div className={t.field}>
+                  <span className={t.fieldLabel}>Minutos</span>
+                  <input className={`${t.fieldInput} ${t.noSpin}`} type="number" min="0" max="59" placeholder="0"
+                    value={form.minutos} onChange={ev => setField('minutos', ev.target.value)}/>
+                </div>
+              </div>
+            </div>
+
+            <div className={t.fieldRow3}>
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Total de questões</span>
+                <input className={`${t.fieldInput} ${t.noSpin}`} type="number" min="1" placeholder="100"
                   value={form.totalQuestoes} onChange={ev => setField('totalQuestoes', ev.target.value)}/>
-              </label>
-              <label className="sm-field">
-                <span>Acertos total</span>
-                <input className="sm-no-spin" type="number" min="0" placeholder="70"
+              </div>
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Acertos total</span>
+                <input className={`${t.fieldInput} ${t.noSpin}`} type="number" min="0" placeholder="70"
                   value={form.acertosTotal} onChange={ev => setField('acertosTotal', ev.target.value)}/>
-              </label>
-              <label className="sm-field">
-                <span>Nota geral <em>(calculada)</em></span>
-                <input type="text" placeholder="Será calculada em %"
+              </div>
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Nota geral <em className={t.fieldLabelEm}>(calculada)</em></span>
+                <input className={`${t.fieldInput} ${t.fieldInputReadonly}`} type="text" placeholder="Será calculada em %"
                   value={notaCalculada} readOnly aria-readonly="true"/>
-              </label>
+              </div>
             </div>
 
             {areas.length > 0 && (
-              <div className="sm-field">
-                <span>Por matéria <em>(opcional — clique em Detalhar para expandir)</em></span>
-                <span className="sm-mf-total-hint">
+              <div className={t.field}>
+                <span className={t.fieldLabel}>Por matéria</span>
+                <span className={t.mfTotalHint}>
                   Distribuídas: {Object.values(form.porMateria).reduce((sum, m) => sum + (parseInt(m.questoes, 10) || 0), 0)} / {parseInt(form.totalQuestoes, 10) || 0}
                   {' · '}{Math.max(0, (parseInt(form.totalQuestoes, 10) || 0) - Object.values(form.porMateria).reduce((sum, m) => sum + (parseInt(m.questoes, 10) || 0), 0))} restantes
                 </span>
-                <div className="sm-mf-list">
+          <div className={t.mfList}>
                   {areas.map(a => (
                     <MateriaFormBlock
                       key={a.id}
@@ -617,9 +627,9 @@ export function SimuladosView({
 
           </div>
 
-          <div className="sm-dialog-footer">
-            <button className="sm-btn-ghost" onClick={() => setFormOpen(false)}>Cancelar</button>
-            <button className="sm-btn-primary" onClick={submitForm}>
+          <div className={t.dialogFooter}>
+            <button className={t.btnGhost} onClick={() => setFormOpen(false)}>Cancelar</button>
+            <button className={t.btnPrimary} onClick={submitForm}>
               {editingId !== null ? 'Salvar alterações' : 'Salvar registro'}
               <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden>
                 <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>

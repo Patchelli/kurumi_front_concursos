@@ -1,13 +1,10 @@
-import React from 'react'; import ReactDOM from 'react-dom/client'; import { BrowserRouter } from 'react-router-dom'; import { Toaster } from 'sonner'; import App from './App'; import './styles/base/global.css'; import './styles/journey/overrides.css'; import './styles/contest/creation.css'; import './styles/contest/dashboard.css'; import './styles/journey/fixed-layout.css'; import './styles/journey/syllabus.css'; import './styles/contest/json-import.css'; import './styles/contest/subject-tree.css'; import './styles/contest/subject-actions.css'; import './styles/contest/confirmation.css'; import './styles/components/central-overrides.css'; import './styles/components/material-dialog.css'; import './styles/home/card-progress.css'; import './styles/home/dashboard.css'; import './styles/journey/dashboard.css'; import './styles/base/responsive.css'; import {configureAxios} from '../@libs/axios/axios.intercept';
+import React from 'react'; import ReactDOM from 'react-dom/client'; import { BrowserRouter } from 'react-router-dom'; import { Toaster } from 'sonner'; import App from './App'; import './styles/material.css'; import './styles/base/global.css'; import './styles/journey/overrides.css'; import './styles/contest/creation.css'; import './styles/contest/dashboard.css'; import './styles/journey/fixed-layout.css'; import './styles/journey/syllabus.css'; import './styles/contest/json-import.css'; import './styles/contest/subject-tree.css'; import './styles/contest/subject-actions.css'; import './styles/contest/confirmation.css'; import './styles/components/central-overrides.css'; import './styles/components/material-dialog.css'; import './styles/home/card-progress.css'; import './styles/home/dashboard.css'; import './styles/journey/dashboard.css'; import './styles/base/responsive.css'; import {configureAxios} from '../@libs/axios/axios.intercept';
 import './styles/study-plan.css';
 import './styles/study-topic-dialog.css';
 import './styles/subject.css';
 import './styles/components/study-loading.css';
 import './styles/components/flashcard-creator.css';
 import './styles/capsule.css';
-import './styles/calendar.css';
-import './styles/simulados.css';
-import './styles/admin.css';
 import { CapsuleDeliveryProvider } from './pages/private/capsule/CapsuleDelivery.context';
 import { CapsuleDeliveryPopup } from './pages/private/capsule/Capsule.widgets';
 import { PomodoroProvider } from './components/fab/Pomodoro.context';

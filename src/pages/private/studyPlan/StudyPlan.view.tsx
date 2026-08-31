@@ -1,60 +1,96 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { StudyPlanViewProps } from './StudyPlan.type';
 import { studyPlanTokens } from './StudyPlan.tokens';
 import { StudyTopicDialog, PlanConfigWizard, StudyCalendar, type StudyTopicTarget } from './StudyPlan.widgets';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { usePomodoro } from '../../../components/fab/Pomodoro.context';
+import { ReviewDialog } from '@components/dialog/ReviewDialog';
+import { isStudyCompleted } from '@business/studyProgress';
+import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 
 const TYPE_SLUG: Record<string, string> = { Teoria: 'teoria', Questões: 'questoes', Revisão: 'revisao' };
 const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+const localToday = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+const LOCAL_DATE = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 
-export function StudyPlanView({ journey, loading, configuration, onSaveConfiguration, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
+export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
+  const [revisions, setRevisions] = useState<Map<number, string>>(new Map()); // blockId → date
+  const [reviewTarget, setReviewTarget] = useState<typeof blocks[number] | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopicTarget | null>(null);
   const pomodoro = usePomodoro();
-  const [tab, setTab] = useState<'novo' | 'hoje' | 'atrasadas' | 'futuras'>('novo');
+  const [tab, setTab] = useState<'novo' | 'revisao'>('novo');
   const [configOpen, setConfigOpen] = useState(false);
 
-  const blocks = useMemo(() =>
-    journey?.knowledgeAreas
-      .flatMap((area, ai) => area.nodes.slice(0, 2).map((topic, ti) => ({
-        id: topic.id, area, topic,
-        subject: area.title,
-        type: studyPlanTokens.blockTypes[(ai + ti) % studyPlanTokens.blockTypes.length],
-        minutes: studyPlanTokens.durations[(ai + ti) % studyPlanTokens.durations.length],
-      })))
-      .slice(0, 8) ?? []
-  , [journey]);
+  useEffect(() => {
+    setCompleted(new Set((routineBlocks ?? []).filter(block => block.status === 3 || String(block.status).toLowerCase() === 'completed').map(block => block.id)));
+  }, [routineBlocks]);
+
+  const todayBlocks = useMemo(() => {
+    if (routineBlocks?.length) { const today = new Date().toISOString().slice(0, 10); return routineBlocks.filter(item => item.scheduledFor.slice(0, 10) === today).map(item => { const area = journey?.knowledgeAreas.find(a => a.nodes.some(n => n.id === item.syllabusNodeId)); const topic = area?.nodes.find(n => n.id === item.syllabusNodeId); return area && topic ? { id: item.id, area, topic, subject: area.title, type: item.type === 2 ? 'Revisão' : item.type === 3 ? 'Questões' : 'Teoria', minutes: item.plannedMinutes } : null; }).filter(Boolean) as Array<{ id: number; area: NonNullable<typeof journey>['knowledgeAreas'][number]; topic: NonNullable<typeof journey>['knowledgeAreas'][number]['nodes'][number]; subject: string; type: string; minutes: number }>; }
+    return [];
+  }, [journey, routineBlocks]);
+
+  const blocks = todayBlocks.map(block => {
+    const source = routineBlocks?.find(item => item.id === block.id);
+    const rawType = String(source?.type ?? '').toLowerCase();
+    const type = rawType === '2' || rawType === 'review' ? 'Revisão' : rawType === '3' || rawType === 'questions' ? 'Questões' : block.type;
+    return { ...block, type, minutes: source && source.completedMinutes > 0 ? source.completedMinutes : block.minutes };
+  });
+  const pendingBlockIds = new Set((routineBlocks ?? []).filter(item => (item.status === 1 || String(item.status).toLowerCase() === 'pending') && item.completedMinutes > 0).map(item => item.id));
 
   if (loading) return <StudyLoading label="Montando seu plano de estudos…" />;
   if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
 
-  const plannedMinutes = blocks.reduce((s, b) => s + b.minutes, 0);
-  const doneMinutes = blocks.filter(b => completed.has(b.id)).reduce((s, b) => s + b.minutes, 0);
+  const plannedMinutes = blocks.reduce((total, block) => total + (routineBlocks?.find(item => item.id === block.id)?.plannedMinutes ?? block.minutes), 0);
+  const doneMinutes = blocks.reduce((total, block) => {
+    const saved = routineBlocks?.find(item => item.id === block.id);
+    return total + (saved?.completedMinutes ?? (completed.has(block.id) ? block.minutes : 0));
+  }, 0);
   const progress = plannedMinutes ? Math.round(doneMinutes / plannedMinutes * 100) : 0;
 
-  const toggle = (id: number) => setCompleted(curr => { const next = new Set(curr); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const open = (block: typeof blocks[number]) => setSelectedTopic({ area: block.area, topic: block.topic });
+  const isTopicComplete = (topic: typeof blocks[number]['topic']) => {
+    if (topic.children.length > 0) {
+      return topic.children.every(child =>
+        isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === child.id)?.progress ?? child.progress)
+      );
+    }
+    const block = blocks.find(item => item.topic.id === topic.id);
+    return block ? completed.has(block.id) : isStudyCompleted(topic.progress);
+  };
+
+  async function completeBlock(id: number, completedMinutes: number, scheduleReview = false, reviewDate: string | null = null, isCompleted = true, clearPending = false) {
+    setCompleted(curr => { const next = new Set(curr); isCompleted ? next.add(id) : next.delete(id); return next; });
+    await onCompleteBlock(id, isCompleted, completedMinutes, isCompleted && scheduleReview, isCompleted && scheduleReview ? reviewDate : null, clearPending);
+  }
+  async function uncompleteBlock(id: number) {
+    setCompleted(curr => { const next = new Set(curr); next.delete(id); return next; });
+    setRevisions(curr => { const next = new Map(curr); next.delete(id); return next; });
+    await onCompleteBlock(id, false, 0, false, null);
+  }
 
   const novoBlocks = blocks.filter(b => b.type !== 'Revisão');
-  const baseRevisoes = blocks.filter(b => b.type === 'Revisão');
-  const revisaoBlocks = baseRevisoes.length >= 6 ? baseRevisoes : Array.from({ length: 6 }, (_, index) => {
-    const source = blocks[index % Math.max(1, blocks.length)];
-    return source ? { ...source, id: source.id + 10000 + index, topic: { ...source.topic, id: source.topic.id + 10000 + index, title: `${source.topic.title} · revisão ${index + 1}` }, type: 'Revisão' as const } : null;
-  }).filter(Boolean) as typeof blocks;
-  const revisaoHoje = revisaoBlocks.filter((_, index) => index % 3 === 0);
-  const revisaoAtrasadas = revisaoBlocks.filter((_, index) => index % 3 === 1);
-  const revisaoFuturas = revisaoBlocks.filter((_, index) => index % 3 === 2);
-  const formatShortDate = (date: Date) => date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
-  const todayDate = new Date();
-  const overdueDate = new Date(todayDate); overdueDate.setDate(overdueDate.getDate() - 2);
-  const futureDate = new Date(todayDate); futureDate.setDate(futureDate.getDate() + 3);
-  const visibleBlocks = tab === 'novo' ? novoBlocks : [...revisaoHoje, ...revisaoAtrasadas, ...revisaoFuturas];
+  // Backend-generated revision blocks + user-scheduled revisions from completed "Aprender" blocks
+  const backendRevisoes = blocks.filter(b => b.type === 'Revisão');
+  const futureRevisoes = (routineBlocks ?? []).filter(item => { const value = String(item.type).toLowerCase(); return value === '2' || value === 'review'; }).map(item => { const area = journey.knowledgeAreas.find(a => a.nodes.some(n => n.id === item.syllabusNodeId)); const topic = area?.nodes.find(n => n.id === item.syllabusNodeId); return area && topic ? { id: item.id, area, topic, subject: area.title, type: 'Revisão', minutes: item.plannedMinutes, scheduledFor: item.scheduledFor } : null; }).filter(Boolean) as any[];
+  const subtopicRevisoes = nodeStudy.filter(item => item.reviewDate).map(item => {
+    const area = journey.knowledgeAreas.find(candidate => candidate.nodes.some(root => root.id === item.syllabusNodeId || root.children.some(child => child.id === item.syllabusNodeId)));
+    const topic = area?.nodes.find(root => root.id === item.syllabusNodeId || root.children.some(child => child.id === item.syllabusNodeId));
+    const displayNode = topic?.children.find(child => child.id === item.syllabusNodeId);
+    return area && topic ? { id: -item.syllabusNodeId, area, topic, displayTitle: displayNode?.title ?? topic.title, subject: area.title, type: 'Revisão', minutes: 0, scheduledFor: item.reviewDate } : null;
+  }).filter(Boolean) as any[];
+  const revisaoBlocks = [...backendRevisoes, ...futureRevisoes.filter(item => !backendRevisoes.some(current => current.id === item.id)), ...subtopicRevisoes.filter(item => !futureRevisoes.some(current => current.topic.id === item.topic.id && current.scheduledFor?.slice(0, 10) === item.scheduledFor?.slice(0, 10)))];
+  const visibleBlocks = tab === 'novo' ? novoBlocks : revisaoBlocks;
+  const todayIso = localToday;
+  const tomorrowIso = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+  let lastReviewGroup = '';
 
   return (
     <>
     <div className="jd-shell sp-shell">
+      <JourneyMobileProfileLink />
 
       {/* ── Sidebar ── */}
       <aside className="jd-sidebar">
@@ -81,6 +117,7 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
             <span>Conteúdo</span>
           </button>
         </nav>
+        <JourneyProfileLink />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0, 2).toUpperCase()}
@@ -149,8 +186,8 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
                 <span className="sp-tab-count">{novoBlocks.length}</span>
               </button>
               <button
-                className={tab !== 'novo' ? 'sp-tab sp-tab--active' : 'sp-tab'}
-                onClick={() => setTab('hoje')}
+                className={tab === 'revisao' ? 'sp-tab sp-tab--active' : 'sp-tab'}
+                onClick={() => setTab('revisao')}
                 aria-label="Revisão"
               >
                 <svg viewBox="0 0 22 14" fill="none" aria-hidden="true">
@@ -165,17 +202,20 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
             {visibleBlocks.length ? (
               <div className="sp-block-list">
                 {visibleBlocks.map((block, index) => {
-                  const groupTitle = tab !== 'novo' && (index === 0 ? `Hoje · ${revisaoHoje.length}` : index === revisaoHoje.length ? `Atrasadas · ${revisaoAtrasadas.length}` : index === revisaoHoje.length + revisaoAtrasadas.length ? `Futuras · ${revisaoFuturas.length}` : '');
-                  const groupDate = tab !== 'novo' && (index === 0 ? formatShortDate(todayDate) : index === revisaoHoje.length ? formatShortDate(overdueDate) : index === revisaoHoje.length + revisaoAtrasadas.length ? formatShortDate(futureDate) : '');
                   const done = completed.has(block.id);
                   const studyingNow = pomodoro.running && pomodoro.activeTopicId === block.topic.id;
                   const slug = TYPE_SLUG[block.type] ?? 'teoria';
-                  const isRevHoje = tab !== 'novo' && index < revisaoHoje.length;
-                  const isRevAtrasada = tab !== 'novo' && index >= revisaoHoje.length && index < revisaoHoje.length + revisaoAtrasadas.length;
+                  const scheduleDate = (block as { scheduledFor?: string }).scheduledFor?.slice(0, 10);
+                  const group = tab === 'revisao' ? (!scheduleDate || scheduleDate === todayIso ? 'Hoje' : scheduleDate === tomorrowIso ? 'Amanhã' : scheduleDate < todayIso ? 'Atrasadas' : 'Futuras') : '';
+                  const showGroup = group && group !== lastReviewGroup;
+                  lastReviewGroup = group;
+                  const revDate = revisions.get(block.id) ?? (block.type === 'Revisão' ? block.scheduledFor?.slice(0, 10) : undefined);
                   return (
-                    <div key={block.id}>{groupTitle && <div className={`sp-revision-group-title${isRevHoje ? ' sp-rgt--hoje' : isRevAtrasada ? ' sp-rgt--atrasada' : ' sp-rgt--futura'}`}><span>{groupTitle}</span><small>{groupDate}</small></div>}<article
-                      key={block.id}
-                      className={`sp-block${done ? ' sp-block--done' : ''}${isRevHoje ? ' sp-block--rev-hoje' : ''}${studyingNow ? ' sp-block--studying' : ''}`}
+                    <Fragment key={`${tab}-${block.id}`}>
+                    {showGroup && <div className={`sp-review-group sp-review-group--${group.toLowerCase()}`}>{group}</div>}
+                    <article
+                      key={`${tab}-${block.id}`}
+                      className={`sp-block${done ? ' sp-block--done' : ''}${pendingBlockIds.has(block.id) ? ' sp-block--pending' : ''}${studyingNow ? ' sp-block--studying' : ''}`}
                       role="button"
                       tabIndex={0}
                       onClick={() => open(block)}
@@ -185,7 +225,12 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
                         className="sp-check"
                         type="button"
                         aria-label={`${done ? 'Desmarcar' : 'Concluir'} ${block.topic.title}`}
-                        onClick={e => { e.stopPropagation(); toggle(block.id); }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (block.id < 0) { open(block); return; }
+                          if (done) uncompleteBlock(block.id);
+                          else setReviewTarget(block);
+                        }}
                       >
                         {done ? '✓' : index + 1}
                       </button>
@@ -195,36 +240,55 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
                           <span className={`sp-type sp-type--${slug}`}>{block.type}</span>
                           <span className="sp-block-subject">{block.subject}</span>
                         </div>
-                        <strong className="sp-block-title">{block.topic.title}</strong>
+                          <strong className="sp-block-title">{(block as { displayTitle?: string }).displayTitle ?? block.topic.title}</strong>
                         <span className="sp-block-hint">
-                          {studyingNow ? '● Pomodoro em andamento' : block.topic.children.length
+                          {studyingNow
+                            ? '● Pomodoro em andamento'
+                            : revDate
+                            ? `↻ Revisão em ${new Date(`${revDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
+                            : block.topic.children.length
                             ? `${block.topic.children.length} subtópico${block.topic.children.length > 1 ? 's' : ''}`
                             : 'Clique para ver as ações'}
                         </span>
                       </div>
 
                       <div className="sp-block-actions">
-                        <time className="sp-block-time">{block.minutes}min</time>
+                        <time className="sp-block-time">{block.type === 'Revisão' ? 'tempo livre' : `${block.minutes}min`}</time>
                       </div>
-                    </article></div>
+                    </article>
+                    </Fragment>
                   );
                 })}
               </div>
             ) : (
-              <div className="sp-empty">
-                {tab === 'novo'
-                  ? <><strong>Nenhum conteúdo novo para hoje</strong><p>Adicione tópicos às matérias para gerar o plano.</p></>
-                  : <><strong>Nenhuma revisão agendada</strong><p>Complete tópicos e agende revisões para vê-las aqui.</p></>
-                }
+              <div className={`sp-empty${tab === 'novo' && !configuration ? ' sp-empty--setup' : ''}`}>
+                {tab === 'novo' ? (
+                  !configuration ? (<>
+                    <div className="sp-empty-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                    </div>
+                    <strong>Nenhum ciclo configurado</strong>
+                    <p>Defina disponibilidade, matérias e carga horária para gerar seu plano diário.</p>
+                    <button className="sp-empty-cta" type="button" onClick={() => setConfigOpen(true)}>Configurar plano →</button>
+                  </>) : (<>
+                    <strong>Nenhum bloco para hoje</strong>
+                    <p>Pode ser dia de folga ou as matérias ainda não têm tópicos cadastrados.</p>
+                    <button className="sp-empty-link" type="button" onClick={() => setConfigOpen(true)}>Revisar configuração</button>
+                  </>)
+                ) : (
+                  <><strong>Nenhuma revisão agendada</strong><p>Complete tópicos para gerar revisões.</p></>
+                )}
               </div>
             )}
           </section>
-          <StudyCalendar areas={journey.knowledgeAreas} />
+          <StudyCalendar areas={journey.knowledgeAreas} routineBlocks={routineBlocks} nodeStudy={nodeStudy} />
           </div>{/* end sp-main-col */}
 
           {/* Right sidebar: config button + weekly goal */}
           <aside className="sp-side">
-            <button className="sp-config-btn" type="button" onClick={() => setConfigOpen(true)}>
+            <button className={`sp-config-btn${!configuration ? ' sp-config-btn--pulse' : ''}`} type="button" onClick={() => setConfigOpen(true)}>
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -252,6 +316,7 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
       <nav className="journey-mobile-nav">
         <button onClick={onOverview}>◎<span>Visão geral</span></button>
         <button className="active">◷<span>Plano</span></button>
+        <button onClick={onOpenSimulados}>✎<span>Simulados</span></button>
         <button onClick={onOpenCapsule}>✉<span>Cápsula</span></button>
         <button onClick={onOpenContent}>☰<span>Conteúdo</span></button>
       </nav>
@@ -259,11 +324,45 @@ export function StudyPlanView({ journey, loading, configuration, onSaveConfigura
     </div>
 
     {/* Both outside jd-shell so position:fixed covers full viewport */}
+    {reviewTarget && reviewTarget.type === 'Revisão' ? (
+      <ReviewDialog
+        mode="revision"
+        title={reviewTarget.topic.title}
+        onClose={() => setReviewTarget(null)}
+        onConfirm={(scheduleNext, nextDate) => {
+          void completeBlock(reviewTarget.id, 0, scheduleNext, scheduleNext ? nextDate : null, true);
+          if (scheduleNext) setRevisions(prev => new Map(prev).set(reviewTarget.id, nextDate));
+          setReviewTarget(null);
+        }}
+      />
+    ) : reviewTarget ? (
+      <ReviewDialog
+        title={reviewTarget.topic.title}
+        defaultMinutes={reviewTarget.minutes}
+        onClose={() => setReviewTarget(null)}
+        onConfirm={(schedule, date, completedMinutes, isCompleted) => {
+          void completeBlock(reviewTarget.id, completedMinutes, schedule, schedule ? date : null, isCompleted);
+          if (isCompleted && schedule) setRevisions(prev => new Map(prev).set(reviewTarget.id, date));
+          setReviewTarget(null);
+        }}
+        pending={pendingBlockIds.has(reviewTarget.id)}
+        onClearPending={() => {
+          void completeBlock(reviewTarget.id, 0, false, null, false, true);
+          setReviewTarget(null);
+        }}
+      />
+    ) : null}
     <StudyTopicDialog
       target={selectedTopic}
-      completed={selectedTopic ? completed.has(selectedTopic.topic.id) : false}
+      completed={selectedTopic ? isTopicComplete(selectedTopic.topic) : false}
       onClose={() => setSelectedTopic(null)}
-      onToggleComplete={() => selectedTopic && toggle(selectedTopic.topic.id)}
+      onToggleComplete={() => { if (selectedTopic) { const block = blocks.find(b => b.topic.id === selectedTopic.topic.id); if (!block) return; isTopicComplete(selectedTopic.topic) ? void uncompleteBlock(block.id) : setReviewTarget(block); } }}
+      journeyId={journey.id}
+      onListResources={onListResources}
+      nodeStudy={nodeStudy}
+      onSaveNodeStudy={onSaveNodeStudy}
+      onSaveResource={onSaveResource}
+      onDeleteResource={onDeleteResource}
       onViewSubject={() => { if (selectedTopic) { setSelectedTopic(null); onOpenSubject(selectedTopic.area.id); } }}
       onStartPomodoro={subtopicId => { if (selectedTopic) { pomodoro.open({ areas: journey.knowledgeAreas, initialAreaId: selectedTopic.area.id, initialTopicId: selectedTopic.topic.id, initialSubtopicId: subtopicId }); } }}
     />

@@ -57,5 +57,4 @@ async function addNode(request: SyllabusNodeRegisterRequest) {
 async function removeNode(id: number) {
   return clientRequest<boolean>({ url: '/journeys/nodes', method: HttpMethod.Delete, axiosConfig: { params: { id } } });
 }
-
 export const journeyService = { findAll, findById, register, update, remove, addArea, removeArea, addNode, removeNode };

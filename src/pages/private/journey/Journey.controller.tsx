@@ -43,7 +43,7 @@ export function JourneyController() {
       <JourneyView
         journey={journey}
         loading={loading}
-        onBack={() => navigate('/')}
+        onBack={() => navigate('/inicio')}
         onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
         onAddArea={() => setInputDialog({
           title: 'Nova matéria',

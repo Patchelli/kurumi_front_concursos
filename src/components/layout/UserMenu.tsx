@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 type UserMenuProps = { firstName: string; onLogout(): void };
 
 export function UserMenu({ firstName, onLogout }: UserMenuProps) {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +26,7 @@ export function UserMenu({ firstName, onLogout }: UserMenuProps) {
       </button>
       {open && (
         <div className="hub-user-dropdown" role="menu">
-          <Link to="/perfil" className="hub-dropdown-item" onClick={() => setOpen(false)} role="menuitem">
+          <Link to="/perfil" state={{ from: `${location.pathname}${location.search}` }} className="hub-dropdown-item" onClick={() => setOpen(false)} role="menuitem">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             Perfil
           </Link>

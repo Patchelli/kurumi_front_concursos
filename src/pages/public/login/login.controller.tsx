@@ -24,7 +24,7 @@ export function LoginController() {
     try {
       const authentication = await authenticationService.login({ email: email.trim(), password });
       saveAuthentication(authentication);
-      navigate('/', { replace: true });
+      navigate('/inicio', { replace: true });
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'E-mail ou senha inválidos.'));
     } finally {

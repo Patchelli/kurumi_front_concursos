@@ -83,6 +83,6 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
   if (!token) return <Navigate to="/entrar" replace />;
   if (status === 'loading') return <StudyLoading delayMs={0} label="Verificando permissões…" />;
-  if (status === 'forbidden') return <Navigate to="/" replace />;
+  if (status === 'forbidden') return <Navigate to="/inicio" replace />;
   return children;
 }

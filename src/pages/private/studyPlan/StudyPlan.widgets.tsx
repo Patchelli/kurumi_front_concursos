@@ -1,7 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { ContentViewer } from '../../../components/viewer/ContentViewer';
 import { toast } from 'sonner';
-import type { KnowledgeAreaResponse, SyllabusNodeResponse } from '../../../../@business/dto/response/journey.response';
-import type { StudyRoutineConfigurationRequest } from '../../../../@business/dto/request/studyRoutine.request';
+import type { StudyRoutineConfigurationRequest } from '@business/dto/request/studyRoutine.request';
+import type { KnowledgeAreaResponse, SyllabusNodeResponse } from '@business/dto/response/journey.response';
+import type { StudyRoutineBlockResponse } from '@business/service/StudyRoutine.service';
+import type { StudyResource, StudyResourceKind, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
+import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
+import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@business/studyProgress';
+import { ReviewDialog } from '@components/dialog/ReviewDialog';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -11,9 +17,10 @@ const PT_WD = ['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
 const CAL_BG   = ['#ede7f9','#dde8fd','#d9f2ec','#fde7d9','#f2d9e7','#e7f2d9','#fdf5d9'];
 const CAL_TEXT = ['#543c78','#2348a8','#1a6e54','#a85023','#a82348','#3a6e1a','#a87823'];
 
-export function StudyCalendar({ areas }: { areas: KnowledgeAreaResponse[] }) {
+export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { areas: KnowledgeAreaResponse[]; routineBlocks?: StudyRoutineBlockResponse[]; nodeStudy?: SyllabusNodeStudyResponse[] }) {
   const now = new Date();
   const [view, setView] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const year  = view.getFullYear();
   const month = view.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -22,42 +29,63 @@ export function StudyCalendar({ areas }: { areas: KnowledgeAreaResponse[] }) {
   const rawFirst = new Date(year, month, 1).getDay();
   const offset = rawFirst === 0 ? 6 : rawFirst - 1;
 
-  // Flatten all topic nodes with subject color index
-  const items = areas.flatMap((area, ai) =>
-    area.nodes.map(node => ({ node, areaTitle: area.title, colorIdx: ai % CAL_BG.length }))
-  );
+  // Os blocos exibidos vêm exclusivamente do gerador do backend.
+  const items: { node: KnowledgeAreaResponse['nodes'][number]; areaTitle: string; colorIdx: number; plannedMinutes: number; type: number }[] = [];
 
   // Build schedule: up to 4 topics per weekday, cycling through items
   const CAL_MAX_VISIBLE = 2;
   const schedule: Record<number, typeof items[0][]> = {};
-  let idx = 0;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dow = new Date(year, month, d).getDay(); // 0=Sun
-    if (dow === 0 || items.length === 0) continue;
-    const slots = dow === 6 ? 2 : 4;
-    schedule[d] = [];
-    for (let s = 0; s < slots; s++) {
-      schedule[d].push(items[idx % items.length]);
-      idx++;
+  const findNode = (area: KnowledgeAreaResponse, nodeId: number): SyllabusNodeResponse | undefined => {
+    for (const node of area.nodes) {
+      if (node.id === nodeId) return node;
+      const child = node.children.find(item => item.id === nodeId);
+      if (child) return child;
+      const descendant = node.children.map(item => findNode({ ...area, nodes: [item] }, nodeId)).find(Boolean);
+      if (descendant) return descendant;
     }
-  }
+    return undefined;
+  };
+  if (routineBlocks.length) routineBlocks.forEach(block => { const [y, m, d] = block.scheduledFor.slice(0, 10).split('-').map(Number); if (y === year && m === month + 1) { const area = areas.find(a => findNode(a, block.syllabusNodeId)); const node = area ? findNode(area, block.syllabusNodeId) : undefined; if (area && node) (schedule[d] ??= []).push({ node, areaTitle: area.title, colorIdx: areas.indexOf(area) % CAL_BG.length, plannedMinutes: block.plannedMinutes, type: block.type }); } });
+  nodeStudy.forEach(state => {
+    if (!state.reviewDate || routineBlocks.some(block => block.syllabusNodeId === state.syllabusNodeId && block.scheduledFor.slice(0, 10) === state.reviewDate)) return;
+    const [y, m, d] = state.reviewDate.slice(0, 10).split('-').map(Number);
+    if (y !== year || m !== month + 1) return;
+    const area = areas.find(item => findNode(item, state.syllabusNodeId));
+    const node = area ? findNode(area, state.syllabusNodeId) : undefined;
+    if (area && node) (schedule[d] ??= []).push({ node, areaTitle: area.title, colorIdx: areas.indexOf(area) % CAL_BG.length, plannedMinutes: 0, type: 2 });
+  });
 
   const cells: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const isToday = (d: number) => d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+  const activityType = (type: number | string) => { const value = String(type).toLowerCase(); return value === '2' || value === 'review' ? 'Revisão' : value === '3' || value === 'questions' ? 'Questões' : 'Teoria'; };
+  const selectedDate = selectedDay === null ? '' : new Date(year, month, selectedDay).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+
+  useEffect(() => {
+    if (selectedDay === null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedDay(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [selectedDay]);
 
   return (
     <section className="sp-card sp-calendar">
       <div className="sp-cal-head">
-        <button className="sp-cal-nav" onClick={() => setView(new Date(year, month - 1, 1))}>‹</button>
+        <button type="button" className="sp-cal-nav" aria-label="Mês anterior" onClick={() => { setSelectedDay(null); setView(new Date(year, month - 1, 1)); }}>‹</button>
         <h2>{PT_MONTHS[month]} {year}</h2>
-        <button className="sp-cal-nav" onClick={() => setView(new Date(year, month + 1, 1))}>›</button>
+        <button type="button" className="sp-cal-nav" aria-label="Próximo mês" onClick={() => { setSelectedDay(null); setView(new Date(year, month + 1, 1)); }}>›</button>
       </div>
       <div className="sp-cal-grid">
         {PT_WD.map(wd => <div key={wd} className="sp-cal-wd">{wd}</div>)}
         {cells.map((d, i) => (
-          <div
+          <button
+            type="button"
             key={i}
             className={`sp-cal-cell${!d ? ' sp-cal-cell--empty' : ''}${d && isToday(d) ? ' sp-cal-cell--today' : ''}`}
+            disabled={!d}
+            aria-label={d ? `Ver conteúdos de ${d} de ${PT_MONTHS[month]}` : undefined}
+            onClick={() => d && setSelectedDay(d)}
           >
             {d && <span className="sp-cal-dn">{d}</span>}
             {d && schedule[d]?.slice(0, CAL_MAX_VISIBLE).map((item, bi) => (
@@ -73,9 +101,45 @@ export function StudyCalendar({ areas }: { areas: KnowledgeAreaResponse[] }) {
             {d && (schedule[d]?.length ?? 0) > CAL_MAX_VISIBLE && (
               <div className="sp-cal-more">+{(schedule[d]?.length ?? 0) - CAL_MAX_VISIBLE}</div>
             )}
-          </div>
+          </button>
         ))}
       </div>
+      {!routineBlocks.length && !nodeStudy.some(item => Boolean(item.reviewDate)) && (
+        <p className="sp-cal-empty">Configure o ciclo de estudos para ver os blocos no calendário.</p>
+      )}
+      {selectedDay !== null && (
+        <div className="sp-day-modal-backdrop" role="presentation" onMouseDown={() => setSelectedDay(null)}>
+          <div className="sp-day-modal" role="dialog" aria-modal="true" aria-labelledby="sp-day-modal-title" onMouseDown={event => event.stopPropagation()}>
+            <div className="sp-day-modal-head">
+              <div>
+                <span>Plano do dia</span>
+                <h3 id="sp-day-modal-title">{selectedDate}</h3>
+              </div>
+              <button type="button" aria-label="Fechar" onClick={() => setSelectedDay(null)}>×</button>
+            </div>
+            {(schedule[selectedDay]?.length ?? 0) > 0 ? (
+              <div className="sp-day-modal-list">
+                {schedule[selectedDay].map((item, index) => {
+                  const typeLabel = activityType(item.type);
+                  const typeSlug = typeLabel === 'Revisão' ? 'revisao' : typeLabel === 'Questões' ? 'questoes' : 'teoria';
+                  return (
+                    <article key={`${item.node.id}-${index}`} className={`sp-day-modal-item sp-day-modal-item--${typeSlug}`}>
+                      <i />
+                      <div>
+                        <small>{item.areaTitle}</small>
+                        <strong>{item.node.title}</strong>
+                        <span>{typeLabel} · {item.plannedMinutes} min</span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="sp-day-modal-empty">Nenhum conteúdo planejado para este dia.</p>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -312,6 +376,26 @@ export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }
 
         {step === 4 && (
           <div className="sp-wz-stage">
+            {/* Daily availability */}
+            <p className="sp-wz-desc" style={{ marginTop: 0 }}>Disponibilidade semanal — deixe em branco os dias de folga.</p>
+            <div className="sp-drawer-availability">
+              {DAYS.map(day => (
+                <label key={day} className="sp-drawer-day">
+                  <span>{day}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="24"
+                    step="0.5"
+                    placeholder="0"
+                    value={availability[day]}
+                    onChange={e => setAvailability(prev => ({ ...prev, [day]: e.target.value }))}
+                  />
+                  <small>h</small>
+                </label>
+              ))}
+            </div>
+
             {/* Hours per topic */}
             <div className="sp-hours-config">
               <div className="sp-hours-config-label">
@@ -401,31 +485,35 @@ export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }
               })}
             </div>
 
-            <div className="sp-hours-config">
-              <label>Intervalo de revisÃ£o (dias)<input type="number" min="1" value={reviewIntervalDays} onChange={e => setReviewIntervalDays(e.target.value)} /></label>
-              <label>Estudo (%)<input type="number" min="0" max="100" value={studyPercentage} onChange={e => setStudyPercentage(e.target.value)} /></label>
-              <label>RevisÃ£o (%)<input type="number" min="0" max="100" value={reviewPercentage} onChange={e => setReviewPercentage(e.target.value)} /></label>
-              <label>QuestÃµes (%)<input type="number" min="0" max="100" value={questionsPercentage} onChange={e => setQuestionsPercentage(e.target.value)} /></label>
-            </div>
-
-            {/* Daily availability */}
-            <p className="sp-wz-desc" style={{ marginTop: 28 }}>Disponibilidade semanal — deixe em branco os dias de folga.</p>
-            <div className="sp-drawer-availability">
-              {DAYS.map(day => (
-                <label key={day} className="sp-drawer-day">
-                  <span>{day}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="24"
-                    step="0.5"
-                    placeholder="0"
-                    value={availability[day]}
-                    onChange={e => setAvailability(prev => ({ ...prev, [day]: e.target.value }))}
-                  />
-                  <small>h</small>
-                </label>
-              ))}
+            <div className="sp-metric-fields">
+              <div className="sp-metric-field">
+                <span className="sp-metric-label">Intervalo de revisão</span>
+                <div className="sp-metric-input-wrap">
+                  <input type="number" min="1" value={reviewIntervalDays} onChange={e => setReviewIntervalDays(e.target.value)} />
+                  <span className="sp-metric-unit">dias</span>
+                </div>
+              </div>
+              <div className="sp-metric-field">
+                <span className="sp-metric-label">Estudo</span>
+                <div className="sp-metric-input-wrap">
+                  <input type="number" min="0" max="100" value={studyPercentage} onChange={e => setStudyPercentage(e.target.value)} />
+                  <span className="sp-metric-unit">%</span>
+                </div>
+              </div>
+              <div className="sp-metric-field">
+                <span className="sp-metric-label">Revisão</span>
+                <div className="sp-metric-input-wrap">
+                  <input type="number" min="0" max="100" value={reviewPercentage} onChange={e => setReviewPercentage(e.target.value)} />
+                  <span className="sp-metric-unit">%</span>
+                </div>
+              </div>
+              <div className="sp-metric-field">
+                <span className="sp-metric-label">Questões</span>
+                <div className="sp-metric-input-wrap">
+                  <input type="number" min="0" max="100" value={questionsPercentage} onChange={e => setQuestionsPercentage(e.target.value)} />
+                  <span className="sp-metric-unit">%</span>
+                </div>
+              </div>
             </div>
 
             {/* Plan summary */}
@@ -877,37 +965,226 @@ type TopicProps = {
   completed: boolean;
   onClose(): void;
   onToggleComplete(): void;
+  nodeStudy: SyllabusNodeStudyResponse[];
+  onSaveNodeStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
   onViewSubject(): void;
   onStartPomodoro(subtopicId?: number): void;
+  journeyId: number;
+  onListResources(nodeId: number): Promise<StudyResource[]>;
+  onSaveResource(resource: StudyResourceRegisterRequest): Promise<StudyResource>;
+  onDeleteResource(id: number): Promise<void>;
 };
 
-// Deterministic mock helpers (consistent per topic id)
-function mockProgress(id: number) { return [18, 34, 52, 67, 81, 23, 45, 72][id % 8]; }
-function mockQuestions(id: number) { return [12, 28, 45, 8, 63, 19, 37, 54][id % 8]; }
-function mockAccuracy(id: number) { return [58, 72, 81, 46, 90, 63, 77, 55][id % 8]; }
-function mockSubtopics(topic: SyllabusNodeResponse): { id: number; title: string; progress: number }[] {
-  if (topic.children.length) return topic.children.map(c => ({ id: c.id, title: c.title, progress: c.progress ?? mockProgress(c.id) }));
-  const names = [
-    `Conceitos fundamentais de ${topic.title}`,
-    `Aplicação prática`,
-    `Jurisprudência relacionada`,
-    `Questões de prova`,
-  ];
-  return names.map((title, i) => ({ id: topic.id * 100 + i, title, progress: mockProgress(topic.id + i) }));
+function SubtopicItem({ child, topicTitle, journeyId, studyState, onStartPomodoro, onListResources, onSaveResource, onDeleteResource, onSaveStudy }: {
+  child: SyllabusNodeResponse; topicTitle: string; journeyId: number;
+  studyState?: SyllabusNodeStudyResponse;
+  onStartPomodoro(subtopicId?: number): void;
+  onListResources(nodeId: number): Promise<StudyResource[]>;
+  onSaveResource(resource: StudyResourceRegisterRequest): Promise<StudyResource>;
+  onDeleteResource(id: number): Promise<void>;
+  onSaveStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'materials' | 'flashcards' | null>(null);
+  const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [studiedMinutes, setStudiedMinutes] = useState(() =>
+    isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0
+  );
+  const [savingStudy, setSavingStudy] = useState(false);
+  const progress = studyProgressPercent(studyState?.progress ?? child.progress);
+  const pending = isStudyPending(studyState?.progress ?? child.progress);
+  const titlePrefix = `${topicTitle.trim()} >`;
+  const displayTitle = child.title.trim().toLocaleLowerCase().startsWith(titlePrefix.toLocaleLowerCase())
+    ? child.title.trim().slice(titlePrefix.length).trim()
+    : child.title;
+  const [isCompleted, setIsCompleted] = useState(() => isStudyCompleted(studyState?.progress ?? child.progress));
+  useEffect(() => {
+    if (savingStudy) return;
+    setIsCompleted(isStudyCompleted(studyState?.progress ?? child.progress));
+    setRevision(Boolean(studyState?.reviewDate));
+    setStudiedMinutes(isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0);
+  }, [studyState?.progress, studyState?.reviewDate, studyState?.studiedMinutes, child.progress, savingStudy]);
+
+  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false) {
+    setSavingStudy(true);
+    try {
+      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending });
+      setIsCompleted(isStudyCompleted(result.progress));
+      setRevision(Boolean(result.reviewDate));
+      setStudiedMinutes(completed ? result.studiedMinutes : 0);
+      if (!completed) toast.success('Subtópico marcado como pendente.');
+      else if (scheduleReview) toast.success('Subtópico concluído e revisão agendada.');
+      else toast.success('Subtópico concluído com sucesso!');
+    } catch { toast.error('Não foi possível salvar o estudo do subtópico.'); }
+    finally { setSavingStudy(false); }
+  }
+  const [resources, setResources] = useState<StudyResource[]>([]);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
+  const [resourceKind, setResourceKind] = useState<StudyResourceKind>(99);
+  const [urlLabel, setUrlLabel] = useState('');
+  const [urlInput, setUrlInput] = useState('');
+  const [urlSaving, setUrlSaving] = useState(false);
+  const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
+
+  useEffect(() => {
+    if (!expanded) return;
+    let active = true;
+    setResourcesLoading(true);
+    onListResources(child.id).then(data => active && setResources(data)).catch(() => {}).finally(() => active && setResourcesLoading(false));
+    return () => { active = false; };
+  }, [expanded, child.id]);
+
+  async function saveUrl() {
+    const url = urlInput.trim(); if (!url) return;
+    setUrlSaving(true);
+    try {
+      const saved = await onSaveResource({ journeyId, syllabusNodeId: child.id, kind: resourceKind, title: urlLabel.trim() || url, url });
+      setResources(prev => [...prev, saved]);
+      setUrlInput(''); setUrlLabel('');
+      toast.success('Material salvo.');
+    } catch { toast.error('Não foi possível salvar.'); }
+    finally { setUrlSaving(false); }
+  }
+
+  const unavailable = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
+
+  return (
+    <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}`}>
+      <div className="sp-subtopic-header">
+        <button className={`sp-subtopic-check${isCompleted ? ' sp-subtopic-check--done' : ''}`} type="button" title={isCompleted ? 'Marcar pendente' : 'Concluir subtópico'} onClick={() => isCompleted ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={savingStudy}>
+          {isCompleted
+            ? <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            : <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>
+          }
+        </button>
+        <button className="sp-subtopic-expand" type="button" onClick={() => setExpanded(v => !v)}>
+          <strong>{displayTitle}</strong><small>{isCompleted ? progress : 0}% · {isCompleted ? studiedMinutes : 0} min</small>
+          <span className="sp-subtopic-arrow">{expanded ? '▾' : '▸'}</span>
+        </button>
+      </div>
+      {expanded && (
+        <div className="sp-subtopic-body">
+          <div className="sp-topic-actions sp-topic-actions--sub">
+            <button data-pomodoro-trigger onClick={() => onStartPomodoro(child.id)}>
+              <span>◷</span><strong>Iniciar estudo</strong><small>Cronômetro e sessão</small>
+            </button>
+            <button onClick={() => unavailable('O registro de questões')}>
+              <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
+            </button>
+            <button className={activeTab === 'materials' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'materials' ? null : 'materials')}>
+              <span>▤</span><strong>Materiais</strong><small>PDFs, vídeos e links</small>
+            </button>
+            <button className={activeTab === 'flashcards' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'flashcards' ? null : 'flashcards')}>
+              <span className="flashcard-stack-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="4" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 2h9a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9h5M9 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></span><strong>Flashcard</strong><small>Memorização ativa</small>
+            </button>
+            <button className={revision ? 'active' : ''} onClick={() => setReviewOpen(true)} disabled={savingStudy}>
+              <span className="sp-revision-icon">
+                <svg viewBox="0 0 22 14" fill="none" aria-hidden="true">
+                  <path d="M1 5l5 5L14 1" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 9l5 5L21 1" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity={revision ? '1' : '0.35'}/>
+                </svg>
+              </span>
+              <strong>{revision ? 'Revisão agendada' : 'Agendar revisão'}</strong><small>Revisão espaçada</small>
+            </button>
+          </div>
+          {activeTab === 'materials' && (
+            <section className="sp-topic-resource">
+              <header>
+                <div><span className="sp-dialog-label">Material do subtópico</span><strong>PDF, vídeo ou link de estudo</strong></div>
+              </header>
+              {resourcesLoading ? <p className="sp-dialog-empty">Carregando materiais…</p> : <>
+                <div className="sp-material-url-form">
+                  <div className="sp-material-type-row">
+                    {([{ value: 1, label: 'PDF' }, { value: 2, label: 'Vídeo' }, { value: 3, label: 'Apostila' }, { value: 5, label: 'Site' }, { value: 99, label: 'Outro' }] as const).map(item => (
+                      <button key={item.value} type="button" className={`sp-material-type-pill${resourceKind === item.value ? ' active' : ''}`} onClick={() => setResourceKind(item.value)}>{item.label}</button>
+                    ))}
+                  </div>
+                  <input className="sp-material-label-input" type="text" placeholder="Descrição (ex: Apostila do QConcursos, Cap. 3)" value={urlLabel} onChange={e => setUrlLabel(e.target.value)} />
+                  <input className="sp-material-url-input" type="url" placeholder="https://..." value={urlInput} onChange={e => setUrlInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !urlSaving && void saveUrl()} />
+                  <button className="sp-material-save-btn" type="button" disabled={urlSaving || !urlInput.trim()} onClick={() => void saveUrl()}>{urlSaving ? '…' : 'Salvar'}</button>
+                </div>
+                {resources.length > 0 && (
+                  <div className="sp-material-list">
+                    {resources.map(resource => <div key={resource.id}>
+                      <span>{resource.kind === 1 ? 'PDF' : resource.kind === 2 ? 'Vídeo' : resource.kind === 3 ? 'Apostila' : resource.kind === 5 ? 'Site' : 'Outro'}</span>
+                      <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
+                        <strong>{resource.title}</strong><small>{resource.url}</small>
+                      </button>
+                      <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(c => c.filter(i => i.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material">×</button>
+                    </div>)}
+                  </div>
+                )}
+              </>}
+              {viewerResource && <ContentViewer url={viewerResource.url} title={viewerResource.title} onClose={() => setViewerResource(null)} />}
+            </section>
+          )}
+          {activeTab === 'flashcards' && (
+            <section className="sp-topic-resource">
+              <header><div><span className="sp-dialog-label">Flashcards</span><strong>Revisão rápida</strong></div></header>
+              <p className="sp-dialog-empty">Em breve.</p>
+            </section>
+          )}
+        </div>
+      )}
+      {reviewOpen && <ReviewDialog title={child.title} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null); setReviewOpen(false); }} />}
+    </div>
+  );
 }
 
-export function StudyTopicDialog({ target, completed, onClose, onToggleComplete, onViewSubject, onStartPomodoro }: TopicProps) {
+export function StudyTopicDialog({ target, completed, onClose, onToggleComplete, nodeStudy, onSaveNodeStudy, onViewSubject, onStartPomodoro, journeyId, onListResources, onSaveResource, onDeleteResource }: TopicProps) {
   const [revision, setRevision] = useState(false);
   const [activeResource, setActiveResource] = useState<'materials' | 'flashcards' | null>(null);
-  const [pdfOpen, setPdfOpen] = useState(false);
-  const [pdfPage, setPdfPage] = useState(1);
+  const [urlInput, setUrlInput] = useState('');
+  const [resourceKind, setResourceKind] = useState<StudyResourceKind>(99);
+  const [urlLabel, setUrlLabel] = useState('');
+  const [urlSaving, setUrlSaving] = useState(false);
+  const [resources, setResources] = useState<StudyResource[]>([]);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
+  const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
+
+  useEffect(() => {
+    if (!target) return;
+    let active = true;
+    setResources([]);
+    setUrlInput('');
+    setUrlLabel('');
+    setViewerResource(null);
+    setResourcesLoading(true);
+    onListResources(target.topic.id)
+      .then(items => active && setResources(items))
+      .catch(() => active && toast.error('Não foi possível carregar os materiais.'))
+      .finally(() => active && setResourcesLoading(false));
+    return () => { active = false; };
+  }, [target?.topic.id]);
+
   if (!target) return null;
   const unavailable = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
 
-  const progress = target.topic.progress ? Math.round(target.topic.progress) : mockProgress(target.topic.id);
-  const subtopics = mockSubtopics(target.topic);
-  const questions = mockQuestions(target.topic.id);
-  const accuracy = mockAccuracy(target.topic.id);
+  async function saveUrl() {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    setUrlSaving(true);
+    try {
+      const saved = await onSaveResource({ title: urlLabel.trim() || target!.topic.title, url: trimmed, kind: resourceKind, journeyId, knowledgeAreaId: target!.area.id, syllabusNodeId: target!.topic.id });
+      setResources(current => [saved, ...current]);
+      setViewerResource(saved);
+      setUrlInput('');
+      setUrlLabel('');
+      toast.success('Material salvo.');
+    } catch {
+      toast.error('Não foi possível salvar.');
+    } finally { setUrlSaving(false); }
+  }
+
+  const subtopics = target.topic.children;
+  const targetStudy = nodeStudy.find(item => item.syllabusNodeId === target.topic.id);
+  const completedSubtopics = subtopics.filter(child =>
+    isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === child.id)?.progress ?? child.progress)
+  ).length;
+  const progress = subtopics.length
+    ? Math.round(completedSubtopics / subtopics.length * 100)
+    : studyProgressPercent(targetStudy?.progress ?? target.topic.progress);
 
   return (
     <div className="sp-topic-overlay" onMouseDown={onClose}>
@@ -931,8 +1208,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
             <div className="sp-topic-status">
               <div><small>STATUS</small><strong>{completed ? 'Concluído' : 'Pendente'}</strong></div>
               <div><small>PROGRESSO</small><strong>{progress}%</strong></div>
-              <div><small>QUESTÕES</small><strong>{questions}</strong></div>
-              <div><small>ACERTOS</small><strong>{accuracy}%</strong></div>
+              <div><small>SUBTÓPICOS</small><strong>{subtopics.length}</strong></div>
             </div>
             <span className="sp-dialog-label">Ações do tópico</span>
             <div className="sp-topic-actions">
@@ -960,12 +1236,54 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
             </div>
             {activeResource === 'materials' && (
               <section className="sp-topic-resource">
-                <header><div><span className="sp-dialog-label">Materiais do tópico</span><strong>Conteúdo para continuar estudando</strong></div><div className="sp-resource-heading-actions"><small>3 itens</small><button onClick={() => toast.success('Material importado em modo de demonstração.')}>＋ Importar</button></div></header>
-                <div className="sp-material-list">
-                  <div><span>PDF</span><button className="sp-resource-open" onClick={() => { setPdfPage(1); setPdfOpen(true); }}><strong>Resumo completo — {target.topic.title}</strong><small>24 páginas · atualizado há 2 dias</small></button><em>82%</em><button className="sp-resource-delete" onClick={() => toast.success('Material apagado em modo de demonstração.')} aria-label="Apagar material">×</button></div>
-                  <div><span>VÍDEO</span><button className="sp-resource-open" onClick={() => toast.success('Videoaula aberta em modo de demonstração.')}><strong>Aula comentada e exemplos práticos</strong><small>38 min · Professor Kurumí</small></button><em>24%</em><button className="sp-resource-delete" onClick={() => toast.success('Material apagado em modo de demonstração.')} aria-label="Apagar material">×</button></div>
-                  <div><span>LINK</span><button className="sp-resource-open" onClick={() => toast.success('Caderno aberto em modo de demonstração.')}><strong>Caderno de questões da banca</strong><small>32 questões selecionadas</small></button><em>Novo</em><button className="sp-resource-delete" onClick={() => toast.success('Material apagado em modo de demonstração.')} aria-label="Apagar material">×</button></div>
-                </div>
+                <header>
+                  <div><span className="sp-dialog-label">Material do tópico</span><strong>PDF, vídeo ou link de estudo</strong></div>
+                </header>
+                {resourcesLoading ? <p className="sp-dialog-empty">Carregando materiais…</p> : <>
+                  <div className="sp-material-url-form">
+                    <div className="sp-material-type-row">
+                      {([{ value: 1, label: 'PDF' }, { value: 2, label: 'Vídeo' }, { value: 3, label: 'Apostila' }, { value: 5, label: 'Site' }, { value: 99, label: 'Outro' }] as const).map(item => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          className={`sp-material-type-pill${resourceKind === item.value ? ' active' : ''}`}
+                          onClick={() => setResourceKind(item.value)}
+                        >{item.label}</button>
+                      ))}
+                    </div>
+                    <input
+                      className="sp-material-label-input"
+                      type="text"
+                      placeholder="Descrição (ex: Apostila do QConcursos, Cap. 3)"
+                      value={urlLabel}
+                      onChange={e => setUrlLabel(e.target.value)}
+                    />
+                    <input
+                      className="sp-material-url-input"
+                      type="url"
+                      placeholder="https://..."
+                      autoFocus
+                      value={urlInput}
+                      onChange={e => setUrlInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && !urlSaving && void saveUrl()}
+                    />
+                    <button className="sp-material-save-btn" type="button" disabled={urlSaving || !urlInput.trim()} onClick={() => void saveUrl()}>
+                      {urlSaving ? '…' : 'Salvar'}
+                    </button>
+                  </div>
+                  {resources.length > 0 && (
+                    <div className="sp-material-list">
+                      {resources.map(resource => <div key={resource.id}>
+                        <span>{resource.kind === 1 ? 'PDF' : resource.kind === 2 ? 'Vídeo' : resource.kind === 3 ? 'Apostila' : resource.kind === 5 ? 'Site' : 'Outro'}</span>
+                        <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
+                          <strong>{resource.title}</strong><small>{resource.url}</small>
+                        </button>
+                        <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(current => current.filter(item => item.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material">×</button>
+                      </div>)}
+                    </div>
+                  )}
+                </>}
+                {viewerResource && <ContentViewer url={viewerResource.url} title={viewerResource.title} onClose={() => setViewerResource(null)} />}
               </section>
             )}
             {activeResource === 'flashcards' && (
@@ -981,34 +1299,27 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               </section>
             )}
             <span className="sp-dialog-label">Subtópicos</span>
-            {subtopics.length
+            {subtopics.length > 0
               ? (
                 <div className="sp-subtopic-list">
                   {subtopics.map(child => (
-                    <button data-pomodoro-trigger key={child.id} onClick={() => onStartPomodoro(child.id)} title="Iniciar estudo deste subtópico">
-                      <span>↳</span><strong>{child.title}</strong><small>{Math.round(child.progress)}%</small>
-                    </button>
+                    <SubtopicItem key={child.id} child={child} topicTitle={target.topic.title} journeyId={journeyId} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartPomodoro={onStartPomodoro} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} onSaveStudy={onSaveNodeStudy} />
                   ))}
                 </div>
               )
-              : <p className="sp-dialog-empty">Este tópico ainda não possui subtópicos cadastrados.</p>
+              : <p className="sp-dialog-empty">Este tópico não possui subtópicos cadastrados.</p>
             }
           </div>
         </div>
 
         <footer className="sp-topic-panel-footer">
           <button onClick={onViewSubject}>Ver matéria completa</button>
-          <button className="filled-button" onClick={() => { onToggleComplete(); onClose(); }}>
-            {completed ? 'Marcar pendente' : 'Concluir tópico'}
+          <button className={`sp-topic-complete-btn${completed ? ' sp-topic-complete-btn--done' : ''}`} onClick={() => { onToggleComplete(); }}>
+            {completed ? '✓ Concluído' : 'Concluir tópico'}
           </button>
         </footer>
 
       </aside>
-      {pdfOpen && <section className="sp-pdf-reader" onMouseDown={event => event.stopPropagation()}>
-        <header><div><span>PDF · {target.area.title}</span><strong>Resumo completo — {target.topic.title}</strong></div><div><button onClick={() => setPdfOpen(false)} aria-label="Fechar PDF">×</button></div></header>
-        <div className="sp-pdf-toolbar"><button disabled={pdfPage === 1} onClick={() => setPdfPage(page => Math.max(1, page - 1))}>‹</button><span>Página {pdfPage} de 24</span><button disabled={pdfPage === 24} onClick={() => setPdfPage(page => Math.min(24, page + 1))}>›</button><small>100%</small></div>
-        <div className="sp-pdf-stage"><article><span>{target.area.title}</span><h2>{target.topic.title}</h2><p className="sp-pdf-lead">Resumo direcionado para revisão e resolução de questões.</p><h3>{pdfPage === 1 ? 'Conceitos fundamentais' : `Seção ${pdfPage}`}</h3><p>Este material reúne os pontos essenciais do conteúdo, suas principais características e aplicações em provas. Use as marcações para identificar conceitos que merecem ser transformados em flashcards.</p><p>Os elementos mais cobrados devem ser revisados periodicamente, relacionando a regra geral, suas exceções e exemplos práticos.</p><blockquote>Dica de estudo: transforme definições, requisitos e exceções em perguntas objetivas.</blockquote><footer>{pdfPage}</footer></article></div>
-      </section>}
     </div>
   );
 }

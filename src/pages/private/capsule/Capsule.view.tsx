@@ -3,6 +3,7 @@ import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { Capsule, CapsuleViewProps } from './Capsule.type';
 import { CapsuleCard, CapsuleEmpty, CreateCapsuleDialog, RevealDialog } from './Capsule.widgets';
+import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 
 type Tab = 'scheduled' | 'delivered' | 'opened';
 
@@ -31,6 +32,7 @@ export function CapsuleView({
 
   return (
     <div className="jd-shell">
+      <JourneyMobileProfileLink />
 
       {/* ── Sidebar estática ── */}
       <aside className="jd-sidebar">
@@ -57,6 +59,7 @@ export function CapsuleView({
             <span>Conteúdo</span>
           </button>
         </nav>
+        <JourneyProfileLink />
         {journey && (
           <div className="jd-contest-card">
             <div className="jd-thumb">
@@ -157,6 +160,7 @@ export function CapsuleView({
       <nav className="journey-mobile-nav">
         <button onClick={onOverview}>◎<span>Visão geral</span></button>
         <button onClick={onOpenStudyPlan}>◷<span>Plano</span></button>
+        <button onClick={onOpenSimulados}>✎<span>Simulados</span></button>
         <button className="active">✉<span>Cápsula</span></button>
         <button onClick={onOpenContent}>☰<span>Conteúdo</span></button>
       </nav>

@@ -18,7 +18,7 @@ export function HomeView(props: HomeViewProps) {
 
   return <div className="journey-hub">
     <header className="hub-topbar">
-      <a className="hub-brand" href="/" aria-label="Kurumí"><span className="hub-logo">S</span><span>Kurumí</span></a>
+      <a className="hub-brand" href="/inicio" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></a>
       <nav className="hub-nav" aria-label="Navegação principal"><button className="active" type="button">Jornadas</button><a href="/calendario">Calendário</a><button type="button" disabled>Desempenho</button></nav>
       <UserMenu firstName={props.firstName} onLogout={props.onLogout} />
     </header>

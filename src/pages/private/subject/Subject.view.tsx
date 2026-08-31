@@ -3,6 +3,8 @@ import type { SubjectDetailViewProps, SubjectListViewProps } from './Subject.typ
 import { TopicRow } from './Subject.widgets';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { usePomodoro } from '../../../components/fab/Pomodoro.context';
+import { isStudyCompleted } from '@business/studyProgress';
+import { JourneyMobileProfileLink, JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 
 function Sidebar({ active, journeyTitle, journeyInstitution, logoUrl, onOverview, onStudyPlan, onOpenCapsule, onOpenSimulados }: {
   active: 'overview' | 'plan' | 'content' | 'capsule';
@@ -34,6 +36,7 @@ function Sidebar({ active, journeyTitle, journeyInstitution, logoUrl, onOverview
           <span>Conteúdo</span>
         </button>
       </nav>
+      <JourneyProfileLink />
       <div className="jd-contest-card">
         <div className="jd-thumb">
           {logoUrl ? <img src={logoUrl} alt="" /> : journeyTitle.slice(0, 2).toUpperCase()}
@@ -52,10 +55,11 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
   if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
 
   const totalTopics = journey.knowledgeAreas.reduce((s, a) => s + a.nodes.length, 0);
-  const doneTotal = journey.knowledgeAreas.reduce((s, a) => s + a.nodes.filter(n => n.progress >= 100).length, 0);
+  const doneTotal = journey.knowledgeAreas.reduce((s, a) => s + a.nodes.filter(n => isStudyCompleted(n.progress)).length, 0);
 
   return (
     <div className="jd-shell">
+      <JourneyMobileProfileLink />
       <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
       <main className="sb-main">
         <div className="sb-topbar">
@@ -75,7 +79,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
             <div className="sb-area-list">
               {journey.knowledgeAreas.map(area => {
                 const total = area.nodes.length;
-                const done = area.nodes.filter(n => n.progress >= 100).length;
+                const done = area.nodes.filter(n => isStudyCompleted(n.progress)).length;
                 const pct = total ? Math.round(done / total * 100) : 0;
                 return (
                   <div className="sb-area-card" key={area.id} role="button" tabIndex={0}
@@ -113,18 +117,26 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
   );
 }
 
-export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode }: SubjectDetailViewProps) {
+export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode, nodeStudy, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource }: SubjectDetailViewProps) {
   const pomodoro = usePomodoro();
   if (loading) return <main className="journey-entry"><p>Carregando…</p></main>;
   if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
   if (!area) return <main className="journey-entry"><button onClick={onBackToList}>← Matérias</button><h1>Matéria não encontrada</h1></main>;
 
   const total = area.nodes.length;
-  const done = area.nodes.filter(n => n.progress >= 100).length;
+  const done = area.nodes.filter(node => {
+    if (node.children.length > 0) {
+      return node.children.every(child =>
+        isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === child.id)?.progress ?? child.progress)
+      );
+    }
+    return isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === node.id)?.progress ?? node.progress);
+  }).length;
   const pct = total ? Math.round(done / total * 100) : 0;
 
   return (
     <div className="jd-shell">
+      <JourneyMobileProfileLink />
       <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
       <main className="sb-main">
 
@@ -160,11 +172,18 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
               {area.nodes.map(topic => (
                 <TopicRow
                   key={topic.id}
+                  journeyId={journey.id}
+                  knowledgeAreaId={area.id}
                   topic={topic}
                   onAddSubtopic={() => toast.info('Adicione subtópicos na visão geral do concurso.')}
                   onStartStudy={subtopicId => pomodoro.open({ areas: journey.knowledgeAreas, initialAreaId: area.id, initialTopicId: topic.id, initialSubtopicId: subtopicId })}
                   onRemove={() => onRemoveNode(topic.id)}
                   onRemoveSubtopic={onRemoveNode}
+                  nodeStudy={nodeStudy}
+                  onSaveNodeStudy={onSaveNodeStudy}
+                  onListResources={onListResources}
+                  onSaveResource={onSaveResource}
+                  onDeleteResource={onDeleteResource}
                 />
               ))}
             </div>

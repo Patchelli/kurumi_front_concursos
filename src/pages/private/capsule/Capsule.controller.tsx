@@ -91,7 +91,7 @@ export function CapsuleController() {
       capsules={capsules}
       journey={journey}
       loading={loading}
-      onBack={() => navigate('/')}
+      onBack={() => navigate('/inicio')}
       onOverview={() => navigate(`/jornadas/${id}`)}
       onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
       onOpenContent={() => navigate(`/jornadas/${id}/materias`)}

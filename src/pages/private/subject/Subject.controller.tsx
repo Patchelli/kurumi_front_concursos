@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { JourneyDetailsResponse } from '../../../../@business/dto/response/journey.response';
 import { journeyService } from '../../../../@business/service/Journey.service';
+import { studyResourceService } from '@business/service/StudyResource.service';
+import { syllabusNodeStudyService, type SyllabusNodeStudyRequest, type SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
 import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 import { toast } from 'sonner';
 import { SubjectDetailView, SubjectListView } from './Subject.view';
@@ -31,7 +33,7 @@ export function SubjectListController() {
     <SubjectListView
       journey={journey}
       loading={loading}
-      onBack={() => navigate('/')}
+      onBack={() => navigate('/inicio')}
       onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
       onOpenOverview={() => navigate(`/jornadas/${id}`)}
       onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)}
@@ -44,20 +46,40 @@ export function SubjectListController() {
 export function SubjectDetailController() {
   const { id, areaId } = useParams();
   const navigate = useNavigate();
+  const journeyId = Number(id);
   const { journey, loading } = useJourney(id);
+  const [nodeStudy, setNodeStudy] = useState<SyllabusNodeStudyResponse[]>([]);
+  useEffect(() => {
+    if (!journeyId) return;
+    syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => setNodeStudy([]));
+  }, [journeyId]);
+  async function saveNodeStudy(request: SyllabusNodeStudyRequest) {
+    const result = await syllabusNodeStudyService.save(request);
+    try {
+      setNodeStudy(await syllabusNodeStudyService.list(journeyId));
+    } catch {
+      setNodeStudy(current => [...current.filter(item => item.syllabusNodeId !== result.syllabusNodeId), result]);
+    }
+    return result;
+  }
   const area = journey?.knowledgeAreas.find(a => a.id === Number(areaId)) ?? null;
   return (
     <SubjectDetailView
       journey={journey}
       area={area}
       loading={loading}
-      onBack={() => navigate('/')}
+      onBack={() => navigate('/inicio')}
       onBackToList={() => navigate(`/jornadas/${id}/materias`)}
       onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
       onOpenOverview={() => navigate(`/jornadas/${id}`)}
       onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)}
       onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)}
       onRemoveNode={nodeId => { if (!window.confirm('Apagar este tópico/subtópico? Esta ação não pode ser desfeita.')) return; void journeyService.removeNode(nodeId).then(() => { toast.success('Conteúdo apagado.'); navigate(`/jornadas/${id}/materias`); }).catch(error => toast.error(getRequestErrorMessage(error, 'Não foi possível apagar o conteúdo.'))); }}
+      nodeStudy={nodeStudy}
+      onSaveNodeStudy={saveNodeStudy}
+      onListResources={nodeId => studyResourceService.list(journeyId, nodeId)}
+      onSaveResource={request => studyResourceService.register(request)}
+      onDeleteResource={async resourceId => { await studyResourceService.remove(resourceId); }}
     />
   );
 }
