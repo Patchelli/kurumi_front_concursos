@@ -649,7 +649,7 @@ export function JourneyView(props: JourneyViewProps) {
 
       </main>
 
-      <ContestFAB areas={journey.knowledgeAreas} />
+      <ContestFAB journeyId={journey.id} areas={journey.knowledgeAreas} />
 
     </div>
   );

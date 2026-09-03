@@ -48,13 +48,19 @@ async function remove(id: number) {
 async function addArea(request: KnowledgeAreaRegisterRequest) {
   return clientRequest<boolean>({ url: '/journeys/areas', method: HttpMethod.Post, body: request });
 }
+async function updateArea(request: KnowledgeAreaRegisterRequest) {
+  return clientRequest<boolean>({ url: '/journeys/areas', method: HttpMethod.Put, body: request });
+}
 async function removeArea(id: number) {
   return clientRequest<boolean>({ url: '/journeys/areas', method: HttpMethod.Delete, axiosConfig: { params: { id } } });
 }
 async function addNode(request: SyllabusNodeRegisterRequest) {
   return clientRequest<boolean>({ url: '/journeys/nodes', method: HttpMethod.Post, body: request });
 }
+async function updateNode(request: SyllabusNodeRegisterRequest) {
+  return clientRequest<boolean>({ url: '/journeys/nodes', method: HttpMethod.Put, body: request });
+}
 async function removeNode(id: number) {
   return clientRequest<boolean>({ url: '/journeys/nodes', method: HttpMethod.Delete, axiosConfig: { params: { id } } });
 }
-export const journeyService = { findAll, findById, register, update, remove, addArea, removeArea, addNode, removeNode };
+export const journeyService = { findAll, findById, register, update, remove, addArea, updateArea, removeArea, addNode, updateNode, removeNode };

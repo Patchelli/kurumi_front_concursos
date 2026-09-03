@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MaterialDialog } from './MaterialDialog';
 
 type Props = {
@@ -6,17 +6,33 @@ type Props = {
   title: string;
   description?: string;
   placeholder?: string;
+  defaultValue?: string;
   maxLength?: number;
   confirmLabel?: string;
   onConfirm(value: string): void;
   onClose(): void;
 };
 
-export function InputDialog({ open, title, description, placeholder, maxLength = 300, confirmLabel = 'Adicionar', onConfirm, onClose }: Props) {
+export function InputDialog({ open, title, description, placeholder, defaultValue = '', maxLength = 300, confirmLabel = 'Adicionar', onConfirm, onClose }: Props) {
   const [value, setValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (!open) return; setValue(''); const timer = window.setTimeout(() => inputRef.current?.focus(), 80); return () => window.clearTimeout(timer); }, [open]);
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setValue(defaultValue);
+    const timer = window.setTimeout(() => {
+      textareaRef.current?.focus();
+      autoResize();
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [open, defaultValue, autoResize]);
 
   const handleConfirm = () => {
     const trimmed = value.trim();
@@ -39,13 +55,15 @@ export function InputDialog({ open, title, description, placeholder, maxLength =
       }
     >
       <div className="md-dialog-form">
-        <input
-          ref={inputRef}
+        <textarea
+          ref={textareaRef}
           value={value}
-          onChange={e => setValue(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleConfirm(); }}
+          onChange={e => { setValue(e.target.value); autoResize(); }}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleConfirm(); } }}
           placeholder={placeholder}
           maxLength={maxLength}
+          rows={1}
+          style={{ resize: 'none', overflow: 'hidden', minHeight: 38 }}
         />
       </div>
     </MaterialDialog>

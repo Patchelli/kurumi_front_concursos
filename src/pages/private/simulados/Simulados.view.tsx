@@ -631,7 +631,7 @@ export function SimuladosView({
       </div>
     )}
 
-    <ContestFAB areas={areas}/>
+    {journey && <ContestFAB journeyId={journey.id} areas={areas}/>}
     </>
   );
 }

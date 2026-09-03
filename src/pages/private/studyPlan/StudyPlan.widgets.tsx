@@ -8,6 +8,8 @@ import type { StudyResource, StudyResourceKind, StudyResourceRegisterRequest } f
 import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
 import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@business/studyProgress';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
+import { FlashcardManager } from '@components/flashcard/FlashcardManager';
+import { flashcardService, type FlashcardResponse } from '@business/service/Flashcard.service';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -170,9 +172,10 @@ const AFFINITY_MULTIPLIER: Record<Affinity, number> = {
 
 const CONFIG_STEPS = ['Matérias', 'Afinidade', 'Prioridades', 'Disponibilidade'];
 
-export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }: {
+export function PlanConfigWizard({ open, onClose, journeyId, areas, configuration, onSave }: {
   open: boolean;
   onClose(): void;
+  journeyId: number;
   areas: KnowledgeAreaResponse[];
   configuration?: StudyRoutineConfigurationRequest;
   onSave(configuration: StudyRoutineConfigurationRequest): Promise<void>;
@@ -194,6 +197,14 @@ export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }
   const [areaHoursOverride, setAreaHoursOverride] = useState<Map<number, string>>(new Map());
   const [nodeHoursOverride, setNodeHoursOverride] = useState<Map<number, string>>(new Map());
   const [expandedLoadAreas, setExpandedLoadAreas] = useState<Set<number>>(new Set());
+  const [flashcards, setFlashcards] = useState<FlashcardResponse[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    flashcardService.list(journeyId).then(items => active && setFlashcards(items)).catch(() => active && setFlashcards([]));
+    return () => { active = false; };
+  }, [open, journeyId]);
 
   useEffect(() => {
     if (!open || !configuration) return;
@@ -289,7 +300,7 @@ export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }
                       </label>
                       <div className="sp-wz-area-info" onClick={() => on && toggleExpand(area.id)}>
                         <strong>{area.title}</strong>
-                        <small>{area.nodes.length} tópico{area.nodes.length !== 1 ? 's' : ''}</small>
+                        <small>{area.nodes.length} tópico{area.nodes.length !== 1 ? 's' : ''} · {flashcards.filter(card => card.knowledgeAreaId === area.id).length} flashcards</small>
                       </div>
                       {on && (
                         <button
@@ -314,7 +325,7 @@ export function PlanConfigWizard({ open, onClose, areas, configuration, onSave }
                               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
-                              0 flashcards
+                              {flashcards.filter(card => card.knowledgeAreaId === area.id && (card.syllabusNodeId === node.id || node.children.some(child => child.id === card.syllabusNodeId))).length} flashcards
                             </span>
                           </div>
                         ))}
@@ -975,8 +986,8 @@ type TopicProps = {
   onDeleteResource(id: number): Promise<void>;
 };
 
-function SubtopicItem({ child, topicTitle, journeyId, studyState, onStartPomodoro, onListResources, onSaveResource, onDeleteResource, onSaveStudy }: {
-  child: SyllabusNodeResponse; topicTitle: string; journeyId: number;
+function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStartPomodoro, onListResources, onSaveResource, onDeleteResource, onSaveStudy }: {
+  child: SyllabusNodeResponse; topicTitle: string; journeyId: number; areaId: number;
   studyState?: SyllabusNodeStudyResponse;
   onStartPomodoro(subtopicId?: number): void;
   onListResources(nodeId: number): Promise<StudyResource[]>;
@@ -1122,7 +1133,7 @@ function SubtopicItem({ child, topicTitle, journeyId, studyState, onStartPomodor
           {activeTab === 'flashcards' && (
             <section className="sp-topic-resource">
               <header><div><span className="sp-dialog-label">Flashcards</span><strong>Revisão rápida</strong></div></header>
-              <p className="sp-dialog-empty">Em breve.</p>
+              <FlashcardManager journeyId={journeyId} areaId={areaId} nodeId={child.id} />
             </section>
           )}
         </div>
@@ -1288,14 +1299,10 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
             )}
             {activeResource === 'flashcards' && (
               <section className="sp-topic-resource">
-                <header><div><span className="sp-dialog-label">Flashcards</span><strong>Revisão rápida do tópico</strong></div><div className="sp-resource-heading-actions"><small>{6 + target.topic.id % 8} cards</small><button onClick={() => toast.success('Flashcards importados em modo de demonstração.')}>＋ Importar</button></div></header>
-                <div className="sp-flashcard-list-mock">
-                  {[
-                    [`Qual é o conceito central de ${target.topic.title}?`, 'Definição, características e aplicação prática do conceito.'],
-                    [`Quais são os principais elementos de ${target.topic.title}?`, 'Sujeito, objeto, requisitos e efeitos previstos.'],
-                    ['Qual é a exceção mais cobrada em prova?', 'A hipótese excepcional depende dos requisitos específicos do enunciado.'],
-                  ].map(([question, answer], index) => <article key={question}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{question}</strong><small>{answer}</small></div><button onClick={() => toast.success('Flashcard aberto para edição.')} aria-label="Editar flashcard">Editar</button><button className="sp-resource-delete" onClick={() => toast.success('Flashcard apagado em modo de demonstração.')} aria-label="Apagar flashcard">×</button></article>)}
-                </div>
+                <header><div><span className="sp-dialog-label">Flashcards do tópico</span><strong>{target.topic.title}</strong></div></header>
+                <FlashcardManager journeyId={journeyId} areaId={target.area.id} nodeId={target.topic.id} />
+                <header className="sp-flashcard-subheading"><div><span className="sp-dialog-label">Flashcards da matéria</span><strong>{target.area.title}</strong></div></header>
+                <FlashcardManager journeyId={journeyId} areaId={target.area.id} subjectOnly />
               </section>
             )}
             <span className="sp-dialog-label">Subtópicos</span>
@@ -1303,7 +1310,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               ? (
                 <div className="sp-subtopic-list">
                   {subtopics.map(child => (
-                    <SubtopicItem key={child.id} child={child} topicTitle={target.topic.title} journeyId={journeyId} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartPomodoro={onStartPomodoro} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} onSaveStudy={onSaveNodeStudy} />
+                    <SubtopicItem key={child.id} child={child} topicTitle={target.topic.title} journeyId={journeyId} areaId={target.area.id} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartPomodoro={onStartPomodoro} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} onSaveStudy={onSaveNodeStudy} />
                   ))}
                 </div>
               )

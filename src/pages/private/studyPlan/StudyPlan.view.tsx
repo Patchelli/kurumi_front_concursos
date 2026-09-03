@@ -29,7 +29,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
   }, [routineBlocks]);
 
   const todayBlocks = useMemo(() => {
-    if (routineBlocks?.length) { const today = new Date().toISOString().slice(0, 10); return routineBlocks.filter(item => item.scheduledFor.slice(0, 10) === today).map(item => { const area = journey?.knowledgeAreas.find(a => a.nodes.some(n => n.id === item.syllabusNodeId)); const topic = area?.nodes.find(n => n.id === item.syllabusNodeId); return area && topic ? { id: item.id, area, topic, subject: area.title, type: item.type === 2 ? 'Revisão' : item.type === 3 ? 'Questões' : 'Teoria', minutes: item.plannedMinutes } : null; }).filter(Boolean) as Array<{ id: number; area: NonNullable<typeof journey>['knowledgeAreas'][number]; topic: NonNullable<typeof journey>['knowledgeAreas'][number]['nodes'][number]; subject: string; type: string; minutes: number }>; }
+    if (routineBlocks?.length) { return routineBlocks.filter(item => item.scheduledFor.slice(0, 10) === localToday).map(item => { const area = journey?.knowledgeAreas.find(a => a.nodes.some(n => n.id === item.syllabusNodeId)); const topic = area?.nodes.find(n => n.id === item.syllabusNodeId); return area && topic ? { id: item.id, area, topic, subject: area.title, type: item.type === 2 ? 'Revisão' : item.type === 3 ? 'Questões' : 'Teoria', minutes: item.plannedMinutes } : null; }).filter(Boolean) as Array<{ id: number; area: NonNullable<typeof journey>['knowledgeAreas'][number]; topic: NonNullable<typeof journey>['knowledgeAreas'][number]['nodes'][number]; subject: string; type: string; minutes: number }>; }
     return [];
   }, [journey, routineBlocks]);
 
@@ -362,11 +362,12 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     <PlanConfigWizard
       open={configOpen}
       onClose={() => setConfigOpen(false)}
+      journeyId={journey.id}
       areas={journey.knowledgeAreas}
       configuration={configuration}
       onSave={onSaveConfiguration}
     />
-    <ContestFAB areas={journey.knowledgeAreas} />
+    <ContestFAB journeyId={journey.id} areas={journey.knowledgeAreas} />
     </>
   );
 }

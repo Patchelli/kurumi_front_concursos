@@ -25,11 +25,11 @@ export type StudyResourceRegisterRequest = {
 const register = (body: StudyResourceRegisterRequest) =>
   clientRequest<StudyResource>({ url: '/StudyResource/register', method: HttpMethod.Post, body });
 
-const list = (journeyId: number, syllabusNodeId?: number) =>
+const list = (journeyId: number, syllabusNodeId?: number, knowledgeAreaId?: number) =>
   clientRequest<StudyResource[]>({
     url: '/StudyResource/list',
     method: HttpMethod.Get,
-    axiosConfig: { params: { journeyId, ...(syllabusNodeId ? { syllabusNodeId } : {}) } },
+    axiosConfig: { params: { journeyId, ...(syllabusNodeId ? { syllabusNodeId } : {}), ...(knowledgeAreaId ? { knowledgeAreaId } : {}) } },
   });
 
 const remove = (id: number) =>

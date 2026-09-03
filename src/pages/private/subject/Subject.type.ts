@@ -11,6 +11,12 @@ export type SubjectListViewProps = {
   onOpenCapsule(): void;
   onOpenSimulados(): void;
   onSelectArea(areaId: number): void;
+  onAddArea(title: string): void;
+  onEditArea(areaId: number, title: string): void;
+  onDeleteArea(areaId: number): void;
+  onListResources(knowledgeAreaId: number): Promise<StudyResource[]>;
+  onSaveResource(request: StudyResourceRegisterRequest): Promise<StudyResource>;
+  onDeleteResource(id: number): Promise<void>;
 };
 
 export type SubjectDetailViewProps = {
@@ -24,9 +30,15 @@ export type SubjectDetailViewProps = {
   onOpenCapsule(): void;
   onOpenSimulados(): void;
   onRemoveNode(id: number): void;
+  onDeleteArea(areaId: number): void;
+  onAddTopic(areaId: number, title: string): void;
+  onAddSubtopic(areaId: number, parentId: number, title: string): void;
+  onEditArea(areaId: number, title: string): void;
+  onEditNode(nodeId: number, knowledgeAreaId: number, title: string): void;
   nodeStudy: SyllabusNodeStudyResponse[];
   onSaveNodeStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
   onListResources(nodeId: number): Promise<StudyResource[]>;
   onSaveResource(request: StudyResourceRegisterRequest): Promise<StudyResource>;
   onDeleteResource(id: number): Promise<void>;
+  onListAreaResources(knowledgeAreaId: number): Promise<StudyResource[]>;
 };

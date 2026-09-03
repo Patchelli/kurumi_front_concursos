@@ -180,7 +180,7 @@ export function CapsuleView({
           readOnly
         />
       )}
-      <ContestFAB areas={journey?.knowledgeAreas ?? []} />
+      {journey && <ContestFAB journeyId={journey.id} areas={journey.knowledgeAreas} />}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { FlashcardCreator } from './FlashcardCreator';
 import type { KnowledgeAreaResponse } from '../../../@business/dto/response/journey.response';
 import { usePomodoro } from './Pomodoro.context';
 
-export function ContestFAB({ areas = [] }: { areas?: KnowledgeAreaResponse[] }) {
+export function ContestFAB({ journeyId, areas = [] }: { journeyId: number; areas?: KnowledgeAreaResponse[] }) {
   const [flashcardOpen, setFlashcardOpen] = useState(false);
   const pomodoro = usePomodoro();
 
@@ -23,7 +23,7 @@ export function ContestFAB({ areas = [] }: { areas?: KnowledgeAreaResponse[] }) 
         <span aria-hidden="true">◷</span>
       </button>
     </div>
-    <FlashcardCreator open={flashcardOpen} onClose={() => setFlashcardOpen(false)} areas={areas} />
+    <FlashcardCreator journeyId={journeyId} open={flashcardOpen} onClose={() => setFlashcardOpen(false)} areas={areas} />
     </>
   );
 }
