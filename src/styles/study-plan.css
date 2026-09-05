@@ -146,6 +146,16 @@
 .sp-cal-dn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:11px;font-weight:800;color:#2a2330;margin-bottom:2px;flex-shrink:0}
 .sp-cal-block{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
 .sp-cal-more{font-size:9px;font-weight:800;color:#8060a8;padding:1px 4px;border-radius:4px;background:#ede7f9;line-height:1.5;align-self:flex-start}
+
+/* Dot indicators (visible on mobile) */
+.sp-cal-dots{display:none;align-items:center;justify-content:center;gap:3px;margin-top:auto;padding-top:2px}
+.sp-cal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sp-cal-dot--more{background:#c0b3cc!important;width:4px;height:4px}
+.sp-cal-cell--selected{background:#f3eef8!important}
+
+/* Inline detail (mobile only, hidden on desktop) */
+.sp-cal-inline-detail{display:none}
+
 .sp-day-modal-backdrop{position:fixed;inset:0;z-index:300;background:#20162966;display:grid;place-items:center;padding:20px;animation:sp-day-fade .14s ease-out}
 .sp-day-modal{width:min(430px,100%);max-height:min(620px,85vh);overflow:hidden;background:#fff;border:1px solid #e5dfe8;border-radius:18px;box-shadow:0 20px 60px #281b3838;display:flex;flex-direction:column;animation:sp-day-rise .18s ease-out}
 .sp-day-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px;border-bottom:1px solid #ede7f2}
@@ -609,10 +619,23 @@
   .sp-link-btn{display:none}
   .sp-open-btn{padding:0 10px;font-size:10px}
   .sp-side{grid-template-columns:1fr}
-  .sp-cal-cell{min-height:52px}
+  .sp-cal-cell{min-height:44px;padding:4px 2px;align-items:center}
   .sp-cal-block{display:none}
+  .sp-cal-more{display:none}
+  .sp-cal-dots{display:flex}
+  .sp-cal-dn{width:20px;height:20px;font-size:10px;margin-bottom:0}
   .sp-flashcard-preview{grid-template-columns:1fr}
-  .sp-cal-cell--today .sp-cal-block{display:block}
+  .sp-day-modal-backdrop{display:none!important}
+  /* Inline detail panel */
+  .sp-cal-inline-detail{display:block;border-top:1px solid #ede7f2;padding:14px 0 4px}
+  .sp-cal-inline-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .sp-cal-inline-head h3{margin:0;font-size:14px;font-weight:800;color:#1e1829;text-transform:capitalize}
+  .sp-cal-inline-count{font-size:10px;font-weight:700;color:#8060a8;background:#ede7f9;padding:3px 9px;border-radius:99px}
+  .sp-cal-inline-list{display:flex;flex-direction:column;gap:4px}
+  .sp-cal-inline-list .sp-day-modal-item{margin:0;padding:10px 12px}
+  .sp-cal-inline-list .sp-day-modal-item>i{min-height:36px}
+  .sp-cal-inline-list .sp-day-modal-item strong{font-size:12px}
+  .sp-cal-inline-empty{margin:0;padding:20px 0;text-align:center;color:#a090b8;font-size:12px;font-style:italic}
   .sp-drawer-areas{grid-template-columns:1fr}
   .sp-drawer-availability{grid-template-columns:repeat(4,1fr)}
   .sp-wizard-stepper{grid-template-columns:repeat(2,1fr);gap:12px}

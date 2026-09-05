@@ -88,10 +88,10 @@ export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { a
           <button
             type="button"
             key={i}
-            className={`sp-cal-cell${!d ? ' sp-cal-cell--empty' : ''}${d && isToday(d) ? ' sp-cal-cell--today' : ''}`}
+            className={`sp-cal-cell${!d ? ' sp-cal-cell--empty' : ''}${d && isToday(d) ? ' sp-cal-cell--today' : ''}${d === selectedDay ? ' sp-cal-cell--selected' : ''}`}
             disabled={!d}
             aria-label={d ? `Ver conteúdos de ${d} de ${PT_MONTHS[month]}` : undefined}
-            onClick={() => d && setSelectedDay(d)}
+            onClick={() => d && setSelectedDay(prev => prev === d ? null : d)}
           >
             {d && <span className="sp-cal-dn">{d}</span>}
             {d && schedule[d]?.slice(0, CAL_MAX_VISIBLE).map((item, bi) => (
@@ -107,9 +107,48 @@ export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { a
             {d && (schedule[d]?.length ?? 0) > CAL_MAX_VISIBLE && (
               <div className="sp-cal-more">+{(schedule[d]?.length ?? 0) - CAL_MAX_VISIBLE}</div>
             )}
+            {d && schedule[d]?.length ? (
+              <div className="sp-cal-dots">
+                {schedule[d].slice(0, 3).map((item, di) => (
+                  <span key={di} className="sp-cal-dot" style={{ background: CAL_TEXT[item.colorIdx] }} />
+                ))}
+                {schedule[d].length > 3 && <span className="sp-cal-dot sp-cal-dot--more" />}
+              </div>
+            ) : null}
           </button>
         ))}
       </div>
+      {/* Mobile inline detail (replaces modal on small screens) */}
+      {selectedDay !== null && (
+        <div className="sp-cal-inline-detail">
+          <div className="sp-cal-inline-head">
+            <h3>{selectedDate}</h3>
+            {schedule[selectedDay]?.length ? (
+              <span className="sp-cal-inline-count">{schedule[selectedDay].length} {schedule[selectedDay].length === 1 ? 'atividade' : 'atividades'}</span>
+            ) : null}
+          </div>
+          {(schedule[selectedDay]?.length ?? 0) > 0 ? (
+            <div className="sp-cal-inline-list">
+              {schedule[selectedDay].map((item, index) => {
+                const typeLabel = activityType(item.type);
+                const typeSlug = typeLabel === 'Revisão' ? 'revisao' : typeLabel === 'Questões' ? 'questoes' : 'teoria';
+                return (
+                  <article key={`inline-${item.node.id}-${index}`} className={`sp-day-modal-item sp-day-modal-item--${typeSlug}`}>
+                    <i />
+                    <div>
+                      <small>{item.areaTitle}</small>
+                      <strong>{item.node.title}</strong>
+                      <span>{typeLabel}{item.plannedMinutes ? ` · ${item.plannedMinutes} min` : ''}</span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="sp-cal-inline-empty">Nenhum conteúdo planejado para este dia.</p>
+          )}
+        </div>
+      )}
       {!routineBlocks.length && !nodeStudy.some(item => Boolean(item.reviewDate)) && (
         <p className="sp-cal-empty">Configure o ciclo de estudos para ver os blocos no calendário.</p>
       )}
