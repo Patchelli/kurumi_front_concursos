@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { practiceEntryService, type PracticeEntry } from '../../../@business/service/PracticeEntry.service';
 import { ConfirmDialog } from '../dialog/ConfirmDialog';
+import { notifyTimeCapsuleProgressChanged } from '../../../@business/service/TimeCapsule.service';
 
 const REASONS = [
   'Desconhecimento', 'Esquecimento', 'Confusão conceitual',
@@ -86,6 +87,7 @@ export function QuestionRegisterDialog({ journeyId, knowledgeAreaId, syllabusNod
         notes: notes || null,
       };
       editing ? await practiceEntryService.update(editing.id, body) : await practiceEntryService.register(body);
+      notifyTimeCapsuleProgressChanged();
       await load();
       edit();
       toast.success('Questões registradas.');

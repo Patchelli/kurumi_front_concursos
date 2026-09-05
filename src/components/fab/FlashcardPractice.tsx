@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { KnowledgeAreaResponse } from '../../../@business/dto/response/journey.response';
 import { flashcardService, type FlashcardPracticeResponse, type FlashcardResponse } from '../../../@business/service/Flashcard.service';
 import { getRequestErrorMessage } from '../../utils/getRequestErrorMessage';
+import { notifyTimeCapsuleProgressChanged } from '../../../@business/service/TimeCapsule.service';
 
 type Scope = 'all' | 'subject' | 'topic' | 'subtopic';
 const empty: FlashcardPracticeResponse = { totalCards: 0, reviewCards: 0, newCards: 0, correctToday: 0, cards: [] };
@@ -70,6 +71,7 @@ export function FlashcardPractice({ journeyId, areas, onClose }: { journeyId: nu
     if (!card) return;
     try {
       await flashcardService.recall(card.id, value);
+      notifyTimeCapsuleProgressChanged();
       setAnswered(current => current + 1);
       if (value >= 3) setRemembered(current => current + 1);
       setIndex(current => current + 1);

@@ -5,7 +5,6 @@ export type TriggerType =
   | 'SUBJECT_COMPLETED'
   | 'TOPIC_COMPLETED'
   | 'SUBTOPIC_COMPLETED'
-  | 'GOAL_COMPLETED'
   | 'STUDY_HOURS_REACHED'
   | 'QUESTIONS_REACHED'
   | 'LEVEL_REACHED';
@@ -43,6 +42,6 @@ export type CapsuleViewProps = {
   onOpenStudyPlan(): void;
   onOpenContent(): void;
   onOpenSimulados(): void;
-  onCreate(capsule: Omit<Capsule, 'id' | 'createdAt' | 'status'>): void;
-  onOpen(id: number): void;
+  onCreate(capsule: Omit<Capsule, 'id' | 'createdAt' | 'status'>): Promise<void>;
+  onOpen(id: number): Promise<void>;
 };

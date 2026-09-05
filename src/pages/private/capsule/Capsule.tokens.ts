@@ -6,7 +6,6 @@ export const capsuleTokens = {
     SUBJECT_COMPLETED: 'Matéria concluída',
     TOPIC_COMPLETED: 'Tópico concluído',
     SUBTOPIC_COMPLETED: 'Subtópico concluído',
-    GOAL_COMPLETED: 'Meta concluída',
     STUDY_HOURS_REACHED: 'Horas de estudo',
     QUESTIONS_REACHED: 'Questões resolvidas',
     LEVEL_REACHED: 'Nível alcançado',

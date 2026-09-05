@@ -8,6 +8,7 @@ import { studyTimerFinishedEvent } from '@business/service/StudyTimer.service';
 import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 import { toast } from 'sonner';
 import { SubjectDetailView, SubjectListView } from './Subject.view';
+import { notifyTimeCapsuleProgressChanged } from '@business/service/TimeCapsule.service';
 
 function useJourney(id: string | undefined) {
   const [journey, setJourney] = useState<JourneyDetailsResponse | null>(null);
@@ -87,6 +88,7 @@ export function SubjectDetailController() {
   }, [journeyId]);
   async function saveNodeStudy(request: SyllabusNodeStudyRequest) {
     const result = await syllabusNodeStudyService.save(request);
+    notifyTimeCapsuleProgressChanged();
     try {
       setNodeStudy(await syllabusNodeStudyService.list(journeyId));
     } catch {

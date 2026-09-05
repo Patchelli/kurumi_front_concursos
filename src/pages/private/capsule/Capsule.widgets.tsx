@@ -23,7 +23,6 @@ function triggerDescription(capsule: Capsule): string {
     case 'SUBJECT_COMPLETED': return `Conclusão de ${capsule.triggerReferenceLabel ?? 'a matéria'}`;
     case 'TOPIC_COMPLETED': return `Conclusão do tópico "${capsule.triggerReferenceLabel ?? ''}"`;
     case 'SUBTOPIC_COMPLETED': return `Conclusão do subtópico "${capsule.triggerReferenceLabel ?? ''}"`;
-    case 'GOAL_COMPLETED': return `Meta "${capsule.triggerReferenceLabel ?? ''}" concluída`;
     case 'STUDY_HOURS_REACHED': return `${capsule.triggerValue ?? 0} horas estudadas`;
     case 'QUESTIONS_REACHED': return `${(capsule.triggerValue ?? 0).toLocaleString('pt-BR')} questões resolvidas`;
     case 'LEVEL_REACHED': return `Nível "${capsule.triggerReferenceLabel ?? ''}" alcançado`;
@@ -297,74 +296,90 @@ export function RevealDialog({
 
 export function CapsuleDeliveryPopup() {
   const { pending, dismiss } = useCapsuleDelivery();
-  /**
-   * IDs que já foram auto-abertos nesta sessão.
-   * Evita reabrir se o usuário fechar sem marcar como lida.
-   */
   const autoOpened = useRef<Set<number>>(new Set());
-  const [revealId, setRevealId] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
-  /* Auto-abre o dialog quando chega uma entrega nova */
+  /* Auto-abre fullscreen quando chega uma entrega nova */
   useEffect(() => {
-    if (revealId !== null) return; // já tem um aberto
+    if (activeId !== null) return;
     const next = pending.find(p => !autoOpened.current.has(p.capsule.id));
     if (next) {
       autoOpened.current.add(next.capsule.id);
-      setRevealId(next.capsule.id);
+      setActiveId(next.capsule.id);
+      setRevealed(false);
     }
-  }, [pending, revealId]);
+  }, [pending, activeId]);
 
-  if (pending.length === 0) return null;
+  if (pending.length === 0 && activeId === null) return null;
 
-  const revealTarget = revealId !== null
-    ? pending.find(p => p.capsule.id === revealId)
-    : null;
+  const target = activeId !== null ? pending.find(p => p.capsule.id === activeId) : null;
 
-  /* Banner de aviso (visível quando o dialog foi fechado mas a cápsula não foi lida) */
-  const showBanner = pending.length > 0 && revealId === null;
+  const handleClose = () => { setActiveId(null); setRevealed(false); };
+  const handleOpen = () => {
+    if (target) { target.onOpen(target.capsule.id); dismiss(target.capsule.id); }
+    setActiveId(null); setRevealed(false);
+  };
 
-  return (
-    <>
-      {showBanner && (
-        <div className="cp-delivery-notif" role="status" aria-live="polite">
-          <div className="cp-delivery-notif-icon">
+  if (!target) return null;
+  const capsule = target.capsule;
+
+  /* ── Fullscreen celebration ── */
+  if (!revealed) {
+    return (
+      <div className="cpd-fullscreen" role="dialog" aria-modal="true">
+        {/* Particles */}
+        <div className="cpd-particles" aria-hidden="true">
+          {Array.from({ length: 24 }, (_, i) => <span key={i} className="cpd-particle" style={{ '--i': i } as React.CSSProperties} />)}
+        </div>
+
+        <div className="cpd-center">
+          <div className="cpd-capsule-wrap">
             <CapsuleIcon variant="arrived" />
           </div>
-          <div className="cp-delivery-notif-body">
-            <strong>Cápsula entregue!</strong>
-            <span>{pending[0].capsule.title}</span>
-            {pending.length > 1 && <em>+{pending.length - 1} mais</em>}
+          <span className="cpd-badge">✦ CÁPSULA ENTREGUE</span>
+          <h2 className="cpd-title">{capsule.title}</h2>
+          <p className="cpd-trigger">{triggerDescription(capsule)}</p>
+          <p className="cpd-hint">Você escreveu esta mensagem para este momento.</p>
+          <div className="cpd-actions">
+            <button className="cpd-btn-open" type="button" onClick={() => setRevealed(true)}>
+              Abrir cápsula
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <button className="cpd-btn-later" type="button" onClick={handleClose}>Mais tarde</button>
           </div>
-          <button
-            className="cp-delivery-notif-open"
-            type="button"
-            onClick={() => setRevealId(pending[0].capsule.id)}
-          >
-            Abrir
-          </button>
-          <button
-            className="cp-delivery-notif-close"
-            type="button"
-            aria-label="Fechar notificação"
-            onClick={() => dismiss(pending[0].capsule.id)}
-          >
-            ×
-          </button>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {revealTarget && (
-        <RevealDialog
-          capsule={revealTarget.capsule}
-          onClose={() => setRevealId(null)}
-          onOpen={() => {
-            revealTarget.onOpen(revealTarget.capsule.id);
-            dismiss(revealTarget.capsule.id);
-            setRevealId(null);
-          }}
-        />
-      )}
-    </>
+  /* ── Revealed content ── */
+  return (
+    <div className="cpd-fullscreen cpd-fullscreen--read" role="dialog" aria-modal="true">
+      <div className="cpd-read-card">
+        <header className="cpd-read-header">
+          <div>
+            <span className="cpd-read-eyebrow">MENSAGEM DO SEU PASSADO</span>
+            <h2>{capsule.title}</h2>
+          </div>
+          <button className="cpd-read-close" type="button" onClick={handleClose}>×</button>
+        </header>
+        <div className="cpd-read-body">
+          <p className="cpd-read-context">{triggerDescription(capsule)}</p>
+          {capsule.videoUrl && isYouTubeUrl(capsule.videoUrl) && (
+            <div className="cpd-video-wrap">
+              <iframe className="cpd-video" src={toEmbedUrl(capsule.videoUrl)} title="Vídeo da cápsula" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+            </div>
+          )}
+          {capsule.message && <div className="cpd-message">{capsule.message}</div>}
+          <p className="cpd-written-at">Escrita em {fmtDate(capsule.createdAt)}</p>
+        </div>
+        <footer className="cpd-read-footer">
+          <button className="cpd-btn-later" type="button" onClick={handleClose}>Fechar</button>
+          <button className="cpd-btn-open" type="button" onClick={handleOpen}>Marcar como lida</button>
+        </footer>
+      </div>
+    </div>
   );
 }
 
@@ -372,12 +387,11 @@ export function CapsuleDeliveryPopup() {
 
 type CreateStep = 'write' | 'trigger' | 'configure';
 type CompletionSubtype = 'SUBJECT_COMPLETED' | 'TOPIC_COMPLETED' | 'SUBTOPIC_COMPLETED';
-type GoalSubtype = 'STUDY_HOURS_REACHED' | 'QUESTIONS_REACHED' | 'GOAL_COMPLETED' | 'LEVEL_REACHED';
+type GoalSubtype = 'STUDY_HOURS_REACHED' | 'QUESTIONS_REACHED' | 'LEVEL_REACHED';
 
 const GOAL_OPTIONS: { type: GoalSubtype; icon: string; label: string; desc: string }[] = [
   { type: 'STUDY_HOURS_REACHED', icon: '◷', label: 'Horas estudadas',    desc: 'Ao atingir X horas' },
   { type: 'QUESTIONS_REACHED',   icon: '✓', label: 'Questões resolvidas', desc: 'Ao resolver X questões' },
-  { type: 'GOAL_COMPLETED',      icon: '◎', label: 'Meta concluída',       desc: 'Ao concluir uma meta' },
   { type: 'LEVEL_REACHED',       icon: '◆', label: 'Nível alcançado',      desc: 'Ao alcançar um nível' },
 ];
 
@@ -399,7 +413,7 @@ export function CreateCapsuleDialog({
 }: {
   open: boolean;
   onClose(): void;
-  onCreate(capsule: Omit<Capsule, 'id' | 'createdAt' | 'status'>): void;
+  onCreate(capsule: Omit<Capsule, 'id' | 'createdAt' | 'status'>): Promise<void>;
   journey: JourneyDetailsResponse | null | undefined;
 }) {
   const [step, setStep] = useState<CreateStep>('write');
@@ -419,7 +433,7 @@ export function CreateCapsuleDialog({
   const [goalType, setGoalType] = useState<GoalSubtype | null>(null);
   const [numericValue, setNumericValue] = useState('');
   const [levelValue, setLevelValue] = useState('Iniciante');
-  const [goalName, setGoalName] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const areas = journey?.knowledgeAreas ?? [];
   const selectedArea  = areas.find(a => a.id === selectedAreaId);
@@ -430,7 +444,7 @@ export function CreateCapsuleDialog({
     setCompletionType('SUBJECT_COMPLETED');
     setSelectedAreaId(''); setSelectedTopicId(''); setSelectedSubtopicId('');
     setDateValue(''); setTimeValue('');
-    setGoalType(null); setNumericValue(''); setLevelValue('Iniciante'); setGoalName('');
+    setGoalType(null); setNumericValue(''); setLevelValue('Iniciante');
   }
 
   function handleClose() { reset(); onClose(); }
@@ -452,7 +466,7 @@ export function CreateCapsuleDialog({
     setStep('configure');
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const triggerType: TriggerType = (() => {
       if (category === 'date') return 'DATE';
       if (category === 'completion') return completionType;
@@ -472,8 +486,6 @@ export function CreateCapsuleDialog({
       if (!goalType) return void toast.error('Escolha um tipo de meta.');
       if ((goalType === 'STUDY_HOURS_REACHED' || goalType === 'QUESTIONS_REACHED') && !numericValue)
         return void toast.error('Informe o valor alvo.');
-      if (goalType === 'GOAL_COMPLETED' && !goalName.trim())
-        return void toast.error('Informe o nome da meta.');
     }
 
     let refId: number | undefined;
@@ -490,7 +502,6 @@ export function CreateCapsuleDialog({
       }
     } else if (category === 'goal') {
       if (goalType === 'LEVEL_REACHED') refLabel = levelValue;
-      else if (goalType === 'GOAL_COMPLETED') refLabel = goalName.trim();
     }
 
     const data: Omit<Capsule, 'id' | 'createdAt' | 'status'> = {
@@ -510,9 +521,16 @@ export function CreateCapsuleDialog({
       }),
     };
 
-    onCreate(data);
-    toast.success('Cápsula criada e selada! ✦');
-    handleClose();
+    setSaving(true);
+    try {
+      await onCreate(data);
+      toast.success('Cápsula criada e selada! ✦');
+      handleClose();
+    } catch {
+      toast.error('Não foi possível criar a cápsula.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const configureTitle =
@@ -539,7 +557,7 @@ export function CreateCapsuleDialog({
     return (
       <>
         <button className="md-text-button" onClick={() => setStep('trigger')}>← Voltar</button>
-        <button className="md-filled-button" onClick={handleSubmit}>Fechar cápsula ✦</button>
+        <button className="md-filled-button" disabled={saving} onClick={() => void handleSubmit()}>{saving ? 'Salvando…' : 'Fechar cápsula ✦'}</button>
       </>
     );
   })();
@@ -547,7 +565,7 @@ export function CreateCapsuleDialog({
   return (
     <MaterialDialog
       open={open} title={dialogTitle} description={dialogDesc}
-      size="medium" onClose={handleClose} actions={actions}
+      size="medium" scrimClassName="cp-create-scrim" onClose={handleClose} actions={actions}
     >
       {step === 'write' && (
         <div className="cp-create-fields">
@@ -742,15 +760,6 @@ export function CreateCapsuleDialog({
               <input className="cp-field-input" type="number" min="1"
                 placeholder={goalType === 'STUDY_HOURS_REACHED' ? 'Ex: 500' : 'Ex: 1000'}
                 value={numericValue} onChange={e => setNumericValue(e.target.value)}
-              />
-            </div>
-          )}
-          {goalType === 'GOAL_COMPLETED' && (
-            <div className="cp-field">
-              <label className="cp-field-label">Nome da meta</label>
-              <input className="cp-field-input" type="text"
-                placeholder="Ex: Completar módulo de tributário"
-                value={goalName} onChange={e => setGoalName(e.target.value)}
               />
             </div>
           )}

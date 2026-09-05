@@ -10,6 +10,7 @@ import { studyTimerFinishedEvent } from '@business/service/StudyTimer.service';
 import { getRequestErrorMessage } from '@utils/getRequestErrorMessage';
 import { toast } from 'sonner';
 import { StudyPlanView } from './StudyPlan.view';
+import { notifyTimeCapsuleProgressChanged } from '@business/service/TimeCapsule.service';
 
 const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 const startOfWeek = (date: Date) => {
@@ -39,6 +40,7 @@ export function StudyPlanController() {
   async function completeBlock(blockId: number, completed: boolean, completedMinutes = 0, scheduleReview = false, reviewDate: string | null = null, clearPending = false, summary: string | null = null) {
     const planned = routineBlocks.find(block => block.id === blockId)?.plannedMinutes ?? 0;
     const result = await studyRoutineService.complete({ blockId, completed, completedMinutes: completedMinutes > 0 ? completedMinutes : (completed ? planned : 0), scheduleReview, reviewDate, clearPending, summary });
+    notifyTimeCapsuleProgressChanged();
     setRoutineBlocks(current => current.map(block => block.id === blockId ? result : block));
     if (routineId) {
       try {
@@ -57,6 +59,7 @@ export function StudyPlanController() {
   }
   async function saveNodeStudy(request: SyllabusNodeStudyRequest) {
     const result = await syllabusNodeStudyService.save(request);
+    notifyTimeCapsuleProgressChanged();
     setNodeStudy(current => [...current.filter(item => item.syllabusNodeId !== result.syllabusNodeId), result]);
     if (routineId) {
       try {
