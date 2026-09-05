@@ -10,6 +10,9 @@ import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@busines
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
 import { FlashcardManager } from '@components/flashcard/FlashcardManager';
 import { flashcardService, type FlashcardResponse } from '@business/service/Flashcard.service';
+import type { StudyTimerSaveRequest, StudyTimerState } from '@business/service/StudyTimer.service';
+import { MaterialDialog } from '@components/dialog/MaterialDialog';
+import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -579,6 +582,7 @@ const POMO_DEFAULT: PomodoroConfig = { focoMin: 25, pausaMin: 5, longaMin: 15, c
 export function PomodoroPanel({
   open, onClose, areas = [],
   initialAreaId, initialTopicId, initialSubtopicId, onRunningChange, expandSignal,
+  journeyId, restored, onSave, onFinish, onDiscard,
 }: {
   open: boolean;
   onClose(): void;
@@ -588,16 +592,25 @@ export function PomodoroPanel({
   initialSubtopicId?: number;
   onRunningChange?(running: boolean): void;
   expandSignal?: number;
+  journeyId: number;
+  restored?: StudyTimerState;
+  onSave(request: StudyTimerSaveRequest): Promise<StudyTimerState>;
+  onFinish(completed: boolean): Promise<void>;
+  onDiscard(): Promise<void>;
 }) {
   // ── Timer state ──
   const [mode, setMode] = useState<PomodoroMode>('livre');
   const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  const [seconds, setSeconds] = useState(restored?.currentPhaseSeconds ?? 0);
+  const [focusSeconds, setFocusSeconds] = useState(restored?.accumulatedFocusSeconds ?? 0);
   const [phase, setPhase] = useState<PomodoroPhase>('foco');
   const [ciclo, setCiclo] = useState(1);
   const [config, setConfig] = useState<PomodoroConfig>(POMO_DEFAULT);
   const [minimized, setMinimized] = useState(false);
   const [phaseAlert, setPhaseAlert] = useState(false);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [persisting, setPersisting] = useState(false);
   const [alarmMuted, setAlarmMuted] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const enableAlarmAudio = () => {
@@ -607,6 +620,18 @@ export function PomodoroPanel({
   useEffect(() => () => { void audioContextRef.current?.close(); audioContextRef.current = null; }, []);
   useEffect(() => { onRunningChange?.(running); }, [running, onRunningChange]);
   useEffect(() => { if (expandSignal) setMinimized(false); }, [expandSignal]);
+
+  useEffect(() => {
+    if (!restored) return;
+    setMode(restored.mode === 'Pomodoro' ? 'pomodoro' : 'livre');
+    setPhase(restored.phase === 'ShortBreak' ? 'pausa' : restored.phase === 'LongBreak' ? 'longa' : 'foco');
+    setRunning(restored.isRunning);
+    setSeconds(restored.currentPhaseSeconds);
+    setFocusSeconds(restored.accumulatedFocusSeconds);
+    setCiclo(restored.currentCycle);
+    setConfig({ focoMin: restored.focusMinutes, pausaMin: restored.shortBreakMinutes, longaMin: restored.longBreakMinutes, ciclos: restored.cycles });
+    setPhaseAlert(restored.phaseCompleted);
+  }, [restored?.id]);
 
   // ── Context selectors ──
   const [selAreaId, setSelAreaId] = useState<number | null>(initialAreaId ?? null);
@@ -624,6 +649,25 @@ export function PomodoroPanel({
   const selArea  = areas.find(a => a.id === selAreaId) ?? null;
   const selTopic = selArea?.nodes.find(n => n.id === selTopicId) ?? null;
   const subs     = selTopic?.children ?? [];
+
+  const persist = async (nextRunning: boolean, changes?: Partial<Pick<StudyTimerSaveRequest, 'mode' | 'phase' | 'currentPhaseSeconds' | 'accumulatedFocusSeconds' | 'currentCycle'>>) => {
+    if (!selAreaId) { toast.error('Selecione a matéria estudada.'); return null; }
+    setPersisting(true);
+    try {
+      return await onSave({
+        journeyId, knowledgeAreaId: selAreaId, syllabusNodeId: selSubId ?? selTopicId,
+        mode: changes?.mode ?? (mode === 'pomodoro' ? 'Pomodoro' : 'Free'),
+        phase: changes?.phase ?? (phase === 'foco' ? 'Focus' : phase === 'pausa' ? 'ShortBreak' : 'LongBreak'),
+        isRunning: nextRunning,
+        accumulatedFocusSeconds: changes?.accumulatedFocusSeconds ?? focusSeconds,
+        currentPhaseSeconds: changes?.currentPhaseSeconds ?? seconds,
+        focusMinutes: config.focoMin, shortBreakMinutes: config.pausaMin,
+        longBreakMinutes: config.longaMin, cycles: config.ciclos,
+        currentCycle: changes?.currentCycle ?? ciclo,
+      });
+    } catch { toast.error('Não foi possível salvar o temporizador.'); return null; }
+    finally { setPersisting(false); }
+  };
 
   // ── Drag (works on the entire panel) ──
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -682,16 +726,19 @@ export function PomodoroPanel({
   useEffect(() => {
     if (!open || minimized) return;
     const minimizeOnOutsideClick = (event: PointerEvent) => {
+      // Os dialogs de encerrar/descartar pertencem ao Pomodoro, mas ficam fora
+      // do elemento flutuante. Seus cliques nao podem ser tratados como clique externo.
+      if (finishOpen || discardOpen) return;
       if ((event.target as HTMLElement).closest('[data-pomodoro-trigger]')) return;
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
         if (phaseAlert) return;
-        if (running) setMinimized(true);
+        if (running || focusSeconds > 0) setMinimized(true);
         else onClose();
       }
     };
     document.addEventListener('pointerdown', minimizeOnOutsideClick);
     return () => document.removeEventListener('pointerdown', minimizeOnOutsideClick);
-  }, [open, minimized, running, phaseAlert, onClose]);
+  }, [open, minimized, running, phaseAlert, focusSeconds, finishOpen, discardOpen, onClose]);
   const drag = useRef({ active: false, startX: 0, startY: 0, ox: 0, oy: 0 });
   const onDragDown = (e: React.PointerEvent<HTMLElement>) => {
     drag.current = { active: true, startX: e.clientX, startY: e.clientY, ox: pos?.x ?? 0, oy: pos?.y ?? 0 };
@@ -709,19 +756,25 @@ export function PomodoroPanel({
 
   useEffect(() => {
     if (!running) return;
-    const id = setInterval(() => setSeconds(s => s + 1), 1000);
+    const id = setInterval(() => {
+      setSeconds(s => s + 1);
+      if (mode === 'livre' || phase === 'foco') setFocusSeconds(s => s + 1);
+    }, 1000);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, mode, phase]);
+
+  useEffect(() => {
+    if (running && seconds > 0 && seconds % 15 === 0) void persist(true);
+  }, [running, seconds]);
 
   useEffect(() => {
     const { mode: m, phase: p, ciclo: c, config: cfg } = stateRef.current;
     if (m !== 'pomodoro') return;
     const total = (p === 'foco' ? cfg.focoMin : p === 'pausa' ? cfg.pausaMin : cfg.longaMin) * 60;
     if (total > 0 && seconds >= total) {
-      setRunning(false); setSeconds(0);
-      if (p === 'foco') { setPhase(c % cfg.ciclos === 0 ? 'longa' : 'pausa'); setCiclo(prev => prev >= cfg.ciclos ? 1 : prev + 1); }
-      else setPhase('foco');
+      setRunning(false); setSeconds(total);
       setPhaseAlert(true);
+      void persist(false, { currentPhaseSeconds: total });
     }
   }, [seconds]);
 
@@ -737,11 +790,40 @@ export function PomodoroPanel({
     return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   };
 
-  const stop  = () => { setPhaseAlert(false); setRunning(false); setSeconds(0); setPhase('foco'); setCiclo(1); };
-  const reset = () => { setPhaseAlert(false); setRunning(false); setSeconds(0); };
-  const skip  = () => { reset(); if (phase === 'foco') { setPhase(ciclo % config.ciclos === 0 ? 'longa' : 'pausa'); setCiclo(c => c >= config.ciclos ? 1 : c + 1); } else setPhase('foco'); };
-  const acknowledgePhase = () => { setPhaseAlert(false); setRunning(true); };
-  const switchMode = (m: PomodoroMode) => { stop(); setMode(m); };
+  const clearLocal = () => { setPhaseAlert(false); setRunning(false); setSeconds(0); setFocusSeconds(0); setPhase('foco'); setCiclo(1); };
+  const stop = () => {
+    setRunning(false);
+    if (focusSeconds > 0) { void persist(false); setFinishOpen(true); }
+    else { clearLocal(); void onDiscard(); }
+  };
+  const reset = () => setDiscardOpen(true);
+  const advancePhase = (startRunning: boolean) => {
+    const nextPhase: PomodoroPhase = phase === 'foco' ? (ciclo % config.ciclos === 0 ? 'longa' : 'pausa') : 'foco';
+    const nextCycle = phase === 'foco' ? (ciclo >= config.ciclos ? 1 : ciclo + 1) : ciclo;
+    setPhase(nextPhase); setCiclo(nextCycle); setSeconds(0); setPhaseAlert(false); setRunning(startRunning);
+    void persist(startRunning, { phase: nextPhase === 'foco' ? 'Focus' : nextPhase === 'pausa' ? 'ShortBreak' : 'LongBreak', currentPhaseSeconds: 0, currentCycle: nextCycle });
+  };
+  const skip = () => advancePhase(false);
+  const acknowledgePhase = () => advancePhase(true);
+  const switchMode = (m: PomodoroMode) => {
+    if (focusSeconds > 0) return void toast.info('Finalize ou descarte a sessão antes de trocar o modo.');
+    clearLocal(); setMode(m);
+  };
+  const toggleRunning = async () => {
+    enableAlarmAudio();
+    if (phaseAlert) return acknowledgePhase();
+    const next = !running;
+    if (next && !selAreaId) return void toast.error('Selecione a matéria estudada.');
+    setRunning(next);
+    await persist(next);
+  };
+  const finishSession = async (completed: boolean) => {
+    setPersisting(true);
+    try { await onFinish(completed); setFinishOpen(false); }
+    catch { toast.error('Não foi possível registrar o tempo estudado.'); }
+    finally { setPersisting(false); }
+  };
+  const continueSession = () => { setFinishOpen(false); setRunning(true); void persist(true); };
 
   // ── Ring math ──
   const R = 82, CIRC = 2 * Math.PI * R;
@@ -794,6 +876,7 @@ export function PomodoroPanel({
 
   // ── Full clock panel ──
   return (
+    <>
     <div
       ref={panelRef}
       className={`pm-panel${phaseAlert ? ' pm-panel--alert' : ''}`}
@@ -829,7 +912,7 @@ export function PomodoroPanel({
                 <path d="M8 3v5H3M21 3l-7 7M16 21v-5h5M3 21l7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <button className="pm-close" onClick={onClose} aria-label="Fechar">
+            <button className="pm-close" onClick={() => focusSeconds > 0 ? stop() : onClose()} aria-label="Fechar">
               <svg viewBox="0 0 24 24" fill="none" width="10" height="10" aria-hidden>
                 <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
@@ -870,7 +953,7 @@ export function PomodoroPanel({
           <button className="pm-ctrl pm-ctrl--ghost" onClick={stop} title="Parar">
             <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12" aria-hidden><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
           </button>
-          <button className={`pm-ctrl pm-ctrl--primary${running ? ' pause' : ''}`} onClick={() => { enableAlarmAudio(); phaseAlert ? acknowledgePhase() : setRunning(r => !r); }} title={phaseAlert ? 'Confirmar e iniciar próxima fase' : running ? 'Pausar' : 'Iniciar'}>
+          <button className={`pm-ctrl pm-ctrl--primary${running ? ' pause' : ''}`} disabled={persisting} onClick={() => void toggleRunning()} title={phaseAlert ? 'Confirmar e iniciar próxima fase' : running ? 'Pausar' : 'Iniciar'}>
             {running
               ? <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden><rect x="6" y="4" width="4" height="16" rx="2"/><rect x="14" y="4" width="4" height="16" rx="2"/></svg>
               : <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden><polygon points="6,3 20,12 6,21"/></svg>
@@ -890,7 +973,7 @@ export function PomodoroPanel({
             </button>
           )}
         </div>
-        {phaseAlert && <button className="pm-phase-alert" onPointerDown={event => event.stopPropagation()} onClick={acknowledgePhase}><span>Tempo encerrado</span><strong>OK · iniciar {phase === 'foco' ? 'foco' : phase === 'pausa' ? 'pausa' : 'pausa longa'}</strong></button>}
+        {phaseAlert && <button className="pm-phase-alert" onPointerDown={event => event.stopPropagation()} onClick={acknowledgePhase}><span>Tempo encerrado</span><strong>OK · iniciar {phase === 'foco' ? (ciclo % config.ciclos === 0 ? 'pausa longa' : 'pausa') : 'foco'}</strong></button>}
 
       </div>{/* end pm-face */}
 
@@ -905,12 +988,13 @@ export function PomodoroPanel({
             ]).map(({ p, label, key, max }) => (
               <button key={p} type="button"
                 className={`pm-tb pm-tb--${p}${phase === p ? ' active' : ''}`}
-                onClick={() => { reset(); setPhase(p); }}
+                onClick={() => { if (focusSeconds === 0) { clearLocal(); setPhase(p); } }}
               >
                 <input type="number" min="1" max={max}
                   value={config[key]}
                   onClick={e => e.stopPropagation()}
-                  onChange={e => { stop(); setPhase(p); setConfig(c => ({ ...c, [key]: Math.max(1, +e.target.value) })); }}
+                  disabled={focusSeconds > 0}
+                  onChange={e => { clearLocal(); setPhase(p); setConfig(c => ({ ...c, [key]: Math.max(1, +e.target.value) })); }}
                 />
                 <span>{label}</span>
               </button>
@@ -925,7 +1009,8 @@ export function PomodoroPanel({
             <label className="pm-ciclos-ctrl">
               <span>ciclo {ciclo}/</span>
               <input type="number" min="1" max="10" value={config.ciclos}
-                onChange={e => { stop(); setConfig(c => ({ ...c, ciclos: Math.max(1, +e.target.value) })); }}
+                disabled={focusSeconds > 0}
+                onChange={e => { clearLocal(); setConfig(c => ({ ...c, ciclos: Math.max(1, +e.target.value) })); }}
               />
             </label>
           </div>
@@ -941,12 +1026,14 @@ export function PomodoroPanel({
       {areas.length > 0 && (
         <div className="pm-assoc" onPointerDown={e => e.stopPropagation()}>
           <select className="pm-sel" value={selAreaId ?? ''}
+            disabled={focusSeconds > 0}
             onChange={e => { setSelAreaId(e.target.value ? +e.target.value : null); setSelTopicId(null); setSelSubId(null); }}>
             <option value="">Matéria</option>
             {areas.map(a => <option key={a.id} value={a.id}>{a.title}</option>)}
           </select>
           {selArea && (
             <select className="pm-sel" value={selTopicId ?? ''}
+              disabled={focusSeconds > 0}
               onChange={e => { setSelTopicId(e.target.value ? +e.target.value : null); setSelSubId(null); }}>
               <option value="">Tópico</option>
               {selArea.nodes.map(n => <option key={n.id} value={n.id}>{n.title}</option>)}
@@ -954,6 +1041,7 @@ export function PomodoroPanel({
           )}
           {subs.length > 0 && (
             <select className="pm-sel" value={selSubId ?? ''}
+              disabled={focusSeconds > 0}
               onChange={e => setSelSubId(e.target.value ? +e.target.value : null)}>
               <option value="">Subtópico</option>
               {subs.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
@@ -963,6 +1051,16 @@ export function PomodoroPanel({
       )}
 
     </div>
+    <MaterialDialog open={finishOpen} title="Encerrar sessão de estudo?"
+      description={`${fmt(focusSeconds)} de foco serão registrados no conteúdo selecionado.`}
+      onClose={continueSession}
+      actions={<><button className="md-text-button" disabled={persisting} onClick={continueSession}>Continuar</button><button className="md-text-button" disabled={persisting} onClick={() => void finishSession(false)}>Salvar como pendente</button><button className="md-filled-button" disabled={persisting} onClick={() => void finishSession(true)}>Concluir e salvar</button></>} />
+    <ConfirmDialog open={discardOpen} title="Descartar esta sessão?"
+      description={`${fmt(focusSeconds)} de foco serão apagados e não entrarão no histórico.`}
+      confirmLabel="Descartar" danger
+      onClose={() => setDiscardOpen(false)}
+      onConfirm={() => { setDiscardOpen(false); clearLocal(); void onDiscard(); }} />
+    </>
   );
 }
 

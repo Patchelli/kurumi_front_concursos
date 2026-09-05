@@ -4,6 +4,7 @@ import type { JourneyDetailsResponse } from '../../../../@business/dto/response/
 import { journeyService } from '../../../../@business/service/Journey.service';
 import { studyResourceService } from '@business/service/StudyResource.service';
 import { syllabusNodeStudyService, type SyllabusNodeStudyRequest, type SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
+import { studyTimerFinishedEvent } from '@business/service/StudyTimer.service';
 import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 import { toast } from 'sonner';
 import { SubjectDetailView, SubjectListView } from './Subject.view';
@@ -75,6 +76,14 @@ export function SubjectDetailController() {
   useEffect(() => {
     if (!journeyId) return;
     syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => setNodeStudy([]));
+  }, [journeyId]);
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if ((event as CustomEvent<{ journeyId: number }>).detail?.journeyId !== journeyId) return;
+      syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => {});
+    };
+    window.addEventListener(studyTimerFinishedEvent, refresh);
+    return () => window.removeEventListener(studyTimerFinishedEvent, refresh);
   }, [journeyId]);
   async function saveNodeStudy(request: SyllabusNodeStudyRequest) {
     const result = await syllabusNodeStudyService.save(request);
