@@ -2,11 +2,25 @@
 @media(max-width:400px){.dashboard-metrics{grid-template-columns:1fr 1fr}.dashboard-metrics article{padding:14px 12px}}
 .journey-mobile-nav{display:none}
 
-/* ── Mobile hamburger menu ── */
-.jm-hamburger{display:none}
+/* ── Mobile side trigger + drawer ── */
+.jm-side-trigger{display:none}
 @media(max-width:768px){
-  .jm-hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;position:fixed;top:14px;left:14px;z-index:120;width:40px;height:40px;border:1px solid #dfd5e5;border-radius:11px;background:#fff;padding:9px;cursor:pointer;box-shadow:0 5px 18px #2d203b20}
-  .jm-hamburger>span{display:block;height:2px;background:#66558f;border-radius:2px}
+  .jm-side-trigger{
+    display:grid;place-items:center;
+    position:fixed;
+    left:0;top:50%;transform:translateY(-50%);
+    z-index:120;
+    width:24px;height:52px;
+    border:0;border-radius:0 10px 10px 0;
+    background:#2d2438;
+    color:#c5b8d8;
+    cursor:pointer;
+    box-shadow:2px 0 12px #2d203b30;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s;
+  }
+  .jm-side-trigger:active{background:#493b59}
+  .jm-side-trigger svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 }
 .jm-overlay{position:fixed;inset:0;z-index:130;background:rgba(20,12,28,.55);animation:jm-fade-in .2s ease}
 @keyframes jm-fade-in{from{opacity:0}to{opacity:1}}

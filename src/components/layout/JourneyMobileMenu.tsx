@@ -57,8 +57,8 @@ export function JourneyMobileMenu(props: JourneyMobileMenuProps) {
 
   return (
     <>
-      <button className="jm-hamburger" type="button" aria-label="Abrir menu" onClick={() => setOpen(true)}>
-        <span /><span /><span />
+      <button className="jm-side-trigger" type="button" aria-label="Abrir menu" onClick={() => setOpen(true)}>
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
       </button>
 
       {open && <div className="jm-overlay" onClick={() => setOpen(false)} />}
