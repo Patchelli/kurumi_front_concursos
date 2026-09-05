@@ -23,21 +23,21 @@
 .cp-new-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 20px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #66558f, #9472c8);
+  border-radius: 10px;
+  background: #66558f;
   color: #fff;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity .13s, transform .13s;
+  transition: background .14s;
   white-space: nowrap;
 }
-.cp-new-btn:hover { opacity: .88; transform: translateY(-1px); }
-.cp-new-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+.cp-new-btn:hover { background: #543c78; }
+.cp-new-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
 
 /* ── Stats strip ── */
 .cp-stats-strip {
@@ -499,18 +499,21 @@
 .cp-empty p { font-size: 14px; color: #8a7898; max-width: 320px; margin: 0; }
 .cp-empty-btn {
   margin-top: 8px;
-  height: 44px;
-  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #66558f, #9472c8);
+  border-radius: 10px;
+  background: #66558f;
   color: #fff;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity .13s;
+  transition: background .14s;
 }
-.cp-empty-btn:hover { opacity: .88; }
+.cp-empty-btn:hover { background: #543c78; }
 
 /* ── Create dialog fields ── */
 .cp-create-fields { display: flex; flex-direction: column; gap: 16px; }

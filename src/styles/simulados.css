@@ -298,28 +298,18 @@
 .sm-obs:focus{border-color:#9472c8;background:#fff}
 .sm-obs-count{font-size:9px;color:#b0a0bc;text-align:right;margin-top:1px}
 
-/* ── Responsive ── */
+/* ── Responsive (fallback for non-token selectors) ── */
 @media(max-width:640px){
   .sm-main{padding:20px 16px 20px}
   .sm-header{flex-direction:column;gap:12px}
   .sm-stat-div{display:none}
   .sm-stat{padding:0 8px}
-
-  /* dialog full-screen on mobile */
   .sm-overlay{padding:0;align-items:flex-end}
-  .sm-dialog{
-    width:100%;max-height:96vh;border-radius:20px 20px 0 0;
-  }
-
-  /* form columns collapse on mobile */
+  .sm-dialog{width:100%;max-height:96vh;border-radius:20px 20px 0 0}
   .sm-field-row,.sm-field-row--3{grid-template-columns:1fr}
-
-  /* materia head stacks on mobile */
   .sm-mf-head{flex-wrap:wrap;gap:8px}
   .sm-mf-quick{flex-wrap:wrap}
   .sm-mf-motivos{grid-template-columns:1fr}
-
-  /* result row on mobile */
   .sm-result-row{grid-template-columns:auto 1fr}
   .sm-result-actions{grid-column:1/-1;justify-content:flex-end}
   .sm-materia-row{grid-template-columns:1fr 1fr 36px 48px}

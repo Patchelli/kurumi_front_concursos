@@ -5,6 +5,7 @@ import type { SimuladosViewProps } from './Simulados.type';
 import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { simuladosTokens as t } from './Simulados.tokens';
+import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 
 /* ── Constants ── */
 const MOTIVOS = [
@@ -189,18 +190,24 @@ function MateriaFormBlock({
 
 /* ── View ── */
 export function SimuladosView({
-  journey, loading,
+  journey, loading, entries: storedEntries, saving, onSave, onDelete,
   onBack, onOverview, onOpenStudyPlan, onOpenContent, onOpenCapsule,
 }: SimuladosViewProps) {
   const areas = journey?.knowledgeAreas ?? [];
   const areaIds = areas.map(a => a.id);
 
-  const [entries, setEntries] = useState<SimuladoEntry[]>([]);
+  const entries = useMemo<SimuladoEntry[]>(() => storedEntries.map(e => ({
+    id:e.id,name:e.title,fonte:e.source??'',date:e.assessmentDate,
+    horas:Math.floor(e.durationMinutes/60),minutos:e.durationMinutes%60,
+    totalQuestoes:e.totalQuestions,acertosTotal:e.correctAnswers,notaGeral:e.score!=null?`${Math.round(e.score)}%`:'',
+    porMateria:e.breakdown.map(m=>({areaId:m.knowledgeAreaId,areaTitle:areas.find(a=>a.id===m.knowledgeAreaId)?.title??'Matéria',questoes:m.totalQuestions,acertos:m.correctAnswers,anuladas:m.voidedQuestions,motivosErros:Object.fromEntries(MOTIVOS.map(k=>[k,m.errorReasons[k]??0])) as Record<Motivo,number>,observacoes:m.notes??''}))
+  })),[storedEntries,areas]);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(() => emptyForm(areaIds));
   const [expandedMateria, setExpandedMateria] = useState<Set<number>>(new Set());
   const [expandedResult, setExpandedResult] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const totalFormQuestoes = Math.max(0, parseInt(form.totalQuestoes, 10) || 0);
   const acertosForm = Math.max(0, Math.min(parseInt(form.acertosTotal, 10) || 0, totalFormQuestoes));
@@ -231,8 +238,9 @@ export function SimuladosView({
     setExpandedMateria(new Set());
     setFormOpen(true);
   }
-  function deleteEntry(id: number) {
-    setEntries(prev => prev.filter(e => e.id !== id));
+  async function deleteEntry(id: number) {
+    await onDelete(id);
+    setDeletingId(null);
     if (expandedResult === id) setExpandedResult(null);
   }
 
@@ -313,7 +321,7 @@ export function SimuladosView({
     });
   }
 
-  function submitForm() {
+  async function submitForm() {
     const totalQuestoes = Math.max(0, parseInt(form.totalQuestoes, 10) || 0);
     let restante = totalQuestoes;
     const built: SimuladoEntry = {
@@ -336,11 +344,11 @@ export function SimuladosView({
         return { areaId: a.id, areaTitle: a.title, questoes: q, acertos: ac, anuladas: Math.min(parseInt(mf.anuladas, 10) || 0, q), motivosErros: motivos, observacoes: mf.observacoes.trim() };
       }).filter(m => m.questoes > 0),
     };
-    if (editingId !== null) {
-      setEntries(prev => prev.map(e => e.id === editingId ? built : e));
-    } else {
-      setEntries(prev => [built, ...prev]);
-    }
+    await onSave(editingId,{
+      journeyId:journey!.id,title:built.name,source:built.fonte||null,assessmentDate:built.date,
+      durationMinutes:built.horas*60+built.minutos,totalQuestions:built.totalQuestoes,correctAnswers:built.acertosTotal,
+      breakdown:built.porMateria.map(m=>({knowledgeAreaId:m.areaId,totalQuestions:m.questoes,correctAnswers:m.acertos,voidedQuestions:m.anuladas,errorReasons:m.motivosErros,notes:m.observacoes||null}))
+    });
     setFormOpen(false);
   }
 
@@ -397,11 +405,11 @@ export function SimuladosView({
             <svg viewBox="0 0 24 24" fill="none" width="14" height="14" aria-hidden>
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
-            Registrar simulado
+            Simulado
           </button>
           <button type="button" className="jd-back-link" onClick={onBack}>
             <svg viewBox="0 0 24 24" aria-hidden><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Jornadas
+            Voltar
           </button>
           </div>
         </header>
@@ -410,11 +418,11 @@ export function SimuladosView({
           <div className={t.stats}>
             <div className={t.stat}><strong className={t.statValue}>{stats.total}</strong><small className={t.statLabel}>Registrados</small></div>
             <div className={t.statDivider}/>
-            <div className={t.stat}><strong className={t.statValue}>{stats.totalQ}</strong><small className={t.statLabel}>Questões respondidas</small></div>
+            <div className={t.stat}><strong className={t.statValue}>{stats.totalQ}</strong><small className={t.statLabel}>Questões</small></div>
             <div className={t.statDivider}/>
-            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.avg) }}>{stats.avg}%</strong><small className={t.statLabel}>Média de acertos</small></div>
+            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.avg) }}>{stats.avg}%</strong><small className={t.statLabel}>Média</small></div>
             <div className={t.statDivider}/>
-            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.best) }}>{stats.best}%</strong><small className={t.statLabel}>Melhor resultado</small></div>
+            <div className={t.stat}><strong className={t.statValue} style={{ color: scoreColor(stats.best) }}>{stats.best}%</strong><small className={t.statLabel}>Melhor</small></div>
           </div>
         )}
 
@@ -429,7 +437,7 @@ export function SimuladosView({
             </div>
             <strong>Nenhum simulado registrado</strong>
             <p>Registre um resultado para acompanhar sua evolução.</p>
-            <button type="button" className={t.emptyButton} onClick={openCreate}>Registrar primeiro simulado</button>
+            <button type="button" className={t.emptyButton} onClick={openCreate}>+ Simulado</button>
           </div>
         ) : (
           <div className={t.results}>
@@ -466,7 +474,7 @@ export function SimuladosView({
                     <button className={`${t.actionBtn} ${t.actionIcon}`} onClick={() => openEdit(e)} title="Editar">
                       <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
-                    <button className={`${t.actionBtn} ${t.actionDanger}`} onClick={() => deleteEntry(e.id)} title="Apagar">
+                    <button className={`${t.actionBtn} ${t.actionDanger}`} onClick={() => setDeletingId(e.id)} title="Apagar">
                       <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2"/></svg>
                     </button>
                   </div>
@@ -525,8 +533,8 @@ export function SimuladosView({
         <div className={t.dialog} onMouseDown={e => e.stopPropagation()}>
           <div className={t.dialogHeader}>
             <div>
-              <span className={t.dialogEyebrow}>{editingId !== null ? 'EDITAR REGISTRO' : 'NOVO REGISTRO'}</span>
-              <h2 className={t.dialogTitle}>{editingId !== null ? 'Editar simulado' : 'Registrar simulado'}</h2>
+              <span className={t.dialogEyebrow}>{editingId !== null ? 'EDITAR' : 'NOVO'}</span>
+              <h2 className={t.dialogTitle}>{editingId !== null ? 'Editar simulado' : 'Novo simulado'}</h2>
             </div>
             <button className={t.dialogClose} onClick={() => setFormOpen(false)} aria-label="Fechar">
               <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -620,8 +628,8 @@ export function SimuladosView({
 
           <div className={t.dialogFooter}>
             <button className={t.btnGhost} onClick={() => setFormOpen(false)}>Cancelar</button>
-            <button className={t.btnPrimary} onClick={submitForm}>
-              {editingId !== null ? 'Salvar alterações' : 'Salvar registro'}
+            <button className={t.btnPrimary} disabled={saving} onClick={() => void submitForm()}>
+              Salvar
               <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden>
                 <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -632,6 +640,7 @@ export function SimuladosView({
     )}
 
     {journey && <ContestFAB journeyId={journey.id} areas={areas}/>}
+    <ConfirmDialog open={deletingId !== null} title="Excluir simulado?" description="O resultado e todo o detalhamento por matéria serão removidos." confirmLabel="Excluir" danger onClose={() => setDeletingId(null)} onConfirm={() => deletingId !== null && void deleteEntry(deletingId)}/>
     </>
   );
 }

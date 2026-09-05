@@ -1,0 +1,10 @@
+import { HttpMethod } from '../enum/httpMethod.enum';
+import { clientRequest } from './base/httpHandler.service';
+export type MockBreakdown={knowledgeAreaId:number;totalQuestions:number;correctAnswers:number;voidedQuestions:number;errorReasons:Record<string,number>;notes?:string|null};
+export type MockAssessment={id:number;journeyId:number;title:string;source?:string|null;assessmentDate:string;durationMinutes:number;totalQuestions:number;correctAnswers:number;score?:number|null;breakdown:MockBreakdown[]};
+export type MockAssessmentSave=Omit<MockAssessment,'id'|'score'>;
+const list=(journeyId:number)=>clientRequest<MockAssessment[]>({url:'/MockAssessment/list',method:HttpMethod.Get,axiosConfig:{params:{journeyId}}});
+const register=(body:MockAssessmentSave)=>clientRequest<MockAssessment>({url:'/MockAssessment/register',method:HttpMethod.Post,body});
+const update=(id:number,body:MockAssessmentSave)=>clientRequest<MockAssessment>({url:`/MockAssessment/${id}`,method:HttpMethod.Put,body});
+const remove=(id:number)=>clientRequest<boolean>({url:`/MockAssessment/${id}`,method:HttpMethod.Delete});
+export const mockAssessmentService={list,register,update,remove};

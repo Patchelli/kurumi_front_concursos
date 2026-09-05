@@ -101,8 +101,8 @@
 .sp-empty-icon svg{width:100%;height:100%}
 .sp-empty--setup strong{font-size:15px;color:#3a2a50;margin-bottom:8px}
 .sp-empty--setup p{font-size:12px;color:#887898;max-width:220px;margin:0 auto}
-.sp-empty-cta{display:inline-block;margin-top:18px;padding:10px 22px;background:linear-gradient(135deg,#66558f,#9472c8);color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;box-shadow:0 4px 14px #66558f30}
-.sp-empty-cta:hover{opacity:.88}
+.sp-empty-cta{display:inline-flex;align-items:center;gap:6px;margin-top:18px;height:34px;padding:0 14px;background:#66558f;color:#fff;border:0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;transition:background .14s}
+.sp-empty-cta:hover{background:#543c78}
 .sp-empty-link{display:inline-block;margin-top:10px;background:none;border:0;color:#9472c8;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:4px 0}
 .sp-cal-empty{padding:8px 16px 14px;text-align:center;font-size:11px;color:#a090b8;font-style:italic}
 
@@ -110,8 +110,8 @@
 .sp-side{display:flex;flex-direction:column;gap:14px}
 
 /* Configurar ciclo sidebar button */
-.sp-config-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border:0;border-radius:16px;background:linear-gradient(135deg,#66558f,#9472c8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .13s;letter-spacing:.02em;box-shadow:0 4px 16px #66558f30}
-.sp-config-btn:hover{opacity:.88}
+.sp-config-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:34px;border:0;border-radius:10px;background:#66558f;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background .14s}
+.sp-config-btn:hover{background:#543c78}
 .sp-config-btn svg{width:18px;height:18px;flex-shrink:0}
 .sp-config-btn--pulse{animation:sp-pulse 2.2s ease-in-out infinite}
 @keyframes sp-pulse{0%,100%{box-shadow:0 4px 16px #66558f30}50%{box-shadow:0 4px 24px #66558f55,0 0 0 5px #9472c818}}

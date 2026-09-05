@@ -7,6 +7,7 @@ import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@busines
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
 import { FlashcardManager } from '@components/flashcard/FlashcardManager';
 import { ContentViewer } from '@components/viewer/ContentViewer';
+import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 
 const unavail = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
 
@@ -162,6 +163,7 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, studyState, onStartStu
   const [materialsOpen, setMaterialsOpen] = useState(false);
   const [hasMaterial, setHasMaterial] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
   const progress = studyProgressPercent(studyState?.progress ?? child.progress);
   const pending = isStudyPending(studyState?.progress ?? child.progress);
   useEffect(() => {
@@ -170,10 +172,10 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, studyState, onStartStu
     setRevision(Boolean(studyState?.reviewDate));
     setStudiedMinutes(isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0);
   }, [studyState?.progress, studyState?.reviewDate, studyState?.studiedMinutes, child.progress, saving]);
-  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false) {
+  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '') {
     setSaving(true);
     try {
-      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending });
+      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null });
       setDone(isStudyCompleted(result.progress));
       setRevision(Boolean(result.reviewDate));
       setStudiedMinutes(completed ? result.studiedMinutes : 0);
@@ -192,6 +194,7 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, studyState, onStartStu
         <button className="sb-subtopic-btn" title="Flashcards" onClick={() => setFlashcardsOpen(true)}>
           <svg viewBox="0 0 24 24" fill="none" width="12" height="12"><rect x="5" y="4" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 2h9a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9h5M9 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
         </button>
+        <button className="sb-subtopic-btn" title="Registrar questões" onClick={() => setQuestionsOpen(true)}>Q</button>
         <button className={`sb-subtopic-btn${done ? ' sb-btn-done' : ''}${pending ? ' sb-btn-pending' : ''}`} title={done ? 'Marcar pendente' : pending ? 'Editar pendência' : 'Concluir'} onClick={() => done ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={saving}>{done ? '✓' : '○'}</button>
         <button className={`sb-subtopic-btn${revision ? ' sb-btn-revision' : ''}`} title={revision ? 'Alterar ou desmarcar revisão' : 'Agendar revisão'} onClick={() => setReviewOpen(true)} disabled={saving}>↻</button>
         <button className="sb-subtopic-btn" title="Editar subtópico" onClick={() => onEditNode(child.id, child.title)}>
@@ -201,9 +204,10 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, studyState, onStartStu
           <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
       </div>
-      {reviewOpen && <ReviewDialog title={child.title} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null); setReviewOpen(false); toast.success(completed ? (schedule ? 'Revisão agendada.' : 'Subtópico concluído.') : 'Tempo do subtópico registrado.'); }} />}
+      {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary); setReviewOpen(false); toast.success(completed ? (schedule ? 'Revisão agendada.' : 'Subtópico concluído.') : 'Tempo do subtópico registrado.'); }} />}
       {materialsOpen && <MaterialsPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} nodeId={child.id} title={child.title} onList={() => onListResources(child.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={count => setHasMaterial(count > 0)} onClose={() => setMaterialsOpen(false)} />}
       {flashcardsOpen && <FlashcardListPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} syllabusNodeId={child.id} title={child.title} onClose={() => setFlashcardsOpen(false)} />}
+      {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} syllabusNodeId={child.id} title={child.title} onClose={() => setQuestionsOpen(false)} />}
     </div>
   );
 }
@@ -246,16 +250,17 @@ export function TopicRow({ journeyId, knowledgeAreaId, topic, onAddSubtopic, onS
   const [materialsOpen, setMaterialsOpen] = useState(false);
   const [hasMaterial, setHasMaterial] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
   const progress = topicProgress;
   useEffect(() => setDone(topicCompleted), [topicCompleted]);
   useEffect(() => {
     setRevision(Boolean(topicState?.reviewDate));
     setStudiedMinutes(topicState?.studiedMinutes ?? 0);
   }, [topicState?.reviewDate, topicState?.studiedMinutes]);
-  async function saveTopicStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false) {
+  async function saveTopicStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '') {
     setSaving(true);
     try {
-      const result = await onSaveNodeStudy({ journeyId, syllabusNodeId: topic.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending });
+      const result = await onSaveNodeStudy({ journeyId, syllabusNodeId: topic.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null });
       setDone(isStudyCompleted(result.progress));
       setRevision(Boolean(result.reviewDate));
       setStudiedMinutes(result.studiedMinutes);
@@ -291,12 +296,13 @@ export function TopicRow({ journeyId, knowledgeAreaId, topic, onAddSubtopic, onS
         </div>
       </div>
       {open && <div className="sb-topic-body">
-        <div className="sb-questions-block"><div className="sb-questions-head"><span className="sb-questions-label">◈ QUESTÕES</span><button className="sb-register-btn" onClick={() => unavail('O registro de questões')}>Registrar questões e horas de estudo</button></div><p className="sb-questions-empty">Nenhuma questão registrada ainda.</p></div>
+        <div className="sb-questions-block"><div className="sb-questions-head"><span className="sb-questions-label">◈ QUESTÕES</span><button className="sb-register-btn" onClick={() => setQuestionsOpen(true)}>Registrar questões</button></div><p className="sb-questions-empty">Abra para registrar ou consultar o histórico.</p></div>
         <div className="sb-subtopics-block">{topic.children.map(child => <SubtopicRow key={child.id} journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} child={child} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartStudy={() => onStartStudy(child.id)} onRemove={() => onRemoveSubtopic(child.id, child.title)} onEditNode={onEditNode} onSaveStudy={onSaveNodeStudy} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} />)}<button className="sb-add-subtopic-btn" onClick={onAddSubtopic}><span>＋</span> adicionar subtópico</button></div>
       </div>}
-      {reviewOpen && <ReviewDialog title={topic.title} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={topicPending} onClearPending={() => { void saveTopicStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed) => { void saveTopicStudy(completed, minutes, completed && schedule, completed && schedule ? date : null); setReviewOpen(false); toast.success(completed ? (schedule ? 'Revisão agendada.' : 'Tópico concluído.') : 'Tempo do tópico registrado.'); }} />}
+      {reviewOpen && <ReviewDialog title={topic.title} previousSummary={topicState?.latestSummary} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={topicPending} onClearPending={() => { void saveTopicStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary) => { void saveTopicStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary); setReviewOpen(false); toast.success(completed ? (schedule ? 'Revisão agendada.' : 'Tópico concluído.') : 'Tempo do tópico registrado.'); }} />}
       {materialsOpen && <MaterialsPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} nodeId={topic.id} title={topic.title} onList={() => onListResources(topic.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={count => setHasMaterial(count > 0)} onClose={() => setMaterialsOpen(false)} />}
       {flashcardsOpen && <FlashcardListPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} syllabusNodeId={topic.id} title={topic.title} onClose={() => setFlashcardsOpen(false)} />}
+      {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} syllabusNodeId={topic.id} title={topic.title} onClose={() => setQuestionsOpen(false)} />}
     </div>
   );
 }

@@ -50,6 +50,19 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     return total + (saved?.completedMinutes ?? (completed.has(block.id) ? block.minutes : 0));
   }, 0);
   const progress = plannedMinutes ? Math.round(doneMinutes / plannedMinutes * 100) : 0;
+  const currentWeekdayIndex = (new Date().getDay() + 6) % 7;
+  const weekStart = new Date();
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - currentWeekdayIndex);
+  const weekDates = studyPlanTokens.weekdays.map((_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  });
+  const weeklyMinutes = weekDates.map(date => (routineBlocks ?? [])
+    .filter(block => block.scheduledFor.slice(0, 10) === date)
+    .reduce((total, block) => total + block.completedMinutes, 0));
+  const weeklyDoneMinutes = weeklyMinutes.reduce((total, minutes) => total + minutes, 0);
 
   const open = (block: typeof blocks[number]) => setSelectedTopic({ area: block.area, topic: block.topic });
   const isTopicComplete = (topic: typeof blocks[number]['topic']) => {
@@ -62,9 +75,13 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     return block ? completed.has(block.id) : isStudyCompleted(topic.progress);
   };
 
-  async function completeBlock(id: number, completedMinutes: number, scheduleReview = false, reviewDate: string | null = null, isCompleted = true, clearPending = false) {
+  async function completeBlock(id: number, completedMinutes: number, scheduleReview = false, reviewDate: string | null = null, isCompleted = true, clearPending = false, summary = '') {
+    if (id < 0) {
+      await onSaveNodeStudy({ journeyId: journey!.id, syllabusNodeId: -id, completed: true, studiedMinutes: 0, scheduleReview, reviewDate: scheduleReview ? reviewDate : null, summary: summary || null, isReview: true });
+      return;
+    }
     setCompleted(curr => { const next = new Set(curr); isCompleted ? next.add(id) : next.delete(id); return next; });
-    await onCompleteBlock(id, isCompleted, completedMinutes, isCompleted && scheduleReview, isCompleted && scheduleReview ? reviewDate : null, clearPending);
+    await onCompleteBlock(id, isCompleted, completedMinutes, isCompleted && scheduleReview, isCompleted && scheduleReview ? reviewDate : null, clearPending, summary || null);
   }
   async function uncompleteBlock(id: number) {
     setCompleted(curr => { const next = new Set(curr); next.delete(id); return next; });
@@ -299,11 +316,11 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
             <section className="sp-card sp-week-card">
               <span className="eyebrow">SEMANA</span>
               <h2>Meta semanal</h2>
-              <strong className="sp-week-value">{doneMinutes} <small>/ 600 min</small></strong>
-              <div className="sp-progress"><i style={studyPlanTokens.styles.progress(doneMinutes / 6)} /></div>
+              <strong className="sp-week-value">{weeklyDoneMinutes} <small>/ 600 min</small></strong>
+              <div className="sp-progress"><i style={studyPlanTokens.styles.progress(weeklyDoneMinutes / 6)} /></div>
               <div className="sp-weekdays">
                 {studyPlanTokens.weekdays.map((day, i) => (
-                  <span className={i === 0 ? 'active' : ''} key={day}>{day}<b>{i === 0 ? doneMinutes : 0}</b></span>
+                  <span className={i === currentWeekdayIndex ? 'active' : ''} key={day}>{day}<b>{weeklyMinutes[i]}</b></span>
                 ))}
               </div>
             </section>
@@ -321,9 +338,10 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
       <ReviewDialog
         mode="revision"
         title={reviewTarget.topic.title}
+        previousSummary={nodeStudy.find(item => item.syllabusNodeId === (reviewTarget.id < 0 ? -reviewTarget.id : reviewTarget.topic.id))?.latestSummary}
         onClose={() => setReviewTarget(null)}
-        onConfirm={(scheduleNext, nextDate) => {
-          void completeBlock(reviewTarget.id, 0, scheduleNext, scheduleNext ? nextDate : null, true);
+        onConfirm={(scheduleNext, nextDate, summary) => {
+          void completeBlock(reviewTarget.id, 0, scheduleNext, scheduleNext ? nextDate : null, true, false, summary);
           if (scheduleNext) setRevisions(prev => new Map(prev).set(reviewTarget.id, nextDate));
           setReviewTarget(null);
         }}
@@ -331,10 +349,11 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     ) : reviewTarget ? (
       <ReviewDialog
         title={reviewTarget.topic.title}
+        previousSummary={nodeStudy.find(item => item.syllabusNodeId === reviewTarget.topic.id)?.latestSummary}
         defaultMinutes={reviewTarget.minutes}
         onClose={() => setReviewTarget(null)}
-        onConfirm={(schedule, date, completedMinutes, isCompleted) => {
-          void completeBlock(reviewTarget.id, completedMinutes, schedule, schedule ? date : null, isCompleted);
+        onConfirm={(schedule, date, completedMinutes, isCompleted, summary) => {
+          void completeBlock(reviewTarget.id, completedMinutes, schedule, schedule ? date : null, isCompleted, false, summary);
           if (isCompleted && schedule) setRevisions(prev => new Map(prev).set(reviewTarget.id, date));
           setReviewTarget(null);
         }}

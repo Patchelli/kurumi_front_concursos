@@ -13,6 +13,7 @@ import { flashcardService, type FlashcardResponse } from '@business/service/Flas
 import type { StudyTimerSaveRequest, StudyTimerState } from '@business/service/StudyTimer.service';
 import { MaterialDialog } from '@components/dialog/MaterialDialog';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
+import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -1097,6 +1098,7 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
   const [activeTab, setActiveTab] = useState<'materials' | 'flashcards' | null>(null);
   const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
   const [studiedMinutes, setStudiedMinutes] = useState(() =>
     isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0
   );
@@ -1115,10 +1117,10 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
     setStudiedMinutes(isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0);
   }, [studyState?.progress, studyState?.reviewDate, studyState?.studiedMinutes, child.progress, savingStudy]);
 
-  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false) {
+  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '') {
     setSavingStudy(true);
     try {
-      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending });
+      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null });
       setIsCompleted(isStudyCompleted(result.progress));
       setRevision(Boolean(result.reviewDate));
       setStudiedMinutes(completed ? result.studiedMinutes : 0);
@@ -1156,8 +1158,6 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
     finally { setUrlSaving(false); }
   }
 
-  const unavailable = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
-
   return (
     <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}`}>
       <div className="sp-subtopic-header">
@@ -1178,7 +1178,7 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
             <button data-pomodoro-trigger onClick={() => onStartPomodoro(child.id)}>
               <span>◷</span><strong>Iniciar estudo</strong><small>Cronômetro e sessão</small>
             </button>
-            <button onClick={() => unavailable('O registro de questões')}>
+            <button onClick={() => setQuestionsOpen(true)}>
               <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
             </button>
             <button className={activeTab === 'materials' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'materials' ? null : 'materials')}>
@@ -1236,7 +1236,8 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
           )}
         </div>
       )}
-      {reviewOpen && <ReviewDialog title={child.title} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null); setReviewOpen(false); }} />}
+      {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary); setReviewOpen(false); }} />}
+      {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setQuestionsOpen(false)} />}
     </div>
   );
 }
@@ -1251,6 +1252,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
   const [resources, setResources] = useState<StudyResource[]>([]);
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
 
   useEffect(() => {
     if (!target) return;
@@ -1268,8 +1270,6 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
   }, [target?.topic.id]);
 
   if (!target) return null;
-  const unavailable = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
-
   async function saveUrl() {
     const trimmed = urlInput.trim();
     if (!trimmed) return;
@@ -1324,7 +1324,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               <button data-pomodoro-trigger onClick={() => onStartPomodoro()}>
                 <span>◷</span><strong>Iniciar estudo</strong><small>Cronômetro e sessão</small>
               </button>
-              <button onClick={() => unavailable('O registro de questões')}>
+              <button onClick={() => setQuestionsOpen(true)}>
                 <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
               </button>
               <button className={activeResource === 'materials' ? 'active' : ''} onClick={() => setActiveResource(value => value === 'materials' ? null : 'materials')}>
@@ -1425,6 +1425,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
         </footer>
 
       </aside>
+      {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setQuestionsOpen(false)} />}
     </div>
   );
 }

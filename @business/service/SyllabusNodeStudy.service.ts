@@ -9,6 +9,8 @@ export type SyllabusNodeStudyRequest = {
   scheduleReview: boolean;
   reviewDate?: string | null;
   clearPending?: boolean;
+  summary?: string | null;
+  isReview?: boolean;
 };
 
 export type SyllabusNodeStudyResponse = {
@@ -18,6 +20,7 @@ export type SyllabusNodeStudyResponse = {
   studiedOn?: string | null;
   studiedMinutes: number;
   reviewDate?: string | null;
+  latestSummary?: string | null;
 };
 
 const list = (journeyId: number) => clientRequest<SyllabusNodeStudyResponse[]>({

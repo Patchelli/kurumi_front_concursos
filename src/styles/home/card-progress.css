@@ -274,7 +274,7 @@
   .card-performance small { font-size: 9px; }
   .journey-progress { padding: 9px 10px; margin-bottom: 8px; }
   .journey-meta { padding: 10px 12px; margin-top: 10px; }
-  .open-journey { height: 40px; font-size: 13px; border-radius: 13px; }
+  .open-journey { height: 34px; }
 
   /* Add card */
   .journey-add-card { height: 180px; }
