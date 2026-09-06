@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { logoutMethod } from '../../utils/logoutMethod';
 
 export type JourneyMobileMenuActive = 'overview' | 'plan' | 'simulados' | 'capsule' | 'content';
 
@@ -85,18 +86,24 @@ export function JourneyMobileMenu(props: JourneyMobileMenuProps) {
           ))}
         </div>
 
-        <Link
-          className="jm-nav-item jm-profile-item"
-          to="/perfil"
-          state={{ from: `${location.pathname}${location.search}` }}
-          onClick={() => setOpen(false)}
-        >
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
-          </svg>
-          <span>Meu perfil</span>
-        </Link>
+        <div className="jm-drawer-footer">
+          <Link
+            className="jm-nav-item jm-profile-item"
+            to="/perfil"
+            state={{ from: `${location.pathname}${location.search}` }}
+            onClick={() => setOpen(false)}
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+            </svg>
+            <span>Meu perfil</span>
+          </Link>
+          <button className="jm-nav-item jm-logout-item" type="button" onClick={logoutMethod}>
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            <span>Sair</span>
+          </button>
+        </div>
       </nav>
     </>
   );

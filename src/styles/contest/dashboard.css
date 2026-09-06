@@ -37,4 +37,7 @@
 .jm-nav-item svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .jm-nav-item.active{background:#493b59;color:#e9ddff}
 .jm-nav-item:hover:not(.active){background:#3d3050;color:#e0d4ec}
-.jm-profile-item{margin-top:auto;border-top:1px solid #3d3050;border-radius:0 0 0 0;padding:16px 14px;margin:0 12px 16px;border-radius:12px}
+.jm-drawer-footer{margin-top:auto;border-top:1px solid #3d3050;padding:12px;display:flex;flex-direction:column;gap:4px}
+.jm-profile-item{padding:12px 14px;border-radius:12px}
+.jm-logout-item{color:#c08a8a}
+.jm-logout-item:hover{background:#4a2030;color:#e0a0a0}

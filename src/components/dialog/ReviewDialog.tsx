@@ -38,6 +38,7 @@ function DatePicker({ interval, setInterval, customDate, setCustomDate, date }: 
           else { setCustomDate(''); setInterval(v); }
         }}>
           <option value="1">Amanhã</option>
+          <option value="2">Em 2 dias</option>
           <option value="3">Em 3 dias</option>
           <option value="7">Em 7 dias</option>
           <option value="14">Em 14 dias</option>
@@ -56,7 +57,9 @@ function DatePicker({ interval, setInterval, customDate, setCustomDate, date }: 
 export function ReviewDialog(props: Props) {
   const [completed, setCompleted] = useState(true);
   const [schedule, setSchedule] = useState(true);
-  const [interval, setInterval] = useState('7');
+  const [interval, setInterval] = useState(() =>
+    props.mode === 'revision' ? '7' : String(Math.floor(Math.random() * 2) + 1)
+  );
   const [customDate, setCustomDate] = useState('');
   const [completedMinutes, setCompletedMinutes] = useState(
     props.mode !== 'revision' ? (props.defaultMinutes ?? 60) : 0

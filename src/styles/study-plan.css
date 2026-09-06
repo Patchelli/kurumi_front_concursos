@@ -363,12 +363,14 @@
 .sp-subtopic-list{display:flex;flex-direction:column;gap:6px}
 .sp-subtopic-item{border:1px solid #e5dfe8;border-radius:10px;background:#fff;transition:border-color .15s}
 .sp-subtopic-item--expanded{border-color:#c9bdd6;background:#fcfafd}
+.sp-subtopic-item--pending{border-color:#d9a441;background:#fff9e8}
 .sp-subtopic-header{display:flex;align-items:center;gap:10px;padding:10px 12px;width:100%}
 .sp-subtopic-check{width:27px;height:27px;border:1px solid #e2d9e6;border-radius:7px;background:#fff;display:grid;place-items:center;cursor:pointer;color:#66558f;font-size:11px;flex-shrink:0;transition:background .12s}
 .sp-subtopic-check svg{width:13px;height:13px}
 .sp-subtopic-check:hover{background:#eee7f5;border-color:#c8b0e0}
 .sp-subtopic-check--done{color:#22907a;border-color:#a0d8c8;background:#e8f6f2}
 .sp-subtopic-check--done:hover{background:#d0ede5;border-color:#7cc8b4}
+.sp-subtopic-check--pending{color:#b47a12;border-color:#d9a441;background:#fff1c7}
 .sp-subtopic-expand{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:12px;row-gap:3px;align-items:center;flex:1;min-width:0;padding:0;border:0;background:transparent;cursor:pointer;text-align:left;transition:background .13s}
 .sp-subtopic-expand strong{grid-column:1;min-width:0;font-size:12px;line-height:1.35;color:#1e1829;overflow-wrap:anywhere}
 .sp-subtopic-expand small{grid-column:1;font-size:10px;color:#9080a8}

@@ -214,7 +214,7 @@ export function QuestionRegisterDialog({ journeyId, knowledgeAreaId, syllabusNod
         </footer>
       </section>
 
-      <ConfirmDialog open={deleting !== null} title="Excluir registro?" description="Este registro de questões será removido." confirmLabel="Excluir" danger onClose={() => setDeleting(null)} onConfirm={() => { if (deleting !== null) void practiceEntryService.remove(deleting).then(() => { setDeleting(null); void load(); }); }} />
+      <ConfirmDialog open={deleting !== null} title="Excluir registro?" description="Este registro de questões será removido." confirmLabel="Excluir" danger onClose={() => setDeleting(null)} onConfirm={() => { if (deleting !== null) void practiceEntryService.remove(deleting).then(() => { setDeleting(null); onSaved?.(); void load(); }); }} />
     </div>
   );
 }

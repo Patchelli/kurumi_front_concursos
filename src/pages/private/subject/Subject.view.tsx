@@ -144,7 +144,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
   );
 }
 
-export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode, onDeleteArea, onAddTopic, onAddSubtopic, onEditArea, onEditNode, nodeStudy, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onListAreaResources }: SubjectDetailViewProps) {
+export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode, onDeleteArea, onAddTopic, onAddSubtopic, onEditArea, onEditNode, nodeStudy, overviewArea, onQuestionsChanged, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onListAreaResources }: SubjectDetailViewProps) {
   const pomodoro = usePomodoro();
   const [addTopicOpen, setAddTopicOpen] = useState(false);
   const [addSubtopicTarget, setAddSubtopicTarget] = useState<{ topicId: number; topicTitle: string } | null>(null);
@@ -169,6 +169,12 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
     return isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === node.id)?.progress ?? node.progress);
   }).length;
   const pct = total ? Math.round(done / total * 100) : 0;
+  const studiedMinutes = overviewArea?.studiedMinutes ?? 0;
+  const answeredQuestions = overviewArea?.questions ?? 0;
+  const accuracy = overviewArea?.accuracy ?? 0;
+  const formattedTime = studiedMinutes >= 60
+    ? `${Math.floor(studiedMinutes / 60)}h${studiedMinutes % 60 ? ` ${studiedMinutes % 60}min` : ''}`
+    : `${studiedMinutes}min`;
 
   return (
     <div className="jd-shell">
@@ -204,9 +210,9 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
             </div>
           </div>
           <div className="sb-subject-stats">
-            <div className="sb-stat"><span className="sb-stat-val">—</span><span className="sb-stat-lbl">Horas</span></div>
-            <div className="sb-stat"><span className="sb-stat-val">—</span><span className="sb-stat-lbl">Questões</span></div>
-            <div className="sb-stat"><span className="sb-stat-val">—</span><span className="sb-stat-lbl">Acertos</span></div>
+            <div className="sb-stat"><span className="sb-stat-val">{formattedTime}</span><span className="sb-stat-lbl">Horas</span></div>
+            <div className="sb-stat"><span className="sb-stat-val">{answeredQuestions}</span><span className="sb-stat-lbl">Questões</span></div>
+            <div className="sb-stat"><span className="sb-stat-val">{accuracy}%</span><span className="sb-stat-lbl">Acertos</span></div>
           </div>
         </div>
 
@@ -236,6 +242,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
                   onListResources={onListResources}
                   onSaveResource={onSaveResource}
                   onDeleteResource={onDeleteResource}
+                  onQuestionsChanged={onQuestionsChanged}
                 />
               ))}
             </div>
@@ -253,7 +260,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
       <InputDialog open={editAreaOpen} title="Editar matéria" description="Altere o nome da disciplina." placeholder="Nome da matéria" defaultValue={area.title} maxLength={180} confirmLabel="Salvar" onConfirm={title => onEditArea(area.id, title)} onClose={() => setEditAreaOpen(false)} />
       <InputDialog open={!!editNodeTarget} title="Editar conteúdo" description="Altere o nome do tópico ou subtópico." placeholder="Nome" defaultValue={editNodeTarget?.title ?? ''} maxLength={300} confirmLabel="Salvar" onConfirm={title => editNodeTarget && onEditNode(editNodeTarget.id, area.id, title)} onClose={() => setEditNodeTarget(null)} />
       {flashcardsOpen && <FlashcardListPanel journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setFlashcardsOpen(false)} />}
-      {questionsOpen && <QuestionRegisterDialog journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setQuestionsOpen(false)} />}
+      {questionsOpen && <QuestionRegisterDialog journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setQuestionsOpen(false)} onSaved={onQuestionsChanged} />}
       {materialsOpen && <MaterialsPanel journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onList={() => onListAreaResources(area.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={() => {}} onClose={() => setMaterialsOpen(false)} />}
       <ConfirmDialog open={deleteAreaOpen} title="Excluir matéria?" description={`"${area.title}" e todo seu conteúdo serão removidos permanentemente.`} confirmLabel="Excluir" danger onConfirm={() => { onDeleteArea(area.id); setDeleteAreaOpen(false); }} onClose={() => setDeleteAreaOpen(false)} />
       <ConfirmDialog open={!!deleteNodeTarget} title="Excluir conteúdo?" description={`"${deleteNodeTarget?.title ?? ''}" será removido permanentemente.`} confirmLabel="Excluir" danger onConfirm={() => { if (deleteNodeTarget) onRemoveNode(deleteNodeTarget.id); setDeleteNodeTarget(null); }} onClose={() => setDeleteNodeTarget(null)} />

@@ -200,7 +200,7 @@ export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { a
 /* ════════════════════════════════════════════
    Plan Config Wizard (full-area)
    ════════════════════════════════════════════ */
-type ConfigStep = 1 | 2 | 3 | 4;
+type ConfigStep = 1 | 2 | 3 | 4 | 5;
 type Affinity = 'Muito alta' | 'Alta' | 'Neutra' | 'Baixa' | 'Muito baixa';
 const DAYS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'] as const;
 type Day = typeof DAYS[number];
@@ -221,7 +221,7 @@ const AFFINITY_MULTIPLIER: Record<Affinity, number> = {
   'Muito baixa': 2.0,
 };
 
-const CONFIG_STEPS = ['Matérias', 'Afinidade', 'Prioridades', 'Disponibilidade'];
+const CONFIG_STEPS = ['Matérias', 'Afinidade', 'Prioridades', 'Disponibilidade', 'Adaptação'];
 
 export function PlanConfigWizard({ open, onClose, journeyId, areas, configuration, onSave }: {
   open: boolean;
@@ -241,10 +241,10 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
     () => Object.fromEntries(DAYS.map(d => [d, ''])) as Record<Day, string>
   );
   const [hoursPerTopic, setHoursPerTopic] = useState('2');
-  const [reviewIntervalDays, setReviewIntervalDays] = useState('7');
-  const [studyPercentage, setStudyPercentage] = useState('50');
-  const [reviewPercentage, setReviewPercentage] = useState('25');
-  const [questionsPercentage, setQuestionsPercentage] = useState('25');
+  const [automaticAdaptationEnabled, setAutomaticAdaptationEnabled] = useState(false);
+  const [adaptationAccuracyThreshold, setAdaptationAccuracyThreshold] = useState('60');
+  const [adaptationMinimumQuestions, setAdaptationMinimumQuestions] = useState('10');
+  const [adaptationFlashcardErrorThreshold, setAdaptationFlashcardErrorThreshold] = useState('10');
   const [areaHoursOverride, setAreaHoursOverride] = useState<Map<number, string>>(new Map());
   const [nodeHoursOverride, setNodeHoursOverride] = useState<Map<number, string>>(new Map());
   const [expandedLoadAreas, setExpandedLoadAreas] = useState<Set<number>>(new Set());
@@ -262,10 +262,10 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
     setEnabled(new Set(configuration.knowledgeAreaIds));
     setAffinity(new Map(Object.entries(configuration.affinity).map(([id, value]) => [Number(id), value as Affinity])));
     setHoursPerTopic(String(configuration.hoursPerTopic));
-    setReviewIntervalDays(String(configuration.reviewIntervalDays));
-    setStudyPercentage(String(configuration.studyPercentage));
-    setReviewPercentage(String(configuration.reviewPercentage));
-    setQuestionsPercentage(String(configuration.questionsPercentage));
+    setAutomaticAdaptationEnabled(configuration.automaticAdaptationEnabled ?? false);
+    setAdaptationAccuracyThreshold(String(configuration.adaptationAccuracyThreshold || 60));
+    setAdaptationMinimumQuestions(String(configuration.adaptationMinimumQuestions || 10));
+    setAdaptationFlashcardErrorThreshold(String(configuration.adaptationFlashcardErrorThreshold || 10));
     setAvailability(Object.fromEntries(DAYS.map(day => [day, configuration.availability[day] ? String(configuration.availability[day]) : ''])) as Record<Day, string>);
     setAreaHoursOverride(new Map(Object.entries(configuration.areaHoursOverride).map(([id, value]) => [Number(id), String(value)])));
     setNodeHoursOverride(new Map(Object.entries(configuration.nodeHoursOverride).map(([id, value]) => [Number(id), String(value)])));
@@ -302,8 +302,8 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
   });
 
   const goNext = () => {
-    if (step < 4) setStep(s => (s + 1) as ConfigStep);
-    else { const configuration: StudyRoutineConfigurationRequest = { knowledgeAreaIds: activeAreas.map(area => area.id), affinity: Object.fromEntries(affinity), hoursPerTopic: parsedHours, reviewIntervalDays: Math.max(1, parseInt(reviewIntervalDays) || 7), studyPercentage: Math.max(0, parseInt(studyPercentage) || 0), reviewPercentage: Math.max(0, parseInt(reviewPercentage) || 0), questionsPercentage: Math.max(0, parseInt(questionsPercentage) || 0), availability: Object.fromEntries(DAYS.map(day => [day, parseFloat(availability[day]) || 0])), areaHoursOverride: Object.fromEntries([...areaHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])), nodeHoursOverride: Object.fromEntries([...nodeHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])) }; if (configuration.studyPercentage + configuration.reviewPercentage + configuration.questionsPercentage !== 100) { toast.error('Os percentuais devem totalizar 100%.'); return; } onSave(configuration).then(() => { toast.success('Ciclo de estudos salvo!'); onClose(); }).catch(() => toast.error('Não foi possível salvar o ciclo de estudos.')); }
+    if (step < 5) setStep(s => (s + 1) as ConfigStep);
+    else { const configuration: StudyRoutineConfigurationRequest = { knowledgeAreaIds: activeAreas.map(area => area.id), affinity: Object.fromEntries(affinity), hoursPerTopic: parsedHours, availability: Object.fromEntries(DAYS.map(day => [day, parseFloat(availability[day]) || 0])), areaHoursOverride: Object.fromEntries([...areaHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])), nodeHoursOverride: Object.fromEntries([...nodeHoursOverride].map(([key, value]) => [key, parseFloat(value) || parsedHours])), automaticAdaptationEnabled, adaptationAccuracyThreshold: Math.min(100, Math.max(1, parseFloat(adaptationAccuracyThreshold) || 60)), adaptationMinimumQuestions: Math.max(1, parseInt(adaptationMinimumQuestions) || 10), adaptationFlashcardErrorThreshold: Math.max(1, parseInt(adaptationFlashcardErrorThreshold) || 10) }; onSave(configuration).then(() => { toast.success('Ciclo de estudos salvo!'); onClose(); }).catch(() => toast.error('Não foi possível salvar o ciclo de estudos.')); }
   };
 
   return (
@@ -547,37 +547,6 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
               })}
             </div>
 
-            <div className="sp-metric-fields">
-              <div className="sp-metric-field">
-                <span className="sp-metric-label">Intervalo de revisão</span>
-                <div className="sp-metric-input-wrap">
-                  <input type="number" min="1" value={reviewIntervalDays} onChange={e => setReviewIntervalDays(e.target.value)} />
-                  <span className="sp-metric-unit">dias</span>
-                </div>
-              </div>
-              <div className="sp-metric-field">
-                <span className="sp-metric-label">Estudo</span>
-                <div className="sp-metric-input-wrap">
-                  <input type="number" min="0" max="100" value={studyPercentage} onChange={e => setStudyPercentage(e.target.value)} />
-                  <span className="sp-metric-unit">%</span>
-                </div>
-              </div>
-              <div className="sp-metric-field">
-                <span className="sp-metric-label">Revisão</span>
-                <div className="sp-metric-input-wrap">
-                  <input type="number" min="0" max="100" value={reviewPercentage} onChange={e => setReviewPercentage(e.target.value)} />
-                  <span className="sp-metric-unit">%</span>
-                </div>
-              </div>
-              <div className="sp-metric-field">
-                <span className="sp-metric-label">Questões</span>
-                <div className="sp-metric-input-wrap">
-                  <input type="number" min="0" max="100" value={questionsPercentage} onChange={e => setQuestionsPercentage(e.target.value)} />
-                  <span className="sp-metric-unit">%</span>
-                </div>
-              </div>
-            </div>
-
             {/* Plan summary */}
             {totalPlanHours > 0 && (
               <div className="sp-plan-summary">
@@ -604,6 +573,54 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
           </div>
         )}
 
+        {step === 5 && (
+          <div className="sp-wz-stage">
+            <p className="sp-wz-desc">
+              Quando ativada, a adaptação acompanha seu desempenho em cada tópico ou subtópico concluído.
+              Se os acertos em questões ficarem abaixo do limite definido, ou se você acumular muitos “Errei”
+              nos flashcards daquele conteúdo, o sistema agenda automaticamente uma revisão para o dia seguinte
+              e uma sessão de questões para dois dias depois.
+            </p>
+
+            <div className="sp-hours-config">
+              <div className="sp-hours-config-label">
+                <strong>Adaptar meu plano automaticamente</strong>
+                <small>Você pode desativar esta opção a qualquer momento. Revisões criadas manualmente não são alteradas.</small>
+              </div>
+              <label className="sp-hours-input-wrap">
+                <input type="checkbox" checked={automaticAdaptationEnabled} onChange={e => setAutomaticAdaptationEnabled(e.target.checked)} />
+                <span>{automaticAdaptationEnabled ? 'Ativada' : 'Desativada'}</span>
+              </label>
+            </div>
+
+            {automaticAdaptationEnabled && (
+              <div className="sp-metric-fields">
+                <div className="sp-metric-field">
+                  <span className="sp-metric-label">Agendar se os acertos ficarem abaixo de</span>
+                  <div className="sp-metric-input-wrap">
+                    <input type="number" min="1" max="100" value={adaptationAccuracyThreshold} onChange={e => setAdaptationAccuracyThreshold(e.target.value)} />
+                    <span className="sp-metric-unit">%</span>
+                  </div>
+                </div>
+                <div className="sp-metric-field">
+                  <span className="sp-metric-label">Quantidade mínima de questões</span>
+                  <div className="sp-metric-input-wrap">
+                    <input type="number" min="1" value={adaptationMinimumQuestions} onChange={e => setAdaptationMinimumQuestions(e.target.value)} />
+                    <span className="sp-metric-unit">questões</span>
+                  </div>
+                </div>
+                <div className="sp-metric-field">
+                  <span className="sp-metric-label">Quantidade de “Errei” nos flashcards</span>
+                  <div className="sp-metric-input-wrap">
+                    <input type="number" min="1" value={adaptationFlashcardErrorThreshold} onChange={e => setAdaptationFlashcardErrorThreshold(e.target.value)} />
+                    <span className="sp-metric-unit">vezes</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Footer */}
@@ -612,7 +629,7 @@ export function PlanConfigWizard({ open, onClose, journeyId, areas, configuratio
           <button className="sp-wz-back" onClick={() => setStep(s => (s - 1) as ConfigStep)}>Voltar</button>
         )}
         <button className="sp-wz-next" onClick={goNext}>
-          {step === 4 ? 'Gerar Ciclo de Estudos' : 'Continuar'}
+          {step === 5 ? 'Gerar Ciclo de Estudos' : 'Continuar'}
         </button>
       </div>
     </div>
@@ -1132,8 +1149,8 @@ type TopicProps = {
   onDeleteResource(id: number): Promise<void>;
 };
 
-function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStartPomodoro, onListResources, onSaveResource, onDeleteResource, onSaveStudy }: {
-  child: SyllabusNodeResponse; topicTitle: string; journeyId: number; areaId: number;
+function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, studyState, onStartPomodoro, onListResources, onSaveResource, onDeleteResource, onSaveStudy }: {
+  child: SyllabusNodeResponse; topicTitle: string; totalSubtopics: number; journeyId: number; areaId: number;
   studyState?: SyllabusNodeStudyResponse;
   onStartPomodoro(subtopicId?: number): void;
   onListResources(nodeId: number): Promise<StudyResource[]>;
@@ -1146,12 +1163,11 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
   const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
   const [reviewOpen, setReviewOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
-  const [studiedMinutes, setStudiedMinutes] = useState(() =>
-    isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0
-  );
+  const [studiedMinutes, setStudiedMinutes] = useState(studyState?.studiedMinutes ?? 0);
   const [savingStudy, setSavingStudy] = useState(false);
-  const progress = studyProgressPercent(studyState?.progress ?? child.progress);
-  const pending = isStudyPending(studyState?.progress ?? child.progress);
+  const [currentProgress, setCurrentProgress] = useState(studyState?.progress ?? child.progress);
+  const pending = isStudyPending(currentProgress);
+  const weightPercent = totalSubtopics > 0 ? Number((100 / totalSubtopics).toFixed(1)) : 100;
   const titlePrefix = `${topicTitle.trim()} >`;
   const displayTitle = child.title.trim().toLocaleLowerCase().startsWith(titlePrefix.toLocaleLowerCase())
     ? child.title.trim().slice(titlePrefix.length).trim()
@@ -1160,8 +1176,9 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
   useEffect(() => {
     if (savingStudy) return;
     setIsCompleted(isStudyCompleted(studyState?.progress ?? child.progress));
+    setCurrentProgress(studyState?.progress ?? child.progress);
     setRevision(Boolean(studyState?.reviewDate));
-    setStudiedMinutes(isStudyCompleted(studyState?.progress ?? child.progress) ? (studyState?.studiedMinutes ?? 0) : 0);
+    setStudiedMinutes(studyState?.studiedMinutes ?? 0);
   }, [studyState?.progress, studyState?.reviewDate, studyState?.studiedMinutes, child.progress, savingStudy]);
 
   async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '') {
@@ -1169,8 +1186,9 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
     try {
       const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null });
       setIsCompleted(isStudyCompleted(result.progress));
+      setCurrentProgress(result.progress);
       setRevision(Boolean(result.reviewDate));
-      setStudiedMinutes(completed ? result.studiedMinutes : 0);
+      setStudiedMinutes(result.studiedMinutes);
       if (!completed) toast.success('Subtópico marcado como pendente.');
       else if (scheduleReview) toast.success('Subtópico concluído e revisão agendada.');
       else toast.success('Subtópico concluído com sucesso!');
@@ -1206,16 +1224,16 @@ function SubtopicItem({ child, topicTitle, journeyId, areaId, studyState, onStar
   }
 
   return (
-    <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}`}>
+    <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}${pending ? ' sp-subtopic-item--pending' : ''}`}>
       <div className="sp-subtopic-header">
-        <button className={`sp-subtopic-check${isCompleted ? ' sp-subtopic-check--done' : ''}`} type="button" title={isCompleted ? 'Marcar pendente' : 'Concluir subtópico'} onClick={() => isCompleted ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={savingStudy}>
+        <button className={`sp-subtopic-check${isCompleted ? ' sp-subtopic-check--done' : ''}${pending ? ' sp-subtopic-check--pending' : ''}`} type="button" title={isCompleted ? 'Marcar pendente' : pending ? 'Editar pendência' : 'Concluir subtópico'} onClick={() => isCompleted ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={savingStudy}>
           {isCompleted
             ? <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             : <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>
           }
         </button>
         <button className="sp-subtopic-expand" type="button" onClick={() => setExpanded(v => !v)}>
-          <strong>{displayTitle}</strong><small>{isCompleted ? progress : 0}% · {isCompleted ? studiedMinutes : 0} min</small>
+          <strong>{displayTitle}</strong><small>{weightPercent}% do tópico · {studiedMinutes} min estudados</small>
           <span className="sp-subtopic-arrow">{expanded ? '▾' : '▸'}</span>
         </button>
       </div>
@@ -1455,7 +1473,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               ? (
                 <div className="sp-subtopic-list">
                   {subtopics.map(child => (
-                    <SubtopicItem key={child.id} child={child} topicTitle={target.topic.title} journeyId={journeyId} areaId={target.area.id} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartPomodoro={onStartPomodoro} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} onSaveStudy={onSaveNodeStudy} />
+                    <SubtopicItem key={child.id} child={child} topicTitle={target.topic.title} totalSubtopics={target.topic.children.length} journeyId={journeyId} areaId={target.area.id} studyState={nodeStudy.find(item => item.syllabusNodeId === child.id)} onStartPomodoro={onStartPomodoro} onListResources={onListResources} onSaveResource={onSaveResource} onDeleteResource={onDeleteResource} onSaveStudy={onSaveNodeStudy} />
                   ))}
                 </div>
               )

@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { EJourneyStage } from '../../../../@business/enum/EJourneyStage';
+import { logoutMethod } from '../../../utils/logoutMethod';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { JourneyViewProps } from './Journey.type';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
@@ -13,6 +15,60 @@ type ErrorSort = 'discipline' | 'errors' | 'withReason' | 'coverage';
 function fmtMin(v: number) {
   const h = Math.floor(v / 60), m = v % 60;
   return h ? `${h}h${m ? ` ${m}min` : ''}` : v ? `${m}min` : '0min';
+}
+
+function buildInsightsPrompt(journey: JourneyViewProps['journey'], overview: NonNullable<JourneyViewProps['overview']>) {
+  if (!journey) return '';
+  const { summary, readiness, days, weeks, areas, errors } = overview;
+  const lines: string[] = [
+    `Analise os dados de estudo abaixo de um aluno preparando-se para concurso e forneça insights, pontos fortes, pontos fracos e sugestões práticas de melhoria.\n`,
+    `## Concurso: ${journey.title}`,
+    `Cargo: ${journey.position || 'Não definido'}`,
+    `Fase: ${journey.stage === EJourneyStage.Completed ? 'Concurso realizado' : journey.stage === EJourneyStage.PreNotice ? 'Pré-edital' : 'Pós-edital'}\n`,
+    `## Resumo geral`,
+    `- Tempo total de estudo: ${Math.floor(summary.studiedMinutes / 60)}h ${summary.studiedMinutes % 60}min`,
+    `- Questões resolvidas: ${summary.questions} (${summary.correctAnswers} acertos)`,
+    `- Acertos geral: ${summary.accuracy !== null ? summary.accuracy + '%' : 'sem dados'}`,
+    `- Dias estudados: ${summary.studyDays}`,
+    `- Sequência atual: ${summary.studyStreak} dias`,
+    `- Tópicos concluídos: ${summary.completedTopics}/${summary.totalTopics}`,
+    `- Subtópicos concluídos: ${summary.completedSubtopics}/${summary.totalSubtopics}`,
+    `- Hoje: ${summary.todayMinutes}min, ${summary.todayQuestions} questões, ${summary.todaySessions} sessões\n`,
+    `## Prontidão`,
+    `- Score: ${readiness.score}/100 (${readiness.level})`,
+    `- Cobertura: ${readiness.coverage}%`,
+    `- Aplicação: ${readiness.application}%`,
+    `- Retenção: ${readiness.retention}%`,
+    `- Consistência: ${readiness.consistency}%\n`,
+  ];
+  if (days.length) {
+    const WD = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    lines.push(`## Estudo por dia da semana`);
+    days.forEach(d => lines.push(`- ${WD[d.dayOfWeek]}: ${d.studiedMinutes}min, ${d.questions} questões, acertos ${d.accuracy ?? '—'}%`));
+    lines.push('');
+  }
+  if (weeks.length) {
+    lines.push(`## Evolução semanal`);
+    weeks.forEach(w => lines.push(`- ${w.label}: acertos ${w.accuracy ?? '—'}%, retenção ${w.retention ?? '—'}%`));
+    lines.push('');
+  }
+  if (areas.length) {
+    lines.push(`## Desempenho por matéria`);
+    areas.forEach(a => {
+      lines.push(`### ${a.title}`);
+      lines.push(`  Tempo: ${Math.floor(a.studiedMinutes / 60)}h${a.studiedMinutes % 60}min | Cobertura: ${a.coverage}% | Questões: ${a.questions} | Acertos: ${a.accuracy ?? '—'}%`);
+      lines.push(`  Erros: ${a.errors} (${a.errorsWithReason} classificados) | Erro predominante: ${a.predominantError || '—'} (${a.predominantErrorPercentage ?? 0}%)`);
+      lines.push(`  Flashcards: ${a.flashcards} | Revisões: ${a.reviews} | Recall: ${a.recall ?? '—'}%`);
+    });
+    lines.push('');
+  }
+  if (errors.length) {
+    lines.push(`## Motivos dos erros (geral)`);
+    errors.forEach(e => lines.push(`- ${e.reason}: ${e.count} (${e.percentage}%)`));
+    lines.push('');
+  }
+  lines.push(`Baseando-se nesses dados, me dê:\n1. Uma avaliação geral do meu progresso\n2. Meus pontos fortes\n3. Meus pontos fracos e riscos\n4. Sugestões práticas priorizadas para melhorar meu desempenho\n5. Em quais matérias devo focar mais`);
+  return lines.join('\n');
 }
 
 function AccuracyRing({ pct, sub = 'de acertos' }: { pct: number | null; sub?: string }) {
@@ -145,6 +201,10 @@ export function JourneyView(props: JourneyViewProps) {
           </button>
         </nav>
         <JourneyProfileLink />
+        <button className="jd-logout-btn" onClick={logoutMethod}>
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <span>Sair</span>
+        </button>
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0,2).toUpperCase()}
@@ -171,6 +231,10 @@ export function JourneyView(props: JourneyViewProps) {
                 </button>
               ))}
             </div>
+            <button className="jd-ai-btn" onClick={() => { navigator.clipboard.writeText(buildInsightsPrompt(journey, overview)); toast.success('Prompt copiado! Cole na sua IA favorita.'); }}>
+              <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4v1h1a3 3 0 013 3v8a3 3 0 01-3 3H7a3 3 0 01-3-3v-8a3 3 0 013-3h1V6a4 4 0 014-4zm0 2a2 2 0 00-2 2v1h4V6a2 2 0 00-2-2zm-3 9a1 1 0 100 2 1 1 0 000-2zm6 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+              Insights IA
+            </button>
             <button className="jd-back-link" onClick={onBack}>
               <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
               Jornadas

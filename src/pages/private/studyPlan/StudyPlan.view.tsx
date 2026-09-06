@@ -10,6 +10,7 @@ import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDia
 import { isStudyCompleted } from '@business/studyProgress';
 import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
+import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 
 const TYPE_SLUG: Record<string, string> = { Teoria: 'teoria', Questões: 'questoes', Revisão: 'revisao' };
 const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -25,6 +26,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
   const [tab, setTab] = useState<'novo' | 'revisao' | 'questoes'>('novo');
   const [questionTarget, setQuestionTarget] = useState<{ areaId: number; nodeId: number; title: string } | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
+  const [futureAccess, setFutureAccess] = useState<{ title: string; action(): void } | null>(null);
 
   useEffect(() => {
     setCompleted(new Set((routineBlocks ?? []).filter(block => block.status === 3 || String(block.status).toLowerCase() === 'completed').map(block => block.id)));
@@ -111,6 +113,14 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
   const visibleBlocks = tab === 'novo' ? novoBlocks : tab === 'revisao' ? revisaoBlocks : questionBlocks;
   const todayIso = localToday;
   const tomorrowIso = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+  const openScheduledActivity = (block: typeof visibleBlocks[number], action: () => void) => {
+    const scheduledFor = block.scheduledFor?.slice(0, 10);
+    if ((block.type === 'Revisão' || block.type === 'Questões') && scheduledFor && scheduledFor > todayIso) {
+      setFutureAccess({ title: (block as { displayTitle?: string }).displayTitle ?? block.topic.title, action });
+      return;
+    }
+    action();
+  };
   let lastScheduleGroup = '';
 
   return (
@@ -249,8 +259,8 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                       className={`sp-block${done ? ' sp-block--done' : ''}${pendingBlockIds.has(block.id) ? ' sp-block--pending' : ''}${studyingNow ? ' sp-block--studying' : ''}`}
                       role="button"
                       tabIndex={0}
-                      onClick={() => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block)}
-                      onKeyDown={e => e.key === 'Enter' && (tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
+                      onClick={() => openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
+                      onKeyDown={e => e.key === 'Enter' && openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
                     >
                       <button
                         className="sp-check"
@@ -258,10 +268,12 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                         aria-label={`${done ? 'Desmarcar' : 'Concluir'} ${block.topic.title}`}
                         onClick={e => {
                           e.stopPropagation();
-                          if (tab === 'questoes') { setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }); return; }
-                          if (block.id < 0) { open(block); return; }
-                          if (done) uncompleteBlock(block.id);
-                          else setReviewTarget(block);
+                          openScheduledActivity(block, () => {
+                            if (tab === 'questoes') { setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }); return; }
+                            if (block.id < 0) { open(block); return; }
+                            if (done) uncompleteBlock(block.id);
+                            else setReviewTarget(block);
+                          });
                         }}
                       >
                         {done ? '✓' : index + 1}
@@ -382,6 +394,15 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
         }}
       />
     ) : null}
+    <ConfirmDialog
+      open={Boolean(futureAccess)}
+      title="Antecipar atividade agendada?"
+      description={futureAccess ? `“${futureAccess.title}” está programada para uma data futura. O espaçamento ajuda a fortalecer a memória e a medir melhor o que você realmente reteve. Se fizer agora, o intervalo planejado será antecipado. Deseja continuar mesmo assim?` : ''}
+      confirmLabel="Continuar agora"
+      cancelLabel="Manter na data"
+      onClose={() => setFutureAccess(null)}
+      onConfirm={() => { const action = futureAccess?.action; setFutureAccess(null); action?.(); }}
+    />
     <StudyTopicDialog
       target={selectedTopic}
       completed={selectedTopic ? isTopicComplete(selectedTopic.topic) : false}

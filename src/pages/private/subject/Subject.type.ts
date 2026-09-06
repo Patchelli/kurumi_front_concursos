@@ -1,6 +1,7 @@
 import type { JourneyDetailsResponse, KnowledgeAreaResponse } from '../../../../@business/dto/response/journey.response';
 import type { StudyResource, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
 import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
+import type { JourneyOverviewArea } from '@business/service/JourneyOverview.service';
 
 export type SubjectListViewProps = {
   journey: JourneyDetailsResponse | null;
@@ -36,6 +37,8 @@ export type SubjectDetailViewProps = {
   onEditArea(areaId: number, title: string): void;
   onEditNode(nodeId: number, knowledgeAreaId: number, title: string): void;
   nodeStudy: SyllabusNodeStudyResponse[];
+  overviewArea?: JourneyOverviewArea;
+  onQuestionsChanged(): void;
   onSaveNodeStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
   onListResources(nodeId: number): Promise<StudyResource[]>;
   onSaveResource(request: StudyResourceRegisterRequest): Promise<StudyResource>;

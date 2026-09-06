@@ -9,6 +9,7 @@ import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 import { toast } from 'sonner';
 import { SubjectDetailView, SubjectListView } from './Subject.view';
 import { notifyTimeCapsuleProgressChanged } from '@business/service/TimeCapsule.service';
+import { journeyOverviewService, type JourneyOverviewArea } from '@business/service/JourneyOverview.service';
 
 function useJourney(id: string | undefined) {
   const [journey, setJourney] = useState<JourneyDetailsResponse | null>(null);
@@ -74,14 +75,24 @@ export function SubjectDetailController() {
   const journeyId = Number(id);
   const { journey, loading, reload } = useJourney(id);
   const [nodeStudy, setNodeStudy] = useState<SyllabusNodeStudyResponse[]>([]);
+  const [overviewArea, setOverviewArea] = useState<JourneyOverviewArea>();
+  const selectedAreaId = Number(areaId);
+  const reloadOverviewArea = () => {
+    if (!journeyId || !selectedAreaId) return;
+    journeyOverviewService.find(journeyId)
+      .then(result => setOverviewArea(result.areas.find(item => item.id === selectedAreaId)))
+      .catch(() => setOverviewArea(undefined));
+  };
   useEffect(() => {
     if (!journeyId) return;
     syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => setNodeStudy([]));
   }, [journeyId]);
+  useEffect(reloadOverviewArea, [journeyId, selectedAreaId]);
   useEffect(() => {
     const refresh = (event: Event) => {
       if ((event as CustomEvent<{ journeyId: number }>).detail?.journeyId !== journeyId) return;
       syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => {});
+      reloadOverviewArea();
     };
     window.addEventListener(studyTimerFinishedEvent, refresh);
     return () => window.removeEventListener(studyTimerFinishedEvent, refresh);
@@ -89,6 +100,7 @@ export function SubjectDetailController() {
   async function saveNodeStudy(request: SyllabusNodeStudyRequest) {
     const result = await syllabusNodeStudyService.save(request);
     notifyTimeCapsuleProgressChanged();
+    reloadOverviewArea();
     try {
       setNodeStudy(await syllabusNodeStudyService.list(journeyId));
     } catch {
@@ -143,6 +155,8 @@ export function SubjectDetailController() {
           .catch(error => toast.error(getRequestErrorMessage(error, 'Não foi possível atualizar.')));
       }}
       nodeStudy={nodeStudy}
+      overviewArea={overviewArea}
+      onQuestionsChanged={reloadOverviewArea}
       onSaveNodeStudy={saveNodeStudy}
       onListResources={nodeId => studyResourceService.list(journeyId, nodeId)}
       onSaveResource={request => studyResourceService.register(request)}

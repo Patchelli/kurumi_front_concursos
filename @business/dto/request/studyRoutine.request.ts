@@ -4,13 +4,13 @@ export type StudyRoutineConfigurationRequest = {
   knowledgeAreaIds: number[];
   affinity: Record<number, string>;
   hoursPerTopic: number;
-  reviewIntervalDays: number;
-  studyPercentage: number;
-  reviewPercentage: number;
-  questionsPercentage: number;
   availability: Record<string, number>;
   areaHoursOverride: Record<number, number>;
   nodeHoursOverride: Record<number, number>;
+  automaticAdaptationEnabled: boolean;
+  adaptationAccuracyThreshold: number;
+  adaptationMinimumQuestions: number;
+  adaptationFlashcardErrorThreshold: number;
 };
 
 export type StudyRoutineRegisterRequest = {
