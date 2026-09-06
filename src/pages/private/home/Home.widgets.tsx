@@ -7,25 +7,27 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
 }
 function formatMinutes(value: number) { const h = Math.floor(value / 60); const m = value % 60; return h ? `${h}h${m ? ` ${m}min` : ''}` : `${m}min`; }
-function progressOf(journey: JourneySummaryResponse) { return Math.min(100, Math.max(0, journey.progress ?? journey.knowledgeAreas * 7)); }
+function progressOf(journey: JourneySummaryResponse) { return Math.min(100, Math.max(0, journey.progress)); }
 
-function levelOf(progress: number) {
-  const levels = homeTokens.journeyLevels;
-  const index = progress >= 100 ? levels.length - 1 : Math.min(Math.floor(progress / 20), levels.length - 2);
-  return { current: levels[index], next: levels[index + 1] };
+function levelOf(journey: JourneySummaryResponse) {
+  const index = homeTokens.journeyLevels.indexOf(journey.readinessLevel as typeof homeTokens.journeyLevels[number]);
+  const currentIndex = index < 0 ? 0 : index;
+  return { current: homeTokens.journeyLevels[currentIndex], next: homeTokens.journeyLevels[currentIndex + 1] };
 }
 
 type JourneyCardProps = { journey: JourneySummaryResponse; index: number; onOpen(): void; onEdit(): void; onRemove(): void };
 
 export function JourneyCard({ journey, index, onOpen, onEdit, onRemove }: JourneyCardProps) {
   const progress = progressOf(journey);
-  const accuracy = journey.questionsSolved ? Math.round((journey.correctAnswers ?? 0) / journey.questionsSolved * 100) : null;
-  const level = levelOf(progress);
-  const dailyAverage = journey.studyDays ? Math.round((journey.studiedMinutes ?? 0) / journey.studyDays) : 0;
+  const accuracy = journey.questionsSolved
+    ? Math.round(journey.correctAnswers / journey.questionsSolved * 1000) / 10
+    : null;
+  const level = levelOf(journey);
+  const dailyAverage = journey.studyDays ? Math.round(journey.studiedMinutes / journey.studyDays) : 0;
   const metrics = [
     { ...homeTokens.metrics.performance, value: accuracy === null ? '—' : `${accuracy}%` },
-    { ...homeTokens.metrics.studiedTime, value: formatMinutes(journey.studiedMinutes ?? 0) },
-    { ...homeTokens.metrics.questions, value: (journey.questionsSolved ?? 0).toLocaleString('pt-BR') },
+    { ...homeTokens.metrics.studiedTime, value: formatMinutes(journey.studiedMinutes) },
+    { ...homeTokens.metrics.questions, value: journey.questionsSolved.toLocaleString('pt-BR') },
     { ...homeTokens.metrics.dailyAverage, value: formatMinutes(dailyAverage) },
   ];
   return <article className="journey-card home-journey-card" style={homeTokens.styles.cardAccent(homeTokens.cardAccents[index % homeTokens.cardAccents.length])} role="link" aria-label={`Abrir concurso ${journey.title}`} tabIndex={0} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>

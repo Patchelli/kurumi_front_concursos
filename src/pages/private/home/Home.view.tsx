@@ -11,10 +11,11 @@ function greeting() { const h = new Date().getHours(); return h < 12 ? 'Bom dia'
 
 export function HomeView(props: HomeViewProps) {
   const completed = props.journeys.filter(item => item.stage === EJourneyStage.Completed).length;
-  const minutes = props.journeys.reduce((sum, item) => sum + (item.studiedMinutes ?? 0), 0);
-  const questions = props.journeys.reduce((sum, item) => sum + (item.questionsSolved ?? 0), 0);
-  const correct = props.journeys.reduce((sum, item) => sum + (item.correctAnswers ?? 0), 0);
-  const accuracy = questions ? Math.round(correct / questions * 100) : null;
+  const statisticalJourneys = props.journeys.filter(item => item.includeInStatistics);
+  const minutes = statisticalJourneys.reduce((sum, item) => sum + item.studiedMinutes, 0);
+  const questions = statisticalJourneys.reduce((sum, item) => sum + item.questionsSolved, 0);
+  const correct = statisticalJourneys.reduce((sum, item) => sum + item.correctAnswers, 0);
+  const accuracy = questions ? Math.round(correct / questions * 1000) / 10 : null;
 
   return <div className="journey-hub">
     <header className="hub-topbar">

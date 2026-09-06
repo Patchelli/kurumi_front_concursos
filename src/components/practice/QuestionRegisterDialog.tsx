@@ -14,12 +14,13 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-export function QuestionRegisterDialog({ journeyId, knowledgeAreaId, syllabusNodeId, title, onClose }: {
+export function QuestionRegisterDialog({ journeyId, knowledgeAreaId, syllabusNodeId, title, onClose, onSaved }: {
   journeyId: number;
   knowledgeAreaId: number;
   syllabusNodeId?: number | null;
   title: string;
   onClose(): void;
+  onSaved?(): void;
 }) {
   const [items, setItems] = useState<PracticeEntry[]>([]);
   const [editing, setEditing] = useState<PracticeEntry | null>(null);
@@ -88,6 +89,7 @@ export function QuestionRegisterDialog({ journeyId, knowledgeAreaId, syllabusNod
       };
       editing ? await practiceEntryService.update(editing.id, body) : await practiceEntryService.register(body);
       notifyTimeCapsuleProgressChanged();
+      onSaved?.();
       await load();
       edit();
       toast.success('Questões registradas.');

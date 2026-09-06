@@ -6,6 +6,7 @@ const eventTypes = {
   [ECalendarEventType.Notice]: { label: 'Edital', className: 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' },
   [ECalendarEventType.Registration]: { label: 'Inscrição', className: 'bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)]' },
   [ECalendarEventType.Reminder]: { label: 'Lembrete', className: 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' },
+  [ECalendarEventType.Questions]: { label: 'Questões', className: 'bg-[#e7f0ff] text-[#28558c]' },
 } as const;
 
 export const calendarTokens = {

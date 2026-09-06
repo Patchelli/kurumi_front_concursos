@@ -6,6 +6,7 @@ import { StudyTopicDialog, PlanConfigWizard, StudyCalendar, type StudyTopicTarge
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
+import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 import { isStudyCompleted } from '@business/studyProgress';
 import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
@@ -15,13 +16,14 @@ const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric'
 const localToday = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 const LOCAL_DATE = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 
-export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
+export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onQuestionsSaved, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [revisions, setRevisions] = useState<Map<number, string>>(new Map()); // blockId → date
   const [reviewTarget, setReviewTarget] = useState<typeof blocks[number] | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopicTarget | null>(null);
   const pomodoro = usePomodoro();
-  const [tab, setTab] = useState<'novo' | 'revisao'>('novo');
+  const [tab, setTab] = useState<'novo' | 'revisao' | 'questoes'>('novo');
+  const [questionTarget, setQuestionTarget] = useState<{ areaId: number; nodeId: number; title: string } | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     await onCompleteBlock(id, false, 0, false, null);
   }
 
-  const novoBlocks = blocks.filter(b => b.type !== 'Revisão');
+  const novoBlocks = blocks.filter(b => b.type !== 'Revisão' && b.type !== 'Questões');
   // Backend-generated revision blocks + user-scheduled revisions from completed "Aprender" blocks
   const backendRevisoes = blocks.filter(b => b.type === 'Revisão');
   const futureRevisoes = (routineBlocks ?? []).filter(item => { const value = String(item.type).toLowerCase(); return value === '2' || value === 'review'; }).map(item => { const area = journey.knowledgeAreas.find(a => a.nodes.some(n => n.id === item.syllabusNodeId)); const topic = area?.nodes.find(n => n.id === item.syllabusNodeId); return area && topic ? { id: item.id, area, topic, subject: area.title, type: 'Revisão', minutes: item.plannedMinutes, scheduledFor: item.scheduledFor } : null; }).filter(Boolean) as any[];
@@ -99,11 +101,17 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     const displayNode = topic?.children.find(child => child.id === item.syllabusNodeId);
     return area && topic ? { id: -item.syllabusNodeId, area, topic, displayTitle: displayNode?.title ?? topic.title, subject: area.title, type: 'Revisão', minutes: 0, scheduledFor: item.reviewDate } : null;
   }).filter(Boolean) as any[];
-  const revisaoBlocks = [...backendRevisoes, ...futureRevisoes.filter(item => !backendRevisoes.some(current => current.id === item.id)), ...subtopicRevisoes.filter(item => !futureRevisoes.some(current => current.topic.id === item.topic.id && current.scheduledFor?.slice(0, 10) === item.scheduledFor?.slice(0, 10)))];
-  const visibleBlocks = tab === 'novo' ? novoBlocks : revisaoBlocks;
+  const revisaoBlocks = [...backendRevisoes, ...futureRevisoes.filter(item => !backendRevisoes.some(current => current.id === item.id)), ...subtopicRevisoes.filter(item => !futureRevisoes.some(current => current.topic.id === item.topic.id && current.scheduledFor?.slice(0, 10) === item.scheduledFor?.slice(0, 10)))].sort((a, b) => String(a.scheduledFor ?? '').localeCompare(String(b.scheduledFor ?? '')));
+  const questionBlocks = nodeStudy.filter(item => item.questionDate).map(item => {
+    const area = journey.knowledgeAreas.find(candidate => candidate.nodes.some(root => root.id === item.syllabusNodeId || root.children.some(child => child.id === item.syllabusNodeId)));
+    const topic = area?.nodes.find(root => root.id === item.syllabusNodeId || root.children.some(child => child.id === item.syllabusNodeId));
+    const displayNode = topic?.children.find(child => child.id === item.syllabusNodeId);
+    return area && topic ? { id: -item.syllabusNodeId, area, topic, displayTitle: displayNode?.title ?? topic.title, subject: area.title, type: 'Questões', minutes: 0, scheduledFor: item.questionDate, scheduledNodeId: item.syllabusNodeId } : null;
+  }).filter(Boolean).sort((a, b) => String(a?.scheduledFor ?? '').localeCompare(String(b?.scheduledFor ?? ''))) as any[];
+  const visibleBlocks = tab === 'novo' ? novoBlocks : tab === 'revisao' ? revisaoBlocks : questionBlocks;
   const todayIso = localToday;
   const tomorrowIso = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
-  let lastReviewGroup = '';
+  let lastScheduleGroup = '';
 
   return (
     <>
@@ -215,6 +223,10 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                 Revisão
                 <span className="sp-tab-count">{revisaoBlocks.length}</span>
               </button>
+              <button className={tab === 'questoes' ? 'sp-tab sp-tab--active' : 'sp-tab'} onClick={() => setTab('questoes')} aria-label="Questões">
+                Questões
+                <span className="sp-tab-count">{questionBlocks.length}</span>
+              </button>
             </div>
 
             {visibleBlocks.length ? (
@@ -224,10 +236,11 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                   const studyingNow = pomodoro.running && pomodoro.activeTopicId === block.topic.id;
                   const slug = TYPE_SLUG[block.type] ?? 'teoria';
                   const scheduleDate = (block as { scheduledFor?: string }).scheduledFor?.slice(0, 10);
-                  const group = tab === 'revisao' ? (!scheduleDate || scheduleDate === todayIso ? 'Hoje' : scheduleDate === tomorrowIso ? 'Amanhã' : scheduleDate < todayIso ? 'Atrasadas' : 'Futuras') : '';
-                  const showGroup = group && group !== lastReviewGroup;
-                  lastReviewGroup = group;
+                  const group = tab !== 'novo' ? (!scheduleDate || scheduleDate === todayIso ? 'Hoje' : scheduleDate === tomorrowIso ? 'Amanhã' : scheduleDate < todayIso ? 'Atrasadas' : 'Futuras') : '';
+                  const showGroup = group && group !== lastScheduleGroup;
+                  lastScheduleGroup = group;
                   const revDate = revisions.get(block.id) ?? (block.type === 'Revisão' ? block.scheduledFor?.slice(0, 10) : undefined);
+                  const questionDate = block.type === 'Questões' ? block.scheduledFor?.slice(0, 10) : undefined;
                   return (
                     <Fragment key={`${tab}-${block.id}`}>
                     {showGroup && <div className={`sp-review-group sp-review-group--${group.toLowerCase()}`}>{group}</div>}
@@ -236,8 +249,8 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                       className={`sp-block${done ? ' sp-block--done' : ''}${pendingBlockIds.has(block.id) ? ' sp-block--pending' : ''}${studyingNow ? ' sp-block--studying' : ''}`}
                       role="button"
                       tabIndex={0}
-                      onClick={() => open(block)}
-                      onKeyDown={e => e.key === 'Enter' && open(block)}
+                      onClick={() => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block)}
+                      onKeyDown={e => e.key === 'Enter' && (tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
                     >
                       <button
                         className="sp-check"
@@ -245,6 +258,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                         aria-label={`${done ? 'Desmarcar' : 'Concluir'} ${block.topic.title}`}
                         onClick={e => {
                           e.stopPropagation();
+                          if (tab === 'questoes') { setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }); return; }
                           if (block.id < 0) { open(block); return; }
                           if (done) uncompleteBlock(block.id);
                           else setReviewTarget(block);
@@ -262,6 +276,8 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                         <span className="sp-block-hint">
                           {studyingNow
                             ? '● Pomodoro em andamento'
+                            : questionDate
+                            ? `Questões em ${new Date(`${questionDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
                             : revDate
                             ? `↻ Revisão em ${new Date(`${revDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
                             : block.topic.children.length
@@ -271,7 +287,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                       </div>
 
                       <div className="sp-block-actions">
-                        <time className="sp-block-time">{block.type === 'Revisão' ? 'tempo livre' : `${block.minutes}min`}</time>
+                        <time className="sp-block-time">{block.type === 'Revisão' ? 'tempo livre' : block.type === 'Questões' ? 'prática' : `${block.minutes}min`}</time>
                       </div>
                     </article>
                     </Fragment>
@@ -295,8 +311,10 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                     <p>Pode ser dia de folga ou as matérias ainda não têm tópicos cadastrados.</p>
                     <button className="sp-empty-link" type="button" onClick={() => setConfigOpen(true)}>Revisar configuração</button>
                   </>)
-                ) : (
+                ) : tab === 'revisao' ? (
                   <><strong>Nenhuma revisão agendada</strong><p>Complete tópicos para gerar revisões.</p></>
+                ) : (
+                  <><strong>Nenhuma questão agendada</strong><p>Conclua um tópico, subtópico ou revisão para gerar a prática.</p></>
                 )}
               </div>
             )}
@@ -378,6 +396,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
       onViewSubject={() => { if (selectedTopic) { setSelectedTopic(null); onOpenSubject(selectedTopic.area.id); } }}
       onStartPomodoro={subtopicId => { if (selectedTopic) { pomodoro.open({ areas: journey.knowledgeAreas, initialAreaId: selectedTopic.area.id, initialTopicId: selectedTopic.topic.id, initialSubtopicId: subtopicId }); } }}
     />
+    {questionTarget && <QuestionRegisterDialog journeyId={journey.id} knowledgeAreaId={questionTarget.areaId} syllabusNodeId={questionTarget.nodeId} title={questionTarget.title} onClose={() => setQuestionTarget(null)} onSaved={() => { void onQuestionsSaved(); setQuestionTarget(null); }} />}
     <PlanConfigWizard
       open={configOpen}
       onClose={() => setConfigOpen(false)}

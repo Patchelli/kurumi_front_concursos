@@ -21,6 +21,7 @@ export type SyllabusNodeStudyResponse = {
   studiedMinutes: number;
   reviewDate?: string | null;
   latestSummary?: string | null;
+  questionDate?: string | null;
 };
 
 const list = (journeyId: number) => clientRequest<SyllabusNodeStudyResponse[]>({

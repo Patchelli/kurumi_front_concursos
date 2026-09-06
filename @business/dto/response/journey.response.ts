@@ -9,14 +9,18 @@ export type JourneySummaryResponse = {
   stage: EJourneyStage;
   knowledgeAreas: number;
   logoUrl?: string | null;
-  progress?: number | null;
-  studiedMinutes?: number | null;
-  studyDays?: number | null;
-  questionsSolved?: number | null;
-  correctAnswers?: number | null;
+  includeInStatistics: boolean;
+  progress: number;
+  readinessLevel: string;
+  studiedMinutes: number;
+  studyDays: number;
+  questionsSolved: number;
+  correctAnswers: number;
 };
 
-export type JourneyDetailsResponse = Omit<JourneySummaryResponse, 'knowledgeAreas'> & {
+export type JourneyDetailsResponse = Omit<JourneySummaryResponse,
+  'knowledgeAreas' | 'progress' | 'readinessLevel' | 'studiedMinutes' | 'studyDays' |
+  'questionsSolved' | 'correctAnswers'> & {
   examBoard?: string | null;
   salary?: number | null;
   openings?: number | null;

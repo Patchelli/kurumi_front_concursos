@@ -60,6 +60,14 @@ export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { a
     const node = area ? findNode(area, state.syllabusNodeId) : undefined;
     if (area && node) (schedule[d] ??= []).push({ node, areaTitle: area.title, colorIdx: areas.indexOf(area) % CAL_BG.length, plannedMinutes: 0, type: 2 });
   });
+  nodeStudy.forEach(state => {
+    if (!state.questionDate) return;
+    const [y, m, d] = state.questionDate.slice(0, 10).split('-').map(Number);
+    if (y !== year || m !== month + 1) return;
+    const area = areas.find(item => findNode(item, state.syllabusNodeId));
+    const node = area ? findNode(area, state.syllabusNodeId) : undefined;
+    if (area && node) (schedule[d] ??= []).push({ node, areaTitle: area.title, colorIdx: areas.indexOf(area) % CAL_BG.length, plannedMinutes: 0, type: 3 });
+  });
 
   const cells: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const isToday = (d: number) => d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
@@ -149,7 +157,7 @@ export function StudyCalendar({ areas, routineBlocks = [], nodeStudy = [] }: { a
           )}
         </div>
       )}
-      {!routineBlocks.length && !nodeStudy.some(item => Boolean(item.reviewDate)) && (
+      {!routineBlocks.length && !nodeStudy.some(item => Boolean(item.reviewDate || item.questionDate)) && (
         <p className="sp-cal-empty">Configure o ciclo de estudos para ver os blocos no calendário.</p>
       )}
       {selectedDay !== null && (
