@@ -3,7 +3,7 @@ import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { Capsule, CapsuleViewProps } from './Capsule.type';
 import { CapsuleCard, CapsuleEmpty, CreateCapsuleDialog, RevealDialog } from './Capsule.widgets';
-import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 type Tab = 'scheduled' | 'delivered' | 'opened';
@@ -60,7 +60,7 @@ export function CapsuleView({
             <span>Conteúdo</span>
           </button>
         </nav>
-        <JourneyProfileLink />
+        <JourneySidebarAccountActions />
         {journey && (
           <div className="jd-contest-card">
             <div className="jd-thumb">

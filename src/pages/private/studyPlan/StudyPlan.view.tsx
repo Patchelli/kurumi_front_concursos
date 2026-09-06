@@ -8,7 +8,7 @@ import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 import { isStudyCompleted } from '@business/studyProgress';
-import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 
@@ -153,7 +153,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
             <span>Conteúdo</span>
           </button>
         </nav>
-        <JourneyProfileLink />
+        <JourneySidebarAccountActions />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0, 2).toUpperCase()}

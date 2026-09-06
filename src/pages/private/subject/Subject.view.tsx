@@ -7,7 +7,7 @@ import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { isStudyCompleted } from '@business/studyProgress';
 import { InputDialog } from '@components/dialog/InputDialog';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
-import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 
@@ -41,7 +41,7 @@ function Sidebar({ active, journeyTitle, journeyInstitution, logoUrl, onOverview
           <span>Conteúdo</span>
         </button>
       </nav>
-      <JourneyProfileLink />
+      <JourneySidebarAccountActions />
       <div className="jd-contest-card">
         <div className="jd-thumb">
           {logoUrl ? <img src={logoUrl} alt="" /> : journeyTitle.slice(0, 2).toUpperCase()}

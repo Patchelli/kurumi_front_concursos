@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import type { SimuladosViewProps } from './Simulados.type';
-import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { simuladosTokens as t } from './Simulados.tokens';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
@@ -384,7 +384,7 @@ export function SimuladosView({
             <span>Conteúdo</span>
           </button>
         </nav>
-        <JourneyProfileLink />
+        <JourneySidebarAccountActions />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt=""/> : journey.title.slice(0, 2).toUpperCase()}

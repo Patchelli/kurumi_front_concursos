@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { EJourneyStage } from '../../../../@business/enum/EJourneyStage';
-import { logoutMethod } from '../../../utils/logoutMethod';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { JourneyViewProps } from './Journey.type';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { journeyTokens } from './Journey.tokens';
-import { JourneyProfileLink } from '@components/layout/JourneyProfileLink';
+import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 
 type DisciplineSort = 'discipline' | 'study' | 'coverage' | 'accuracy';
@@ -200,11 +199,7 @@ export function JourneyView(props: JourneyViewProps) {
             <span>Conteúdo</span>
           </button>
         </nav>
-        <JourneyProfileLink />
-        <button className="jd-logout-btn" onClick={logoutMethod}>
-          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-          <span>Sair</span>
-        </button>
+        <JourneySidebarAccountActions />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0,2).toUpperCase()}
