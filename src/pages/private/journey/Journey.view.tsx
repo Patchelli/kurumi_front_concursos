@@ -59,57 +59,10 @@ function CollapseButton({ label }: { label: string }) {
 }
 
 const WEEK_DAYS      = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const MOCK_WEEK_MIN = journeyTokens.mock.weekMinutes;
-const MOCK_WEEK_ACC = journeyTokens.mock.weekAccuracy;
-const MOCK_EVOL_WEEKS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
-const MOCK_EVOL_ACC = journeyTokens.mock.evolutionAccuracy;
-const MOCK_RETENTION_WEEKS = journeyTokens.mock.retentionWeeks;
-const MOCK_RETENTION = journeyTokens.mock.retentionPercentages;
-const MOCK_AREA_ACC = journeyTokens.mock.areaAccuracy;
-const MOCK_AREA_HRS = journeyTokens.mock.areaHours;
-const MOCK_AREA_Q = journeyTokens.mock.areaQuestions;
-const MOCK_AREA_ERR = journeyTokens.mock.areaErrors;
-const MOCK_AREA_COVERAGE = journeyTokens.mock.areaCoverage;
-const MOCK_FLASHCARDS = journeyTokens.mock.flashcardsByArea;
-const MOCK_FLASHCARD_REVIEWS = journeyTokens.mock.flashcardReviewsByArea;
-const MOCK_FLASHCARD_RECALL = journeyTokens.mock.flashcardRecallByArea;
-const MOCK_TOPIC_DLT = journeyTokens.mock.topicDelta;
-const MOCK_PRED_ERR  = ['Confusão conceitual','Desatenção','Falta de base','Confusão conceitual','Interpretação','Desatenção','Falta de base','Confusão conceitual','Desatenção','Falta de base','Interpretação','Confusão conceitual'];
-const MOCK_PRED_PCT = journeyTokens.mock.predictedPercentages;
-const MOCK_ERR_TYPES = [
-  { label: 'Confusão conceitual', pct: 38, color: '#b03055' },
-  { label: 'Desatenção',          pct: 24, color: '#c87030' },
-  { label: 'Interpretação errada',pct: 21, color: '#4a70c8' },
-  { label: 'Falta de base',       pct: 12, color: '#7c67a0' },
-  { label: 'Pegadinha de prova',  pct:  5, color: '#22907a' },
-];
-function mockAcc(i: number)  { return MOCK_AREA_ACC[i % MOCK_AREA_ACC.length]; }
-function mockMin(i: number)  { return MOCK_AREA_HRS[i % MOCK_AREA_HRS.length] * 60; }
-function mockQ(i: number)    { return MOCK_AREA_Q[i % MOCK_AREA_Q.length]; }
-function mockErr(i: number)  { return MOCK_AREA_ERR[i % MOCK_AREA_ERR.length]; }
-function mockCoverage(i: number) { return MOCK_AREA_COVERAGE[i % MOCK_AREA_COVERAGE.length]; }
-function mockFlashcards(i: number) { return MOCK_FLASHCARDS[i % MOCK_FLASHCARDS.length]; }
-function mockFlashcardReviews(i: number) { return MOCK_FLASHCARD_REVIEWS[i % MOCK_FLASHCARD_REVIEWS.length]; }
-function mockFlashcardRecall(i: number) { return MOCK_FLASHCARD_RECALL[i % MOCK_FLASHCARD_RECALL.length]; }
-function areaCoverage(nodes: Array<{ progress?: number | string | null }>, fallback: number) {
-  const validProgress = nodes.flatMap(node => {
-    const progress = typeof node.progress === 'string'
-      ? node.progress.toLowerCase() === 'studied' || node.progress === '3' ? 100
-        : node.progress.toLowerCase() === 'inprogress' || node.progress === '2' ? 50 : 0
-      : Number(node.progress);
-    return Number.isFinite(progress) && node.progress !== null && node.progress !== undefined
-      ? [Math.min(100, Math.max(0, progress))]
-      : [];
-  });
-  if (!validProgress.length || validProgress.every(value => value === 0)) return fallback;
-  return Math.round(validProgress.reduce((sum, value) => sum + value, 0) / validProgress.length);
-}
-function mockTopicScore(ai: number, ti: number) {
-  return Math.max(10, Math.min(95, mockAcc(ai) + MOCK_TOPIC_DLT[ti % MOCK_TOPIC_DLT.length]));
-}
+const ERROR_COLORS = ['#b03055','#c87030','#4a70c8','#7c67a0','#22907a','#66558f','#8a6478'];
 
 export function JourneyView(props: JourneyViewProps) {
-  const { journey, loading, onBack } = props;
+  const { journey, overview, loading, onBack } = props;
   const [period, setPeriod] = useState<'7'|'14'|'30'|'all'>('all');
   const [accuracyPeriod, setAccuracyPeriod] = useState<'4'|'8'>('8');
   const [retentionPeriod, setRetentionPeriod] = useState<'4'|'8'>('8');
@@ -118,57 +71,43 @@ export function JourneyView(props: JourneyViewProps) {
   const [openArea, setOpenArea] = useState<number | null>(null);
 
   if (loading) return <StudyLoading label="Buscando os dados do concurso…" />;
-  if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
+  if (!journey || !overview) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
 
-  const totalTopics = journey.knowledgeAreas.reduce((t, a) => t + a.nodes.length, 0);
   const stageLabel  = journey.stage === EJourneyStage.Completed ? 'Concurso realizado' : journey.stage === EJourneyStage.PreNotice ? 'Pré-edital' : 'Pós-edital';
   const today       = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 
-  /* ── mock data ── */
-  const mockTotalMin   = journey.knowledgeAreas.reduce((s, _, i) => s + mockMin(i), 0);
-  const mockTotalQ     = journey.knowledgeAreas.reduce((s, a, i) => s + Math.round(a.nodes.length * 9 + mockAcc(i) * 0.5), 0);
-  const mockCorrect    = journey.knowledgeAreas.reduce((s, a, i) => {
-    const q = Math.round(a.nodes.length * 9 + mockAcc(i) * 0.5);
-    return s + Math.round(q * mockAcc(i) / 100);
-  }, 0);
-  const mockAccuracy   = mockTotalQ ? Math.round(mockCorrect / mockTotalQ * 100) : null;
-  const mockDone       = Math.round(totalTopics * 0.38);
-  const mockCovPct     = totalTopics ? Math.round(mockDone / totalTopics * 100) : 0;
-  const mockStudyDays  = 47;
-  const totalQ         = journey.knowledgeAreas.reduce((s,_,i) => s + mockQ(i), 0);
-  const maxWeekMin     = Math.max(...MOCK_WEEK_MIN, 1);
-  const avgDayMin      = Math.round(MOCK_WEEK_MIN.reduce((s,v) => s+v, 0) / 7);
-  const bestDay        = WEEK_DAYS[MOCK_WEEK_MIN.indexOf(Math.max(...MOCK_WEEK_MIN))];
-  const maxEvolAcc     = Math.max(...MOCK_EVOL_ACC, 1);
-  const evolDelta      = MOCK_EVOL_ACC[MOCK_EVOL_ACC.length-1] - MOCK_EVOL_ACC[0];
+  const { summary, readiness } = overview;
+  const weekMinutes = WEEK_DAYS.map((_, day) => overview.days.find(item => item.dayOfWeek === day)?.studiedMinutes ?? 0);
+  const weekAccuracy = WEEK_DAYS.map((_, day) => overview.days.find(item => item.dayOfWeek === day)?.accuracy ?? 0);
+  const evolutionAccuracy = overview.weeks.map(item => item.accuracy);
+  const retentionValues = overview.weeks.map(item => item.retention);
+  const maxWeekMin = Math.max(...weekMinutes, 1);
+  const avgDayMin = summary.studyDays ? Math.round(summary.studiedMinutes / summary.studyDays) : 0;
+  const bestDay = weekMinutes.some(Boolean) ? WEEK_DAYS[weekMinutes.indexOf(Math.max(...weekMinutes))] : '—';
+  const validEvolution = evolutionAccuracy.filter((value): value is number => value !== null);
+  const evolDelta = validEvolution.length > 1 ? Math.round(((validEvolution.at(-1) ?? 0) - validEvolution[0]) * 10) / 10 : 0;
   const accuracyStart = accuracyPeriod === '4' ? 4 : 0;
   const retentionStart = retentionPeriod === '4' ? 4 : 0;
 
   /* mapa de perdas */
-  const areasWithLoss = journey.knowledgeAreas.map((a, i) => ({
-    area: a, i,
-    acc: mockAcc(i),
-    lost: Math.round((1 - mockAcc(i) / 100) * (a.nodes.length * 9 + mockAcc(i) * 0.5)),
-  })).sort((a, b) => b.lost - a.lost);
-  const flashcardData = journey.knowledgeAreas.map((area, i) => ({ area, cards: mockFlashcards(i), reviews: mockFlashcardReviews(i), recall: mockFlashcardRecall(i) }));
+  const areaData = overview.areas.map(item => ({ area: journey.knowledgeAreas.find(area => area.id === item.id)!, ...item })).filter(item => item.area);
+  const areasWithLoss = areaData.map(item => ({ area:item.area, lost:item.errors })).sort((a,b) => b.lost-a.lost);
+  const flashcardData = areaData.map(item => ({ area:item.area, cards:item.flashcards, reviews:item.reviews, recall:item.recall ?? 0 }));
   const totalFlashcards = flashcardData.reduce((sum, item) => sum + item.cards, 0);
   const maxFlashcards = Math.max(1, ...flashcardData.map(item => item.cards));
   const maxFlashcardReviews = Math.max(1, ...flashcardData.map(item => item.reviews));
-  const areasByAccuracy = journey.knowledgeAreas.map((area, i) => ({ area, accuracy: mockAcc(i) })).sort((a, b) => b.accuracy - a.accuracy);
-  const easiestAreas = areasByAccuracy.slice(0, 5);
-  const hardestAreas = [...areasByAccuracy].reverse().slice(0, 5);
-  const sortedDisciplineAreas = journey.knowledgeAreas.map((area, i) => ({ area, index: i, study: mockMin(i), coverage: areaCoverage(area.nodes, mockCoverage(i)), accuracy: mockAcc(i) })).sort((a, b) => {
+  const areasByAccuracy = areaData.filter(item => item.accuracy !== null).map(item => ({ area:item.area, accuracy:item.accuracy ?? 0 })).sort((a,b) => b.accuracy-a.accuracy);
+  const rankingSize = areasByAccuracy.length < 2 ? areasByAccuracy.length : Math.min(3, Math.floor(areasByAccuracy.length / 2));
+  const easiestAreas = areasByAccuracy.slice(0, rankingSize);
+  const hardestAreas = [...areasByAccuracy].reverse().slice(0, rankingSize);
+  const sortedDisciplineAreas = areaData.map(item => ({ area:item.area, study:item.studiedMinutes, coverage:item.coverage, accuracy:item.accuracy ?? 0 })).sort((a, b) => {
     const direction = disciplineSort.direction === 'asc' ? 1 : -1;
     if (disciplineSort.key === 'discipline') return a.area.title.localeCompare(b.area.title, 'pt-BR') * direction;
     return (a[disciplineSort.key] - b[disciplineSort.key]) * direction;
   });
   const changeDisciplineSort = (key: DisciplineSort) => setDisciplineSort(current => ({ key, direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc' }));
   const sortIndicator = (key: DisciplineSort) => disciplineSort.key === key ? (disciplineSort.direction === 'desc' ? ' ↓' : ' ↑') : '';
-  const sortedErrorAreas = journey.knowledgeAreas.map((area, i) => {
-    const errors = mockErr(i);
-    const coverage = MOCK_PRED_PCT[i % MOCK_PRED_PCT.length];
-    return { area, errors, withReason: Math.round(errors * coverage / 100), coverage, predominant: MOCK_PRED_ERR[i % MOCK_PRED_ERR.length] };
-  }).sort((a, b) => {
+  const sortedErrorAreas = areaData.map(item => ({ area:item.area, errors:item.errors, withReason:item.errorsWithReason, coverage:item.errors ? item.errorsWithReason * 100 / item.errors : 0, predominant:item.predominantError ?? 'Não especificado', predominantPercentage:item.predominantErrorPercentage ?? (item.errorsWithReason && item.predominantErrorCount ? Math.round(item.predominantErrorCount * 1000 / item.errorsWithReason) / 10 : null) })).sort((a, b) => {
     const direction = errorSort.direction === 'asc' ? 1 : -1;
     if (errorSort.key === 'discipline') return a.area.title.localeCompare(b.area.title, 'pt-BR') * direction;
     return (a[errorSort.key] - b[errorSort.key]) * direction;
@@ -241,40 +180,26 @@ export function JourneyView(props: JourneyViewProps) {
 
         {/* ── Stats strip: acumulado ── */}
         <div className="jd-stats-strip">
-          <div className="jd-stat-pill">
-            <span className="jd-stat-pill-icon p"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-            <div className="jd-stat-pill-body">
-              <span className="jd-stat-pill-val">{fmtMin(mockTotalMin)}</span>
-              <span className="jd-stat-pill-lbl">Horas totais</span>
-            </div>
+          <div className="jd-stat jd-stat--p">
+            <strong>{fmtMin(summary.studiedMinutes)}</strong>
+            <small>Horas totais</small>
           </div>
-          <div className="jd-stat-pill">
-            <span className="jd-stat-pill-icon t"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></span>
-            <div className="jd-stat-pill-body">
-              <span className="jd-stat-pill-val">{mockTotalQ.toLocaleString('pt-BR')}</span>
-              <span className="jd-stat-pill-lbl">Questões resolvidas</span>
-            </div>
+          <div className="jd-stat jd-stat--t">
+            <strong>{summary.questions.toLocaleString('pt-BR')}</strong>
+            <small>Questões resolvidas</small>
           </div>
-          <div className="jd-stat-pill">
-            <span className="jd-stat-pill-icon a"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span>
-            <div className="jd-stat-pill-body">
-              <span className="jd-stat-pill-val">{mockAccuracy === null ? '—' : `${mockAccuracy}%`}</span>
-              <span className="jd-stat-pill-lbl">Acertos no geral</span>
-            </div>
+          <div className="jd-stat jd-stat--a">
+            <strong>{summary.accuracy === null ? '—' : `${summary.accuracy}%`}</strong>
+            <small>Acertos no geral</small>
           </div>
-          <div className="jd-stat-pill">
-            <span className="jd-stat-pill-icon r"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
-            <div className="jd-stat-pill-body">
-              <span className="jd-stat-pill-val">{mockStudyDays}</span>
-              <span className="jd-stat-pill-lbl">Dias estudados</span>
-            </div>
+          <div className="jd-stat jd-stat--r">
+            <strong>{summary.studyDays}</strong>
+            <small>Dias estudados</small>
           </div>
-          <div className="jd-stat-pill">
-            <span className="jd-stat-pill-icon g"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
-            <div className="jd-stat-pill-body">
-              <span className="jd-stat-pill-val">{mockDone}/{totalTopics}</span>
-              <span className="jd-stat-pill-lbl">Tópicos concluídos</span>
-            </div>
+          <div className="jd-stat jd-stat--g">
+            <strong>{summary.completedTopics}<span>/{summary.totalTopics}</span></strong>
+            <small>Tópicos concluídos</small>
+            <em>{summary.completedSubtopics}/{summary.totalSubtopics} subtópicos</em>
           </div>
         </div>
 
@@ -284,18 +209,18 @@ export function JourneyView(props: JourneyViewProps) {
           <CollapseButton label="resumo de hoje" />
           <div className="jd-today-strip-stats">
             <div className="jd-today-strip-stat">
-              <strong>1h 20min</strong><small>Horas</small>
+              <strong>{fmtMin(summary.todayMinutes)}</strong><small>Horas</small>
             </div>
             <div className="jd-today-strip-stat">
-              <strong>34</strong><small>Questões</small>
+              <strong>{summary.todayQuestions}</strong><small>Questões</small>
             </div>
             <div className="jd-today-strip-stat">
-              <strong>71%</strong><small>Acertos</small>
+              <strong>{summary.todayAccuracy === null ? '—' : `${summary.todayAccuracy}%`}</strong><small>Acertos</small>
             </div>
             <div className="jd-today-strip-stat">
-              <strong>2</strong><small>Sessões</small>
+              <strong>{summary.todaySessions}</strong><small>Sessões</small>
             </div>
-            <div className="jd-today-strip-streak">🔥 3 dias seguidos</div>
+            <div className="jd-today-strip-streak">🔥 {summary.studyStreak} {summary.studyStreak === 1 ? 'dia seguido' : 'dias seguidos'}</div>
           </div>
         </div>
 
@@ -304,19 +229,16 @@ export function JourneyView(props: JourneyViewProps) {
 
           {/* Prontidão para prova */}
           {(() => {
-            const application = mockAccuracy ?? 0;
-            const retention = MOCK_RETENTION[MOCK_RETENTION.length - 1] ?? 0;
-            const consistency = journeyTokens.mock.consistencyPercentage;
             const components  = [
-              { label: 'Cobertura', val: mockCovPct, tip: 'Percentual de todo o edital que já foi estudado' },
-              { label: 'Aplicação', val: application, tip: 'Se o conteúdo estudado está sendo aplicado corretamente nas questões' },
-              { label: 'Retenção', val: retention, tip: 'Percentual de cards lembrados nas revisões' },
-              { label: 'Consistência', val: consistency, tip: 'Regularidade dos estudos ao longo do tempo' },
+              { label: 'Cobertura', val: readiness.coverage, tip: 'Percentual de todo o edital que já foi estudado' },
+              { label: 'Aplicação', val: readiness.application, tip: 'Se o conteúdo estudado está sendo aplicado corretamente nas questões' },
+              { label: 'Retenção', val: readiness.retention, tip: 'Percentual de cards lembrados nas revisões' },
+              { label: 'Consistência', val: readiness.consistency, tip: 'Regularidade dos estudos ao longo do tempo' },
             ];
             return (
               <div className="jd-ring-card">
                 <h3>Situação da preparação</h3><CollapseButton label="situação da preparação" />
-                <AccuracyRing pct={mockCovPct} sub="do edital consolidado" />
+                <AccuracyRing pct={readiness.score} sub={readiness.level} />
                 <div className="jd-ring-stats">
                   {components.map(c => (
                     <div className="jd-ring-stat" key={c.label} title={c.tip}>
@@ -354,10 +276,10 @@ export function JourneyView(props: JourneyViewProps) {
             </div>
             <div className="jd-weekday-chart">
               {WEEK_DAYS.map((day, i) => {
-                const min    = MOCK_WEEK_MIN[i];
-                const acc    = MOCK_WEEK_ACC[i];
+                const min    = weekMinutes[i];
+                const acc    = weekAccuracy[i];
                 const height = Math.round(min / maxWeekMin * 100);
-                const isBest = min === Math.max(...MOCK_WEEK_MIN);
+                const isBest = min > 0 && min === Math.max(...weekMinutes);
                 return (
                   <div className="jd-wday-col" key={day}>
                     <div className="jd-wday-bars">
@@ -387,24 +309,24 @@ export function JourneyView(props: JourneyViewProps) {
               <div className="jd-chart-header-actions"><small style={journeyTokens.styles.colorStrong(evolDelta >= 0 ? journeyTokens.colors.success : journeyTokens.colors.danger)}>{evolDelta >= 0 ? '▲' : '▼'} {Math.abs(evolDelta)}pp</small><div className="jd-chart-period"><button className={accuracyPeriod === '4' ? 'active' : ''} onClick={() => setAccuracyPeriod('4')}>4 sem</button><button className={accuracyPeriod === '8' ? 'active' : ''} onClick={() => setAccuracyPeriod('8')}>8 sem</button></div><CollapseButton label="evolução dos acertos" /></div>
             </div>
             <div className="jd-evol-chart">
-              {MOCK_EVOL_WEEKS.slice(accuracyStart).map((week, visibleIndex) => {
+              {overview.weeks.slice(accuracyStart).map((item, visibleIndex) => {
                 const i = visibleIndex + accuracyStart;
-                const acc    = MOCK_EVOL_ACC[i];
-                const height = Math.round(acc / maxEvolAcc * 100);
+                const acc    = evolutionAccuracy[i];
+                const height = acc ?? 0;
                 const color  = domainColor(acc);
                 return (
-                  <div className="jd-evol-col" key={week}>
-                    <span className="jd-evol-val" style={journeyTokens.styles.color(color)}>{acc}%</span>
+                  <div className="jd-evol-col" key={item.label}>
+                    <span className="jd-evol-val" style={journeyTokens.styles.color(color)}>{acc === null ? '—' : `${acc}%`}</span>
                     <div className="jd-evol-bar-track">
                       <div className="jd-evol-bar" style={journeyTokens.styles.heightColor(height, color)}/>
                     </div>
-                    <span className="jd-evol-label">{week}</span>
+                    <span className="jd-evol-label">{item.label}</span>
                   </div>
                 );
               })}
             </div>
             <p className="jd-evol-tip">
-              {MOCK_EVOL_ACC[MOCK_EVOL_ACC.length-1] >= 70
+              {(validEvolution.at(-1) ?? 0) >= 70
                 ? 'Boa evolução! Você está acima de 70% — continue revisando para manter.'
                 : 'Ainda em crescimento. Foque nas disciplinas com menor domínio.'}
             </p>
@@ -416,14 +338,14 @@ export function JourneyView(props: JourneyViewProps) {
               <div className="jd-chart-header-actions"><small>% de cards lembrados</small><div className="jd-chart-period"><button className={retentionPeriod === '4' ? 'active' : ''} onClick={() => setRetentionPeriod('4')}>4 sem</button><button className={retentionPeriod === '8' ? 'active' : ''} onClick={() => setRetentionPeriod('8')}>8 sem</button></div><CollapseButton label="evolução da retenção" /></div>
             </div>
             <div className="jd-evol-chart">
-              {MOCK_RETENTION_WEEKS.slice(retentionStart).map((week, visibleIndex) => {
+              {overview.weeks.slice(retentionStart).map((item, visibleIndex) => {
                 const i = visibleIndex + retentionStart;
-                const retention = MOCK_RETENTION[i];
-                const height = Math.round(retention / Math.max(...MOCK_RETENTION, 1) * 100);
-                return <div className="jd-evol-col" key={week}>
-                  <span className="jd-evol-val jd-retention-val">{retention}%</span>
+                const retention = retentionValues[i];
+                const height = retention ?? 0;
+                return <div className="jd-evol-col" key={item.label}>
+                  <span className="jd-evol-val jd-retention-val">{retention === null ? '—' : `${retention}%`}</span>
                   <div className="jd-evol-bar-track"><div className="jd-evol-bar jd-retention-bar" style={journeyTokens.styles.height(height)} /></div>
-                  <span className="jd-evol-label">{week}</span>
+                  <span className="jd-evol-label">{item.label}</span>
                 </div>;
               })}
             </div>
@@ -492,15 +414,15 @@ export function JourneyView(props: JourneyViewProps) {
           <div className="jd-card">
             <div className="jd-card-header">
               <h3>Questões por disciplina</h3>
-              <small>{totalQ.toLocaleString('pt-BR')} total</small>
+              <small>{summary.questions.toLocaleString('pt-BR')} total</small>
               <CollapseButton label="questões por disciplina" />
             </div>
             <div className="jd-effort-list">
-              {[...journey.knowledgeAreas]
-                .map((a,i) => ({ area:a, q:mockQ(i) }))
+              {areaData
+                .map(item => ({ area:item.area, q:item.questions }))
                 .sort((a,b) => b.q - a.q)
                 .map(({area, q}) => {
-                  const pct = Math.round(q / totalQ * 100);
+                  const pct = summary.questions ? Math.round(q / summary.questions * 100) : 0;
                   return (
                     <div className="jd-effort-row" key={area.id}>
                       <span className="jd-effort-name" title={area.title}>{area.title}</span>
@@ -533,11 +455,11 @@ export function JourneyView(props: JourneyViewProps) {
           <div className="jd-card jd-error-types-card">
             <div className="jd-card-header"><h3>Tipos de erro</h3><small>Distribuição geral</small><CollapseButton label="tipos de erro" /></div>
             <div className="jd-error-types">
-              {MOCK_ERR_TYPES.map(t => (
-                <div className="jd-error-type-row" key={t.label}>
-                  <span className="jd-error-type-label">{t.label}</span>
-                  <div className="jd-ebar-track"><div className="jd-ebar" style={journeyTokens.styles.widthColor(t.pct, t.color)}/></div>
-                  <span className="jd-error-type-pct" style={journeyTokens.styles.color(t.color)}>{t.pct}%</span>
+              {overview.errors.map((item,index) => (
+                <div className="jd-error-type-row" key={item.reason}>
+                  <span className="jd-error-type-label">{item.reason}</span>
+                  <div className="jd-ebar-track"><div className="jd-ebar" style={journeyTokens.styles.widthColor(item.percentage, ERROR_COLORS[index % ERROR_COLORS.length])}/></div>
+                  <span className="jd-error-type-pct" style={journeyTokens.styles.color(ERROR_COLORS[index % ERROR_COLORS.length])}>{item.percentage}%</span>
                 </div>
               ))}
             </div>
@@ -557,14 +479,14 @@ export function JourneyView(props: JourneyViewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedErrorAreas.map(({ area, errors, withReason, coverage, predominant }) => {
+                  {sortedErrorAreas.map(({ area, errors, withReason, coverage, predominant, predominantPercentage }) => {
                     return (
                       <tr key={area.id}>
                         <td className="jd-err-name">{area.title}</td>
                         <td className="jd-err-num">{errors}</td>
                         <td className="jd-err-num">{withReason}</td>
                         <td className="jd-err-num">{coverage.toFixed(1).replace('.',',')}%</td>
-                        <td className="jd-err-pred">{predominant} <span>{Math.round(coverage * 0.6)}%</span></td>
+                        <td className="jd-err-pred">{predominant} {predominantPercentage != null && <span>{predominantPercentage}%</span>}</td>
                       </tr>
                     );
                   })}
@@ -589,26 +511,27 @@ export function JourneyView(props: JourneyViewProps) {
             ? <div className="jd-edital-areas">
                 {journey.knowledgeAreas.map((area, ai) => {
                   const isOpen    = openArea === area.id;
-                  const areaDomain = mockAcc(ai);
+                  const overviewArea = overview.areas.find(item => item.id === area.id);
+                  const areaDomain = overviewArea?.coverage ?? null;
                   return (
                     <div className="jd-edital-area" key={area.id}>
                       <button className="jd-edital-area-header" onClick={() => setOpenArea(isOpen ? null : area.id)}>
                         <span className={`jd-domain-dot ${domainDot(areaDomain)}`} />
                         <span className="jd-edital-area-name">{area.title}</span>
                         <span className="jd-edital-area-count">{area.nodes.length}t</span>
-                        <span className="jd-edital-area-score" style={journeyTokens.styles.color(domainColor(areaDomain))}>{areaDomain}%</span>
+                        <span className="jd-edital-area-score" style={journeyTokens.styles.color(domainColor(areaDomain))}>{areaDomain === null ? '—' : `${areaDomain}%`}</span>
                         <svg className={`jd-chevron${isOpen?' open':''}`} viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                       </button>
                       {isOpen && (
                         <div className="jd-edital-topics">
                           {area.nodes.length
-                            ? area.nodes.map((node, ti) => {
-                                const score = mockTopicScore(ai, ti);
+                            ? area.nodes.map(node => {
+                                const score = overviewArea?.topics.find(item => item.id === node.id)?.coverage ?? null;
                                 return (
                                   <div className="jd-edital-topic" key={node.id}>
                                     <span className={`jd-domain-dot small ${domainDot(score)}`} />
                                     <span className="jd-edital-topic-name">{node.title}</span>
-                                    <span className="jd-edital-topic-score" style={journeyTokens.styles.color(domainColor(score))}>{score}%</span>
+                                    <span className="jd-edital-topic-score" style={journeyTokens.styles.color(domainColor(score))}>{score === null ? '—' : `${score}%`}</span>
                                   </div>
                                 );
                               })

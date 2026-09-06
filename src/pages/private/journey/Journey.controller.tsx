@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { JourneyDetailsResponse } from '../../../../@business/dto/response/journey.response';
 import { journeyService } from '../../../../@business/service/Journey.service';
+import { journeyOverviewService } from '../../../../@business/service/JourneyOverview.service';
 import { ConfirmDialog } from '../../../components/dialog/ConfirmDialog';
 import { InputDialog } from '../../../components/dialog/InputDialog';
 import { JourneyView } from './Journey.view';
@@ -15,19 +16,20 @@ export function JourneyController() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [journey, setJourney] = useState<JourneyDetailsResponse | null>(null);
+  const [overview, setOverview] = useState<Awaited<ReturnType<typeof journeyOverviewService.find>> | null>(null);
   const [loading, setLoading] = useState(true);
   const [inputDialog, setInputDialog] = useState<InputState | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmState | null>(null);
 
   const journeyId = Number(id);
   const validJourneyId = Number.isSafeInteger(journeyId) && journeyId > 0;
-  const load = async () => { if (!validJourneyId) return; setJourney(await journeyService.findById(journeyId)); };
+  const load = async () => { if (!validJourneyId) return; const [journeyData, overviewData] = await Promise.all([journeyService.findById(journeyId), journeyOverviewService.find(journeyId)]); setJourney(journeyData); setOverview(overviewData); };
   useEffect(() => {
     if (!validJourneyId) { setJourney(null); setLoading(false); return; }
     let active = true;
     setLoading(true);
-    journeyService.findById(journeyId)
-      .then(data => { if (active) setJourney(data); })
+    Promise.all([journeyService.findById(journeyId), journeyOverviewService.find(journeyId)])
+      .then(([data, overviewData]) => { if (active) { setJourney(data); setOverview(overviewData); } })
       .catch(error => { if (active) { setJourney(null); toast.error(getRequestErrorMessage(error, 'Não foi possível carregar o concurso.')); } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -42,6 +44,7 @@ export function JourneyController() {
     <>
       <JourneyView
         journey={journey}
+        overview={overview}
         loading={loading}
         onBack={() => navigate('/inicio')}
         onOpenStudyPlan={() => navigate(`/jornadas/${id}/plano`)}
@@ -82,8 +85,6 @@ export function JourneyController() {
             onConfirm: () => void mutate(() => journeyService.removeNode(nodeId), 'Tópico removido.'),
           });
         }}
-        onCreateFlashcard={() => toast.info('A criação de flashcards ainda será conectada ao backend.')}
-        onOpenPomodoro={() => toast.info('O temporizador Pomodoro ainda será implementado.')}
         onOpenContent={() => navigate(`/jornadas/${id}/materias`)}
         onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)}
         onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)}
