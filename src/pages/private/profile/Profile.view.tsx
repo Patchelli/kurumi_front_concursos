@@ -16,7 +16,7 @@ export function ProfileView(props: ProfileViewProps) {
         <nav className="hub-nav" aria-label="Navegação principal">
           <a href="/inicio">Jornadas</a>
           <a href="/calendario">Calendário</a>
-          <button type="button" disabled>Desempenho</button>
+          <a href="/radar">Radar</a>
         </nav>
         <UserMenu firstName={props.firstName} onLogout={props.onLogout} />
       </header>
