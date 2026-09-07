@@ -6,7 +6,7 @@ import type { KnowledgeAreaResponse, SyllabusNodeResponse } from '@business/dto/
 import type { StudyRoutineBlockResponse } from '@business/service/StudyRoutine.service';
 import type { StudyResource, StudyResourceKind, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
 import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
-import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@business/studyProgress';
+import { isStudyCompleted, isStudyPending, studyProgressLabel, studyProgressPercent } from '@business/studyProgress';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
 import { FlashcardManager } from '@components/flashcard/FlashcardManager';
 import { flashcardService, type FlashcardResponse } from '@business/service/Flashcard.service';
@@ -1189,7 +1189,8 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
       setCurrentProgress(result.progress);
       setRevision(Boolean(result.reviewDate));
       setStudiedMinutes(result.studiedMinutes);
-      if (!completed) toast.success('Subtópico marcado como pendente.');
+      if (!isStudyCompleted(result.progress) && !isStudyPending(result.progress)) toast.success('Subtópico não iniciado.');
+      else if (!completed) toast.success('Subtópico marcado como pendente.');
       else if (scheduleReview) toast.success('Subtópico concluído e revisão agendada.');
       else toast.success('Subtópico concluído com sucesso!');
     } catch { toast.error('Não foi possível salvar o estudo do subtópico.'); }
@@ -1226,14 +1227,14 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
   return (
     <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}${pending ? ' sp-subtopic-item--pending' : ''}`}>
       <div className="sp-subtopic-header">
-        <button className={`sp-subtopic-check${isCompleted ? ' sp-subtopic-check--done' : ''}${pending ? ' sp-subtopic-check--pending' : ''}`} type="button" title={isCompleted ? 'Marcar pendente' : pending ? 'Editar pendência' : 'Concluir subtópico'} onClick={() => isCompleted ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={savingStudy}>
+        <button className={`sp-subtopic-check${isCompleted ? ' sp-subtopic-check--done' : ''}${pending ? ' sp-subtopic-check--pending' : ''}`} type="button" title={isCompleted ? 'Desmarcar conclusão' : pending ? 'Editar pendência' : 'Concluir subtópico'} onClick={() => isCompleted ? void saveStudy(false, 0, false, null) : setReviewOpen(true)} disabled={savingStudy}>
           {isCompleted
             ? <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             : <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>
           }
         </button>
         <button className="sp-subtopic-expand" type="button" onClick={() => setExpanded(v => !v)}>
-          <strong>{displayTitle}</strong><small>{weightPercent}% do tópico · {studiedMinutes} min estudados</small>
+          <strong>{displayTitle}</strong><small>{studyProgressLabel(currentProgress)} · {weightPercent}% do tópico · {studiedMinutes} min estudados</small>
           <span className="sp-subtopic-arrow">{expanded ? '▾' : '▸'}</span>
         </button>
       </div>
@@ -1353,12 +1354,24 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
 
   const subtopics = target.topic.children;
   const targetStudy = nodeStudy.find(item => item.syllabusNodeId === target.topic.id);
+  const currentTopicProgress = targetStudy?.progress ?? target.topic.progress;
   const completedSubtopics = subtopics.filter(child =>
     isStudyCompleted(nodeStudy.find(item => item.syllabusNodeId === child.id)?.progress ?? child.progress)
   ).length;
   const progress = subtopics.length
     ? Math.round(completedSubtopics / subtopics.length * 100)
     : studyProgressPercent(targetStudy?.progress ?? target.topic.progress);
+  const hasStartedSubtopics = subtopics.some(child => {
+    const childProgress = nodeStudy.find(item => item.syllabusNodeId === child.id)?.progress ?? child.progress;
+    return isStudyPending(childProgress) || isStudyCompleted(childProgress);
+  });
+  const statusLabel = completed
+    ? 'Concluído'
+    : isStudyPending(currentTopicProgress)
+    ? 'Pendente'
+    : hasStartedSubtopics
+    ? 'Em andamento'
+    : studyProgressLabel(currentTopicProgress);
 
   return (
     <div className="sp-topic-overlay" onMouseDown={onClose}>
@@ -1380,7 +1393,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
         <div className="sp-topic-panel-body">
           <div className="sp-topic-dialog">
             <div className="sp-topic-status">
-              <div><small>STATUS</small><strong>{completed ? 'Concluído' : 'Pendente'}</strong></div>
+              <div><small>STATUS</small><strong>{statusLabel}</strong></div>
               <div><small>PROGRESSO</small><strong>{progress}%</strong></div>
               <div><small>SUBTÓPICOS</small><strong>{subtopics.length}</strong></div>
             </div>
