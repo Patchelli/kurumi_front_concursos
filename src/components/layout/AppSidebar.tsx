@@ -6,7 +6,7 @@ type AppSidebarProps = { firstName: string; onLogout(): void };
 const menuItems = [
   { label: 'Jornadas', route: '/', icon: '▤', enabled: true },
   { label: 'Calendário', route: '/calendario', icon: '□', enabled: true },
-  { label: 'Desempenho', route: '/desempenho', icon: '⌁', enabled: false },
+  { label: 'Radar', route: '/radar', icon: '⌁', enabled: true },
 ] as const;
 
 export function AppSidebar({ firstName, onLogout }: AppSidebarProps) {

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { Home, Journey, StudyPlan, SubjectList, SubjectDetail, Capsule, Calendar, Simulados, Profile } from './imports/private.imports';
+import { Home, Journey, StudyPlan, SubjectList, SubjectDetail, Capsule, Calendar, Simulados, Profile, Radar } from './imports/private.imports';
 import { Login, Register } from './imports/public.imports';
 import { AdminUsers } from './imports/admin.imports';
 import { AdminRoute, PrivateRoute } from './security_routes';
@@ -11,6 +11,7 @@ export default function RoutesApp() {
     <Route path="/" element={<Navigate to="/entrar" replace />} />
     <Route path="/entrar" element={<Login />} /><Route path="/cadastro" element={<Register />} />
     <Route path="/inicio" element={<PrivateRoute><Home /></PrivateRoute>} />
+    <Route path="/radar" element={<PrivateRoute><Radar /></PrivateRoute>} />
     <Route path="/calendario" element={<PrivateRoute><Calendar /></PrivateRoute>} />
     <Route path="/agenda" element={<Navigate to="/calendario" replace />} />
     <Route path="/jornadas/:id" element={<PrivateRoute><Journey /></PrivateRoute>} />

@@ -1,260 +1,479 @@
+/* ── Emil Design Engineering — Journey Card ── */
+
+/* Custom easing tokens (Emil-approved curves) */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .journey-card {
-  min-height: 590px;
+  min-height: 0;
   cursor: pointer;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color 220ms var(--ease-out);
 }
 
-.journey-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--card-accent) 35%, #e4dee7); box-shadow: 0 18px 42px #392d4317; }
-.journey-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--card-accent) 55%, transparent); outline-offset: 3px; }
-
-.insight-strip.general-statistics {
-  grid-template-columns: repeat(4, minmax(170px, 1fr));
+@media (hover: hover) and (pointer: fine) {
+  .journey-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--card-accent) 30%, #e4dee7);
+    box-shadow: 0 20px 50px #392d4318, 0 8px 20px #392d430d;
+  }
 }
 
-.general-statistics-heading {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 19px 22px 16px;
-  border-bottom: 1px solid #ebe5ed;
-  background: linear-gradient(100deg, #faf6ff, #fff);
+.journey-card:active {
+  transform: scale(0.98);
+  transition-duration: 120ms;
 }
 
-.general-statistics-heading h2 {
-  margin: 4px 0 0;
-  color: #302a36;
-  font-size: 21px;
-  letter-spacing: -.025em;
+.journey-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--card-accent) 50%, transparent);
+  outline-offset: 3px;
 }
 
-.general-statistics-heading p {
-  margin: 0;
-  color: #746d78;
-  font-size: 12px;
-}
-
-.general-statistics article:last-child { border-right: 0; }
-.insight-icon.amber { color: #7a4d00; background: #ffddb0; }
-
+/* Cover */
 .journey-cover {
   position: relative;
   display: grid;
   place-items: center;
-  height: 142px;
-  margin: 16px 0 14px;
+  height: 100px;
+  margin: 12px 0;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 18px;
   background:
-    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, .32), transparent 28%),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, .28), transparent 32%),
     linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #65558f) 82%, #1d192b), var(--card-accent, #65558f));
-}
-
-.journey-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 38%, rgba(20, 18, 27, .65));
-  pointer-events: none;
 }
 
 .journey-cover > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 350ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-card:hover .journey-cover > img {
+    transform: scale(1.04);
+  }
 }
 
 .journey-cover > span {
   color: #fff;
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -.04em;
+  opacity: .85;
 }
 
-.level-badge {
-  position: absolute;
-  z-index: 1;
-  right: 12px;
-  bottom: 11px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 11px;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 13px;
-  background: rgba(29, 25, 43, .72);
-  backdrop-filter: blur(10px);
+/* Copy */
+.journey-copy {
+  margin-bottom: 2px;
 }
 
-.level-badge small {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  opacity: .72;
+.journey-copy h3 {
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+  margin: 0 0 3px;
+  color: #221d28;
 }
 
-.level-badge strong {
+.journey-copy p {
+  margin: 0;
+  color: #8a8291;
   font-size: 12px;
+  font-weight: 600;
 }
 
-.card-performance {
+/* Inline metrics */
+.card-metrics-inline {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
   margin: 14px 0 12px;
+  background: #f5f1f7;
+  border-radius: 14px;
+  overflow: hidden;
 }
 
-.card-performance > div {
-  position: relative;
+.card-metrics-inline > div {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-  min-height: 75px;
-  padding: 10px 39px 10px 11px;
-  border-radius: 16px;
+  align-items: center;
+  padding: 12px 6px;
+  background: #f9f6fb;
+  gap: 2px;
 }
 
-.card-performance span {
-  position: absolute;
-  right: 9px;
-  bottom: 9px;
-  display: grid;
-  place-items: center;
-  width: 27px;
-  height: 27px;
-  color: #fff;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, .16);
-  font-weight: 900;
+.card-metrics-inline strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: #302a36;
+  letter-spacing: -.02em;
 }
 
-.card-performance strong {
-  overflow: hidden;
-  color: #fff;
-  font-size: 20px;
-  line-height: 1.05;
-  text-overflow: ellipsis;
+.card-metrics-inline span {
+  font-size: 9px;
+  font-weight: 700;
+  color: #908897;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
 
-.card-performance small {
-  color: rgba(255,255,255,.92);
-  font-size: 10px;
-  font-weight: 750;
-  line-height: 1.15;
-}
-
-.card-performance .metric-performance { background: linear-gradient(135deg, #347cba, #45a3d8); }
-.card-performance .metric-hours { background: linear-gradient(135deg, #438f35, #72ce3f); }
-.card-performance .metric-questions { background: linear-gradient(135deg, #e64d0b, #ff8a18); }
-.card-performance .metric-average { background: linear-gradient(135deg, #e99b13, #f5c94f); }
-
+/* Progress */
 .journey-progress {
-  margin-bottom: 12px;
-  padding: 11px 12px;
-  border: 1px solid #e9e3ee;
-  border-radius: 16px;
-  background: #fcf9ff;
+  margin: 0 0 12px;
 }
 
 .journey-progress > div {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 7px;
-  color: #39323f;
+  margin-bottom: 6px;
+  color: #5a5360;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .journey-progress > div strong {
   color: var(--card-accent, #65558f);
+  font-size: 12px;
 }
 
 .journey-progress .progress-track {
   display: block;
-  height: 7px;
+  height: 5px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e9e2eb;
+  background: #ede8f0;
 }
 
 .journey-progress .progress-track i {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--card-accent, #65558f), color-mix(in srgb, var(--card-accent, #65558f) 55%, #ffcf5c));
+  background: var(--card-accent, #65558f);
+  transition: width 600ms var(--ease-out);
+  transform-origin: left;
 }
 
-.journey-progress > small {
+/* Footer — date + arrow */
+.journey-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #eee8f0;
+  margin-top: auto;
+}
+
+.journey-date {
+  font-size: 11px;
+  color: #908897;
+  font-weight: 600;
+}
+
+.journey-arrow {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card-accent, #65558f) 10%, white);
+  color: var(--card-accent, #65558f);
+  font-size: 14px;
+  font-weight: 800;
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-card:hover .journey-arrow {
+    background: var(--card-accent, #65558f);
+    color: #fff;
+    transform: translateX(2px);
+  }
+}
+
+/* Stage pill */
+.stage-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, #65558f) 14%, white);
+  color: var(--card-accent, #65558f);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border: 1px solid color-mix(in srgb, var(--card-accent, #65558f) 12%, transparent);
+}
+
+/* Card actions — reveal on hover */
+.card-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-card:hover .card-actions {
+    opacity: 1;
+  }
+}
+
+.card-actions button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #9088a0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.card-actions button:active {
+  transform: scale(0.9);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-actions button:hover {
+    background: #f0eaf3;
+    color: #5b3f82;
+  }
+
+  .card-actions button:last-child:hover {
+    background: #fbe9ed;
+    color: #9b3445;
+  }
+}
+
+.card-actions .trash-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 28px 0 38px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid #eae4ed;
+  border-radius: 18px;
+  transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px #392d430d;
+  }
+}
+
+.stat-card:active {
+  transform: scale(0.98);
+  transition-duration: 100ms;
+}
+
+.stat-card > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card strong {
+  font-size: 22px;
+  letter-spacing: -.03em;
+  color: #221d28;
+  line-height: 1.1;
+}
+
+.stat-card > div > span {
+  font-size: 11px;
+  color: #908897;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  flex: none;
+}
+
+.stat-icon.violet { background: #ede5f7; color: #5c3f85; }
+.stat-icon.blue { background: #dceeff; color: #1b4f8a; }
+.stat-icon.green { background: #d8f2e3; color: #1a6b3f; }
+.stat-icon.amber { background: #ffefd6; color: #7a4d00; }
+
+/* ── Welcome ── */
+.hub-greeting {
   display: block;
-  margin-top: 6px;
-  color: #77707c;
-  font-size: 9px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #908897;
+  letter-spacing: -.01em;
 }
 
-@media (max-width: 720px) {
-  .insight-strip.general-statistics { grid-template-columns: 1fr 1fr; }
-  .general-statistics-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
-  .general-statistics article:nth-child(2) { border-right: 0; }
-  .general-statistics article:nth-child(-n+2) { border-bottom: 1px solid #ebe5ed; }
-  .journey-card { min-height: 570px; }
-  .journey-cover { height: 130px; }
+.hub-welcome h1 {
+  font-size: clamp(36px, 4vw, 52px);
+  letter-spacing: -.055em;
+  margin: 2px 0 0;
+  line-height: 1.05;
 }
 
-/* FAB — oculto no desktop */
+/* Nova jornada button — must feel responsive */
+.hub-create {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  background: #66558f;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 150ms var(--ease-out), transform 160ms var(--ease-out), box-shadow 150ms var(--ease-out);
+  box-shadow: 0 2px 8px #39285e20;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-create:hover {
+    background: #543c78;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px #39285e30;
+  }
+}
+
+.hub-create:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px #39285e18;
+  transition-duration: 100ms;
+}
+
+.hub-create span {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ── Home card overrides ── */
+.home-journey-card {
+  padding: 18px;
+}
+
+.home-journey-card .journey-cover {
+  height: 100px;
+  margin: 10px 0 12px;
+  border-radius: 16px;
+}
+
+.home-journey-card .card-metrics-inline strong { font-size: 14px; }
+
+/* ── Add card ── */
+.journey-add-card {
+  background: linear-gradient(155deg, #faf7fc, #f3edf6);
+  border: 1.5px dashed #d0c5d6;
+  transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color 150ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-add-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px #46374f12;
+    border-color: #b8a8d0;
+  }
+}
+
+.journey-add-card:active {
+  transform: scale(0.98);
+  transition-duration: 100ms;
+}
+
+.add-orbit {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #fff;
+  color: #654b8b;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  box-shadow: 0 8px 22px #46374f10;
+  margin-bottom: 14px;
+  transition: transform 200ms var(--ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-add-card:hover .add-orbit {
+    transform: scale(1.06);
+  }
+}
+
+/* FAB — hidden on desktop */
 .hub-fab { display: none; }
 
-/* ── Mobile ≤ 560px: layout vertical, um card de cada vez ── */
-@media (max-width: 560px) {
-  /* Botão topo some — FAB assume */
-  .hub-create-top { display: none; }
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
 
-  /* FAB flutuante */
+@media (max-width: 560px) {
+  .hub-create-top { display: none; }
+  .hub-greeting { font-size: 14px; }
+
   .hub-fab {
     display: grid;
     place-items: center;
     position: fixed;
     bottom: 24px;
     right: 20px;
-    width: 58px;
-    height: 58px;
+    width: 56px;
+    height: 56px;
     border: 0;
-    border-radius: 18px;
+    border-radius: 17px;
     background: #66558f;
     color: #fff;
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
     z-index: 50;
     box-shadow: 0 6px 22px #39285e45, 0 2px 6px #39285e28;
-    transition: transform .15s, box-shadow .15s;
+    transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
   }
-  .hub-fab:active { transform: scale(.93); box-shadow: 0 2px 8px #39285e30; }
+  .hub-fab:active { transform: scale(.92); box-shadow: 0 2px 8px #39285e30; }
 
-  /* Topbar compacto */
   .hub-profile-name { display: none; }
-  .logout-button { padding: 0 11px; font-size: 0; gap: 0; }
-  .logout-button svg { width: 20px; height: 20px; }
 
-  /* Welcome */
-  .hub-welcome h1 { font-size: clamp(26px, 7.5vw, 34px); }
-  .hub-welcome p { font-size: 14px; }
+  .hub-welcome h1 { font-size: clamp(28px, 7.5vw, 36px); }
 
-  /* Stats: 1 coluna em vez de 2 */
-  .insight-strip.general-statistics { grid-template-columns: 1fr; margin: 20px 0 28px; border-radius: 20px; }
-  .general-statistics article { border-right: 0; border-bottom: 1px solid #ebe5ed; }
-  .general-statistics article:last-child { border-bottom: 0; }
-  .general-statistics-heading { padding: 13px 14px 11px; }
-  .insight-strip article { padding: 13px 15px; gap: 11px; }
-  .insight-strip article strong { font-size: 20px; }
-  .insight-icon { width: 34px; height: 34px; border-radius: 11px; font-size: 15px; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; margin: 20px 0 28px; }
+  .stat-card { padding: 14px 16px; border-radius: 15px; }
+  .stat-card strong { font-size: 18px; }
+  .stat-icon { width: 34px; height: 34px; border-radius: 11px; font-size: 15px; }
 
-  /* Carrossel centralizado: padding = (viewport - card) / 2
-     card = 100vw - 52px → padding = 26px cada lado
-     resultado: card centrado + 12px peek do próximo visível */
   .journey-carousel {
     padding: 4px 26px 22px;
     gap: 14px;
@@ -265,40 +484,272 @@
     min-height: 0;
   }
 
-  /* Card — conteúdo mais compacto */
-  .journey-card { padding: 18px; }
-  .journey-cover { height: 105px; margin: 10px 0 8px; }
-  .card-performance { gap: 6px; margin: 8px 0 7px; }
-  .card-performance > div { min-height: 60px; padding: 8px 33px 8px 10px; }
-  .card-performance strong { font-size: 15px; }
-  .card-performance small { font-size: 9px; }
-  .journey-progress { padding: 9px 10px; margin-bottom: 8px; }
-  .journey-meta { padding: 10px 12px; margin-top: 10px; }
-  .open-journey { height: 34px; }
+  .journey-card { padding: 16px; }
+  .journey-cover { height: 85px; margin: 8px 0; }
+  .card-metrics-inline { margin: 10px 0; }
+  .card-metrics-inline > div { padding: 10px 4px; }
+  .card-metrics-inline strong { font-size: 13px; }
+  .journey-progress { margin-bottom: 10px; }
 
-  /* Add card */
-  .journey-add-card { height: 180px; }
-  .add-orbit { width: 50px; height: 50px; font-size: 23px; border-radius: 16px; margin-bottom: 10px; }
+  .journey-add-card { height: 160px; }
+  .add-orbit { width: 48px; height: 48px; font-size: 22px; border-radius: 15px; margin-bottom: 10px; }
   .journey-add-card strong { font-size: 15px; }
   .journey-add-card small { font-size: 12px; margin-top: 4px; }
 
-  /* Section heading */
   .section-heading { margin-bottom: 12px; }
-  .section-heading h2 { font-size: 21px; }
+  .section-heading h2 { font-size: 22px; }
   .drag-tip { font-size: 10px; }
+
+  .card-actions { opacity: 1; }
 }
 
-/* ── Muito pequeno ≤ 400px ── */
 @media (max-width: 400px) {
   .hub-topbar { height: 60px; }
   .hub-logo { width: 33px; height: 33px; border-radius: 11px; }
   .hub-brand { font-size: 17px; gap: 8px; }
   .hub-profile { height: 36px; padding: 0 9px 0 3px; }
   .hub-avatar { width: 30px; height: 30px; font-size: 11px; }
-  .logout-button { height: 36px; padding: 0 9px; }
-  .logout-button svg { width: 18px; height: 18px; }
-  .insight-strip article strong { font-size: 18px; }
+  .stat-card strong { font-size: 16px; }
   .journey-card, .journey-add-card { flex: 0 0 calc(100vw - 28px); }
   .journey-carousel { padding-inline: 2px; gap: 10px; }
-  .journey-add-card { height: 160px; }
+  .journey-add-card { height: 140px; }
+}
+
+/* ── Topbar redesign ── */
+.hub-topbar {
+  height: 64px;
+  border-bottom: 1px solid #ece6ef;
+  background: rgba(255, 252, 254, .85);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  padding: 0 clamp(20px, 4vw, 56px);
+}
+
+.hub-brand {
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.hub-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #7c67a0, #4a3570);
+  box-shadow: 0 2px 10px #3e2a5e28;
+  transition: transform 200ms var(--ease-spring), box-shadow 200ms var(--ease-out);
+  display: grid;
+  place-items: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-brand:hover .hub-logo {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: 0 4px 16px #3e2a5e35;
+  }
+}
+
+/* Nav tabs with icons */
+.hub-nav {
+  gap: 4px;
+  background: #f5f0f8;
+  padding: 4px;
+  border-radius: 14px;
+}
+
+.hub-nav button,
+.hub-nav a {
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 11px;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+
+.hub-nav svg {
+  flex: none;
+  opacity: .7;
+}
+
+.hub-nav button.active,
+.hub-nav a.active {
+  background: #fff;
+  color: #49366e;
+  box-shadow: 0 1px 6px #39285e12, 0 1px 2px #39285e0a;
+}
+
+.hub-nav button.active svg,
+.hub-nav a.active svg {
+  opacity: 1;
+  color: #66558f;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-nav button:not(.active):not(:disabled):hover,
+  .hub-nav a:not(.active):hover {
+    background: #ede6f2;
+    color: #3d3050;
+  }
+}
+
+.hub-nav button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* User menu */
+.hub-profile {
+  height: 40px;
+  padding: 0 10px 0 4px;
+  border-radius: 12px;
+  background: #f5f0f8;
+  border: 1px solid transparent;
+  transition: background 150ms var(--ease-out), border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-profile:hover {
+    background: #ede5f3;
+    border-color: #ddd3e5;
+  }
+}
+
+.hub-profile:active {
+  transform: scale(0.97);
+}
+
+.hub-profile[aria-expanded="true"] {
+  background: #ede5f3;
+  border-color: #c8b8d8;
+  box-shadow: 0 0 0 3px #e9ddff40;
+}
+
+.hub-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: linear-gradient(145deg, #5a4380, #3d2a5e);
+}
+
+.hub-profile-chevron {
+  transition: transform 200ms var(--ease-out);
+}
+
+.hub-profile[aria-expanded="true"] .hub-profile-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown entrance — origin-aware from trigger (top-right) */
+.hub-user-dropdown {
+  transform-origin: top right;
+  animation: dropdownIn 180ms var(--ease-out) both;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Dropdown items */
+.hub-dropdown-item {
+  transition: background 120ms var(--ease-out);
+}
+
+.hub-dropdown-item:active {
+  transform: scale(0.98);
+}
+
+/* ── Entrance animations — stagger with proper values ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.hub-welcome {
+  animation: fadeUp 400ms var(--ease-out) both;
+}
+
+.stats-row {
+  animation: fadeUp 400ms var(--ease-out) 60ms both;
+}
+
+/* Stagger: 50ms between items (Emil sweet spot) */
+.stat-card:nth-child(1) { animation: scaleIn 350ms var(--ease-out) 100ms both; }
+.stat-card:nth-child(2) { animation: scaleIn 350ms var(--ease-out) 150ms both; }
+.stat-card:nth-child(3) { animation: scaleIn 350ms var(--ease-out) 200ms both; }
+.stat-card:nth-child(4) { animation: scaleIn 350ms var(--ease-out) 250ms both; }
+
+.journeys-section {
+  animation: fadeUp 400ms var(--ease-out) 160ms both;
+}
+
+.journey-card {
+  animation: scaleIn 400ms var(--ease-out) 260ms both;
+}
+
+.journey-add-card {
+  animation: scaleIn 400ms var(--ease-out) 320ms both;
+}
+
+/* ── Search field focus ── */
+.search-field {
+  transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+}
+
+.search-field:focus-within {
+  border-color: #b8a8d0;
+  box-shadow: 0 0 0 3px #e9ddff40;
+}
+
+/* ── Navigation arrows ── */
+.journey-tools > button {
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journey-tools > button:hover {
+    background: #f3eef8;
+    color: #49366e;
+    transform: scale(1.04);
+  }
+}
+
+.journey-tools > button:active {
+  transform: scale(0.93);
+  transition-duration: 80ms;
+}
+
+/* ── prefers-reduced-motion: reduce motion, NOT eliminate ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Remove transform-based motion, keep opacity */
+  .hub-welcome,
+  .stats-row,
+  .stat-card,
+  .journeys-section,
+  .journey-card,
+  .journey-add-card {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Keep color/opacity transitions, kill transforms */
+  .journey-card,
+  .stat-card,
+  .journey-add-card,
+  .hub-create,
+  .journey-tools > button,
+  .hub-logo,
+  .journey-arrow,
+  .add-orbit {
+    transition-property: background, color, opacity, border-color, box-shadow !important;
+    transition-duration: 150ms !important;
+  }
 }

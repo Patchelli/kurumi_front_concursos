@@ -3,7 +3,7 @@ import type { JourneySummaryResponse } from '../../../../@business/dto/response/
 import { homeTokens } from './Home.tokens';
 
 function formatDate(value?: string | null) {
-  if (!value) return 'Data não definida';
+  if (!value) return 'Não definida';
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
 }
 function formatMinutes(value: number) { const h = Math.floor(value / 60); const m = value % 60; return h ? `${h}h${m ? ` ${m}min` : ''}` : `${m}min`; }
@@ -24,23 +24,27 @@ export function JourneyCard({ journey, index, onOpen, onEdit, onRemove }: Journe
     : null;
   const level = levelOf(journey);
   const dailyAverage = journey.studyDays ? Math.round(journey.studiedMinutes / journey.studyDays) : 0;
-  const metrics = [
-    { ...homeTokens.metrics.performance, value: accuracy === null ? '—' : `${accuracy}%` },
-    { ...homeTokens.metrics.studiedTime, value: formatMinutes(journey.studiedMinutes) },
-    { ...homeTokens.metrics.questions, value: journey.questionsSolved.toLocaleString('pt-BR') },
-    { ...homeTokens.metrics.dailyAverage, value: formatMinutes(dailyAverage) },
-  ];
+
   return <article className="journey-card home-journey-card" style={homeTokens.styles.cardAccent(homeTokens.cardAccents[index % homeTokens.cardAccents.length])} role="link" aria-label={`Abrir concurso ${journey.title}`} tabIndex={0} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>
     <div className="journey-card-top"><span className="stage-pill">{journeyStageLabel[journey.stage]}</span><div className="card-actions"><button type="button" aria-label={`Editar ${journey.title}`} onClick={event => { event.stopPropagation(); onEdit(); }}>✎</button><button type="button" aria-label={`Remover ${journey.title}`} onClick={event => { event.stopPropagation(); onRemove(); }}><svg className="trash-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5" /></svg></button></div></div>
-    <div className="journey-cover">{journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : <span>{journey.title.slice(0, 2).toUpperCase()}</span>}<div className="level-badge"><small>NÍVEL</small><strong>{level.current}</strong></div></div>
-    <div className="journey-copy"><span>{journey.institution || 'Objetivo pessoal'}</span><h3>{journey.title}</h3><p>{journey.position || 'Cargo não definido'}</p></div>
-    <div className="card-performance">{metrics.map(metric => <div className={metric.className} key={metric.className}><small>{metric.label}</small><strong>{metric.value}</strong><span aria-hidden="true">{metric.icon}</span></div>)}</div>
-    <div className="journey-progress"><div><span>Nível {level.current}</span><strong>{progress}%</strong></div><span className="progress-track"><i style={homeTokens.styles.progress(progress)} /></span><small>{level.next ? `Próximo nível: ${level.next}` : 'Nível máximo alcançado'}</small></div>
-    <div className="journey-meta"><div><span>PROVA</span><strong>{formatDate(journey.examDate)}</strong></div><div><span>STATUS</span><strong>{journeyStageLabel[journey.stage]}</strong></div></div>
-    <button className="open-journey" type="button" onClick={event => { event.stopPropagation(); onOpen(); }}>Abrir concurso <span>→</span></button>
+
+    <div className="journey-cover">{journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : <span>{journey.title.slice(0, 2).toUpperCase()}</span>}</div>
+
+    <div className="journey-copy"><h3>{journey.title}</h3><p>{journey.institution || journey.position || 'Objetivo pessoal'}</p></div>
+
+    <div className="card-metrics-inline">
+      <div><strong>{accuracy === null ? '—' : `${accuracy}%`}</strong><span>Acertos</span></div>
+      <div><strong>{formatMinutes(journey.studiedMinutes)}</strong><span>Estudado</span></div>
+      <div><strong>{journey.questionsSolved.toLocaleString('pt-BR')}</strong><span>Questões</span></div>
+      <div><strong>{formatMinutes(dailyAverage)}</strong><span>Média/dia</span></div>
+    </div>
+
+    <div className="journey-progress"><div><span>{level.current}</span><strong>{progress}%</strong></div><span className="progress-track"><i style={homeTokens.styles.progress(progress)} /></span></div>
+
+    <div className="journey-footer"><span className="journey-date">Prova: {formatDate(journey.examDate)}</span><span className="journey-arrow">→</span></div>
   </article>;
 }
 
 export function NewJourneyCard({ onClick }: { onClick(): void }) {
-  return <button className="journey-add-card" type="button" onClick={onClick}><span className="add-orbit">＋</span><strong>Criar nova jornada</strong><small>Organize um concurso do seu jeito</small></button>;
+  return <button className="journey-add-card" type="button" onClick={onClick}><span className="add-orbit">＋</span><strong>Nova jornada</strong><small>Organize um concurso do seu jeito</small></button>;
 }
