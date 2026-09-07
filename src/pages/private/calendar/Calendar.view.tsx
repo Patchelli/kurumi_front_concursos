@@ -80,7 +80,7 @@ export default function CalendarView() {
   const firstName = user.name?.trim().split(' ')[0] || 'estudante';
   const t = calendarTokens;
   return <div className="journey-hub">
-    <header className="hub-topbar"><a className="hub-brand" href="/inicio" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></a><nav className="hub-nav" aria-label="Navegação principal"><a href="/inicio">Jornadas</a><a className="active" href="/calendario">Calendário</a><button type="button" disabled>Desempenho</button></nav><UserMenu firstName={firstName} onLogout={logoutMethod} /></header>
+    <header className="hub-topbar"><a className="hub-brand" href="/inicio" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></a><nav className="hub-nav" aria-label="Navegação principal"><a href="/inicio">Jornadas</a><a className="active" href="/calendario">Calendário</a><a href="/radar">Radar</a></nav><UserMenu firstName={firstName} onLogout={logoutMethod} /></header>
     <div className={t.page}>
       <header className={t.header}><div><span className={t.eyebrow}>ORGANIZAÇÃO</span><h1 className={t.title}>Calendário</h1><p className={t.subtitle}>Datas importantes dos seus concursos e da sua rotina de estudos.</p></div><button className={t.primaryButton} onClick={() => openNew()}>＋ Novo evento</button></header>
       {loading ? <StudyLoading variant="section" label="Carregando calendário…" /> : <section className={t.layout}>

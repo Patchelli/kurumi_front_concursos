@@ -26,7 +26,7 @@ export function RegisterController() {
     try {
       const authentication = await authenticationService.register({ personalData: { fullName: name.trim() }, email: email.trim(), password });
       saveAuthentication(authentication);
-      navigate('/', { replace: true });
+      navigate('/inicio', { replace: true });
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Não foi possível criar sua conta.'));
     } finally {

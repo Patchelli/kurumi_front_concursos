@@ -33,10 +33,11 @@
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background .14s;
+  transition: background .14s, transform .16s var(--ease-out);
   white-space: nowrap;
 }
 .cp-new-btn:hover { background: #543c78; }
+.cp-new-btn:active { transform: scale(.95); }
 .cp-new-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
 
 /* ── Stats strip ── */
@@ -161,6 +162,7 @@
   transition: background .13s, border-color .13s;
 }
 .cp-reread-btn:hover { background: #f4f0f9; border-color: #9472c8; }
+.cp-reread-btn:active { transform: scale(.95); }
 .cp-reread-btn svg {
   width: 13px;
   height: 13px;
@@ -330,6 +332,7 @@
   transition: color .13s;
 }
 .cpd-btn-later:hover { color: #c5b8d8; }
+.cpd-btn-later:active { transform: scale(.95); }
 
 /* ── Read mode (revealed content) ── */
 .cpd-fullscreen--read {
@@ -487,6 +490,7 @@
   margin-bottom: -1.5px;
 }
 .cp-tab:hover { color: #66558f; }
+.cp-tab:active { transform: scale(.97); }
 .cp-tab--active { color: #3d2b5a; border-bottom-color: #66558f; }
 
 .cp-tab-count {
@@ -530,9 +534,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform .18s, box-shadow .18s;
+  transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
 }
-.cp-card:hover { transform: translateY(-3px); }
+@media(hover:hover)and (pointer:fine){.cp-card:hover { transform: translateY(-3px); }}
 
 /* ── Scheduled Card ── */
 .cp-card--scheduled {
@@ -680,6 +684,7 @@
   margin-top: auto;
 }
 .cp-open-btn:hover { background: #d08010; transform: scale(1.02); }
+.cp-open-btn:active { transform: scale(.97); }
 
 /* Opened card message preview */
 .cp-message-preview {
@@ -720,9 +725,10 @@
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background .14s;
+  transition: background .14s, transform .16s var(--ease-out);
 }
 .cp-empty-btn:hover { background: #543c78; }
+.cp-empty-btn:active { transform: scale(.95); }
 
 /* ── Create dialog fields ── */
 .md-dialog-scrim.cp-create-scrim {
@@ -852,6 +858,7 @@
   transition: background .13s, border-color .13s, color .13s;
 }
 .cp-completion-btn:hover { background: #f4f0f9; }
+.cp-completion-btn:active { transform: scale(.95); }
 .cp-completion-btn.active { background: #66558f; border-color: #66558f; color: #fff; }
 
 /* Goal grid */
@@ -870,6 +877,7 @@
   transition: border-color .15s, background .15s;
 }
 .cp-goal-btn:hover { border-color: #c0aede; background: #faf7fc; }
+.cp-goal-btn:active { transform: scale(.97); }
 .cp-goal-btn.active { border-color: #66558f; background: #ede7f9; }
 .cp-goal-btn > span { font-size: 18px; color: #66558f; margin-bottom: 4px; }
 .cp-goal-btn > strong { font-size: 11px; color: #1e1829; font-weight: 800; }
@@ -998,4 +1006,20 @@
   .cp-stat-item strong { font-size: 20px; }
   .cp-tab { padding: 0 12px; font-size: 12px; }
   .cp-header-actions { flex-wrap: wrap; }
+}
+
+/* ── Transitions for interactive elements ── */
+.cp-tab,.cp-reread-btn,.cp-completion-btn,.cp-goal-btn,.cp-trigger-option,
+.cpd-btn-later,.cpd-read-close{transition:transform .16s var(--ease-out),background .14s,border-color .14s,color .14s}
+
+/* ── Reduced motion ── */
+@media(prefers-reduced-motion:reduce){
+  .cp-capsule-img--arrived{animation:none!important}
+  .cp-card--delivered{animation:none!important}
+  .cp-count-pulse{animation:none!important}
+  .cpd-fullscreen,.cpd-center,.cpd-capsule-wrap,.cpd-read-card{animation:none!important}
+  .cpd-particle{animation:none!important}
+  .cp-new-btn:active,.cp-open-btn:active,.cp-empty-btn:active,
+  .cp-reread-btn:active,.cp-tab:active,.cp-completion-btn:active,
+  .cp-goal-btn:active,.cpd-btn-later:active{transform:none!important}
 }

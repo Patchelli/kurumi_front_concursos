@@ -469,3 +469,430 @@
   .jd-evol-bar-track { width: 23px; }
 }
 .flashcard-stack-icon{display:inline-flex;align-items:center;justify-content:center}.flashcard-stack-icon svg{width:22px;height:22px;display:block}
+
+/* ══════════════════════════════════════════
+   Impeccable + Emil — Dashboard Polish
+   Animations, interactions, life
+══════════════════════════════════════════ */
+
+/* ─── Easing tokens ─── */
+:root {
+  --jd-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --jd-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─── Ring chart: animated draw-in ─── */
+@keyframes ringDraw {
+  from { stroke-dashoffset: var(--ring-circ); }
+}
+
+.jd-ring-fill {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s var(--jd-ease-out);
+  animation: ringDraw 1.2s var(--jd-ease-out) .3s both;
+}
+
+@keyframes ringPulse {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 6px #66558f40); }
+}
+
+.jd-ring-wrap svg {
+  animation: ringPulse 3s ease-in-out 1.5s 1;
+}
+
+.jd-ring-pct {
+  animation: countFade .6s var(--jd-ease-out) .5s both;
+}
+
+@keyframes countFade {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.jd-ring-sub {
+  animation: countFade .5s var(--jd-ease-out) .7s both;
+}
+
+/* Ring stat rows stagger */
+.jd-ring-stat:nth-child(1) { animation: slideUp .4s var(--jd-ease-out) .4s both; }
+.jd-ring-stat:nth-child(2) { animation: slideUp .4s var(--jd-ease-out) .5s both; }
+.jd-ring-stat:nth-child(3) { animation: slideUp .4s var(--jd-ease-out) .6s both; }
+.jd-ring-stat:nth-child(4) { animation: slideUp .4s var(--jd-ease-out) .7s both; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Readiness bars animate in ─── */
+.jd-readiness-bar {
+  animation: barGrow .8s var(--jd-ease-out) .6s both;
+  transform-origin: left;
+}
+
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ─── Weekday chart bars stagger ─── */
+.jd-wday-bar {
+  transition: height 400ms var(--jd-ease-out);
+  animation: barRise 500ms var(--jd-ease-out) both;
+}
+
+.jd-wday-col:nth-child(1) .jd-wday-bar { animation-delay: 200ms; }
+.jd-wday-col:nth-child(2) .jd-wday-bar { animation-delay: 250ms; }
+.jd-wday-col:nth-child(3) .jd-wday-bar { animation-delay: 300ms; }
+.jd-wday-col:nth-child(4) .jd-wday-bar { animation-delay: 350ms; }
+.jd-wday-col:nth-child(5) .jd-wday-bar { animation-delay: 400ms; }
+.jd-wday-col:nth-child(6) .jd-wday-bar { animation-delay: 450ms; }
+.jd-wday-col:nth-child(7) .jd-wday-bar { animation-delay: 500ms; }
+
+@keyframes barRise {
+  from { height: 0 !important; opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Evolution bars stagger ─── */
+.jd-evol-bar {
+  transition: height 350ms var(--jd-ease-out);
+  animation: barRise 450ms var(--jd-ease-out) both;
+}
+
+.jd-evol-col:nth-child(1) .jd-evol-bar { animation-delay: 150ms; }
+.jd-evol-col:nth-child(2) .jd-evol-bar { animation-delay: 200ms; }
+.jd-evol-col:nth-child(3) .jd-evol-bar { animation-delay: 250ms; }
+.jd-evol-col:nth-child(4) .jd-evol-bar { animation-delay: 300ms; }
+.jd-evol-col:nth-child(5) .jd-evol-bar { animation-delay: 350ms; }
+.jd-evol-col:nth-child(6) .jd-evol-bar { animation-delay: 400ms; }
+.jd-evol-col:nth-child(7) .jd-evol-bar { animation-delay: 450ms; }
+.jd-evol-col:nth-child(8) .jd-evol-bar { animation-delay: 500ms; }
+
+.jd-evol-val {
+  animation: countFade .3s var(--jd-ease-out) both;
+}
+
+.jd-evol-col:nth-child(1) .jd-evol-val { animation-delay: 400ms; }
+.jd-evol-col:nth-child(2) .jd-evol-val { animation-delay: 450ms; }
+.jd-evol-col:nth-child(3) .jd-evol-val { animation-delay: 500ms; }
+.jd-evol-col:nth-child(4) .jd-evol-val { animation-delay: 550ms; }
+.jd-evol-col:nth-child(5) .jd-evol-val { animation-delay: 600ms; }
+.jd-evol-col:nth-child(6) .jd-evol-val { animation-delay: 650ms; }
+.jd-evol-col:nth-child(7) .jd-evol-val { animation-delay: 700ms; }
+.jd-evol-col:nth-child(8) .jd-evol-val { animation-delay: 750ms; }
+
+/* ─── Horizontal bars (effort, discipline, flashcard) ─── */
+.jd-ebar {
+  transition: width 500ms var(--jd-ease-out);
+  animation: hbarGrow 600ms var(--jd-ease-out) .2s both;
+  transform-origin: left;
+}
+
+@keyframes hbarGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.jd-bar-fill {
+  transition: width 500ms var(--jd-ease-out);
+  animation: hbarGrow 600ms var(--jd-ease-out) .2s both;
+  transform-origin: left;
+}
+
+/* Difficulty track bars */
+.jd-difficulty-track i {
+  animation: hbarGrow 500ms var(--jd-ease-out) .3s both;
+  transform-origin: left;
+}
+
+/* ─── Week consistency bars ─── */
+.jd-week-bar-fill {
+  transition: height 350ms var(--jd-ease-out);
+  animation: barRise 450ms var(--jd-ease-out) both;
+}
+
+.jd-week-bar-col:nth-child(1) .jd-week-bar-fill { animation-delay: 150ms; }
+.jd-week-bar-col:nth-child(2) .jd-week-bar-fill { animation-delay: 200ms; }
+.jd-week-bar-col:nth-child(3) .jd-week-bar-fill { animation-delay: 250ms; }
+.jd-week-bar-col:nth-child(4) .jd-week-bar-fill { animation-delay: 300ms; }
+.jd-week-bar-col:nth-child(5) .jd-week-bar-fill { animation-delay: 350ms; }
+.jd-week-bar-col:nth-child(6) .jd-week-bar-fill { animation-delay: 400ms; }
+.jd-week-bar-col:nth-child(7) .jd-week-bar-fill { animation-delay: 450ms; }
+
+/* ─── Stats strip entrance ─── */
+.jd-stat {
+  animation: slideUp .35s var(--jd-ease-out) both;
+  transition: transform 180ms var(--jd-ease-out), box-shadow 180ms var(--jd-ease-out);
+}
+
+.jd-stat:nth-child(1) { animation-delay: 50ms; }
+.jd-stat:nth-child(2) { animation-delay: 100ms; }
+.jd-stat:nth-child(3) { animation-delay: 150ms; }
+.jd-stat:nth-child(4) { animation-delay: 200ms; }
+.jd-stat:nth-child(5) { animation-delay: 250ms; }
+
+@media (hover: hover) and (pointer: fine) {
+  .jd-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px #2d203b12;
+  }
+}
+
+/* ─── Today strip entrance ─── */
+.jd-today-strip {
+  animation: slideUp .4s var(--jd-ease-out) .15s both;
+}
+
+/* ─── Card improvements ─── */
+.jd-card,
+.jd-ring-card,
+.jd-subject-card {
+  transition: box-shadow 220ms var(--jd-ease-out), transform 220ms var(--jd-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jd-card:hover,
+  .jd-ring-card:hover,
+  .jd-subject-card:hover {
+    box-shadow: 0 12px 36px #2d203b0d, 0 4px 12px #2d203b08;
+  }
+}
+
+/* Center section entrance */
+.jd-center {
+  animation: slideUp .4s var(--jd-ease-out) .2s both;
+}
+
+/* Insights row entrance */
+.jd-insights-row {
+  animation: slideUp .4s var(--jd-ease-out) .25s both;
+}
+
+/* ─── Interactive feedback ─── */
+
+/* Collapse button */
+.jd-collapse-button {
+  transition: background 120ms var(--jd-ease-out), color 120ms var(--jd-ease-out), transform 120ms var(--jd-ease-out);
+}
+
+.jd-collapse-button:active {
+  transform: scale(0.9);
+  transition-duration: 80ms;
+}
+
+/* Period filter buttons */
+.jd-period-filters button {
+  transition: background 150ms var(--jd-ease-out), border-color 150ms var(--jd-ease-out), color 150ms var(--jd-ease-out), transform 150ms var(--jd-ease-out);
+}
+
+.jd-period-filters button:active {
+  transform: scale(0.95);
+}
+
+/* Chart period toggle */
+.jd-chart-period button {
+  transition: background 150ms var(--jd-ease-out), color 150ms var(--jd-ease-out);
+}
+
+.jd-chart-period button:active {
+  transform: scale(0.93);
+}
+
+/* AI Insights button */
+.jd-ai-btn {
+  transition: opacity 140ms, transform 150ms var(--jd-ease-out), box-shadow 150ms var(--jd-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jd-ai-btn:hover {
+    opacity: .88;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px #7c5cbf40;
+  }
+}
+
+.jd-ai-btn:active {
+  transform: scale(0.97);
+  opacity: .82;
+}
+
+/* Back link */
+.jd-back-link {
+  transition: background 140ms var(--jd-ease-out), border-color 140ms var(--jd-ease-out), transform 140ms var(--jd-ease-out);
+}
+
+.jd-back-link:active {
+  transform: scale(0.97);
+}
+
+/* Nav buttons */
+.jd-nav > button,
+.jd-nav-link {
+  transition: background 140ms var(--jd-ease-out), color 140ms var(--jd-ease-out);
+}
+
+.jd-nav > button:active,
+.jd-nav-link:active {
+  transform: scale(0.97);
+}
+
+/* Sidebar nav active indicator */
+.jd-nav > button.active {
+  position: relative;
+}
+
+.jd-nav > button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+  background: #a888d0;
+}
+
+/* FAB buttons */
+.jd-fab-action {
+  transition: transform 150ms var(--jd-ease-out), filter 150ms, box-shadow 150ms var(--jd-ease-out);
+}
+
+.jd-fab-action:active {
+  transform: scale(0.93);
+  box-shadow: 0 3px 10px #251b3320;
+}
+
+/* Edital area expand */
+.jd-edital-area-header {
+  transition: background 120ms var(--jd-ease-out);
+}
+
+.jd-edital-area-header:active {
+  background: #f0eaf6;
+}
+
+.jd-chevron {
+  transition: transform 200ms var(--jd-ease-out);
+}
+
+/* Row hover improvements */
+.jd-subject-row,
+.jd-loss-row,
+.jd-edital-topic,
+.jd-error-table tr td {
+  transition: background 120ms var(--jd-ease-out);
+}
+
+/* ─── Tip/message entrance ─── */
+.jd-evol-tip,
+.jd-retention-tip,
+.jd-cov-tip {
+  animation: slideUp .4s var(--jd-ease-out) .6s both;
+}
+
+/* ─── Evolution delta badge animation ─── */
+.jd-evol-delta {
+  animation: countFade .4s var(--jd-ease-out) .5s both;
+}
+
+/* ─── Streak badge ─── */
+.jd-today-strip-streak {
+  animation: countFade .35s var(--jd-ease-spring) .4s both;
+}
+
+/* ─── Flashcards section entrance ─── */
+.jd-flashcards-section {
+  animation: slideUp .4s var(--jd-ease-out) .3s both;
+}
+
+.jd-flashcards-total {
+  animation: countFade .4s var(--jd-ease-out) .4s both;
+}
+
+/* ─── Errors grid entrance ─── */
+.jd-errors-grid {
+  animation: slideUp .4s var(--jd-ease-out) .3s both;
+}
+
+/* ─── Edital card entrance ─── */
+.jd-edital-card {
+  animation: slideUp .4s var(--jd-ease-out) .35s both;
+}
+
+/* ─── Difficulty card entrance ─── */
+.jd-difficulty-card {
+  animation: slideUp .4s var(--jd-ease-out) .3s both;
+}
+
+/* ─── Ring card subtle gradient bg ─── */
+.jd-ring-card {
+  background: linear-gradient(165deg, #fff 60%, #faf6fe);
+}
+
+/* ─── Today strip improvement ─── */
+.jd-today-strip {
+  border: 1px solid #ddd4e8;
+  background: linear-gradient(105deg, #f0e8fa, #faf7fd);
+  backdrop-filter: blur(6px);
+}
+
+/* ─── Evolution bar hover ─── */
+@media (hover: hover) and (pointer: fine) {
+  .jd-evol-bar-track:hover .jd-evol-bar {
+    filter: brightness(1.08);
+  }
+
+  .jd-wday-bars:hover .jd-wday-bar.time {
+    filter: brightness(1.1);
+  }
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .jd-ring-fill,
+  .jd-ring-pct,
+  .jd-ring-sub,
+  .jd-ring-stat,
+  .jd-wday-bar,
+  .jd-evol-bar,
+  .jd-evol-val,
+  .jd-ebar,
+  .jd-bar-fill,
+  .jd-difficulty-track i,
+  .jd-week-bar-fill,
+  .jd-stat,
+  .jd-today-strip,
+  .jd-center,
+  .jd-insights-row,
+  .jd-readiness-bar,
+  .jd-evol-tip,
+  .jd-retention-tip,
+  .jd-cov-tip,
+  .jd-flashcards-section,
+  .jd-flashcards-total,
+  .jd-errors-grid,
+  .jd-edital-card,
+  .jd-difficulty-card,
+  .jd-today-strip-streak,
+  .jd-ring-wrap svg {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .jd-card,
+  .jd-ring-card,
+  .jd-subject-card,
+  .jd-stat,
+  .jd-collapse-button,
+  .jd-period-filters button,
+  .jd-ai-btn,
+  .jd-fab-action,
+  .jd-nav > button,
+  .jd-nav-link {
+    transition-property: background, color, opacity, border-color !important;
+    transition-duration: 150ms !important;
+  }
+}

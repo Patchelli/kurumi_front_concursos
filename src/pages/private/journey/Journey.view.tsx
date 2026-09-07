@@ -80,7 +80,7 @@ function AccuracyRing({ pct, sub = 'de acertos' }: { pct: number | null; sub?: s
         <circle className="jd-ring-bg" cx={cx} cy={cy} r={r} />
         {pct !== null && (
           <circle className="jd-ring-fill" cx={cx} cy={cy} r={r}
-            strokeDasharray={circ} strokeDashoffset={offset} />
+            strokeDasharray={circ} strokeDashoffset={offset} style={{ '--ring-circ': circ } as React.CSSProperties} />
         )}
       </svg>
       <div className="jd-ring-center">

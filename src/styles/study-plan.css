@@ -68,7 +68,7 @@
 .sp-block--studying .sp-block-hint{color:#287c72;font-weight:800}
 .sp-block--done .sp-block-title{text-decoration:line-through;color:#9080a8}
 
-.sp-check{width:42px;height:42px;border:2px solid #d8cfde;border-radius:13px;background:#faf7fc;color:#66558f;font-weight:800;font-size:14px;cursor:pointer;display:grid;place-items:center;flex:none;transition:background .15s,border-color .15s,color .15s}
+.sp-check{width:42px;height:42px;border:2px solid #d8cfde;border-radius:13px;background:#faf7fc;color:#66558f;font-weight:800;font-size:14px;cursor:pointer;display:grid;place-items:center;flex:none;transition:background .15s,border-color .15s,color .15s,transform .16s var(--ease-out)}.sp-check:active{transform:scale(.9)}
 .sp-block--done .sp-check{background:#66558f;border-color:#66558f;color:#fff}
 
 .sp-block-body{display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -85,8 +85,8 @@
 
 .sp-block-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .sp-block-time{font-size:11px;font-weight:700;color:#9080a8;min-width:38px;text-align:right}
-.sp-open-btn{height:34px;padding:0 14px;border:0;border-radius:10px;background:#66558f;color:#fff;font-size:11px;font-weight:800;cursor:pointer;transition:background .13s;white-space:nowrap}
-.sp-open-btn:hover{background:#5a4a80}
+.sp-open-btn{height:34px;padding:0 14px;border:0;border-radius:10px;background:#66558f;color:#fff;font-size:11px;font-weight:800;cursor:pointer;transition:background .13s,transform .16s var(--ease-out);white-space:nowrap}
+.sp-open-btn:hover{background:#5a4a80}.sp-open-btn:active{transform:scale(.95)}
 .sp-block--done .sp-open-btn{background:#9080a8}
 .sp-link-btn{width:34px;height:34px;border:1px solid #e0d8ea;border-radius:10px;background:#fff;color:#8060a0;cursor:pointer;display:grid;place-items:center;transition:background .13s,border-color .13s;flex:none}
 .sp-link-btn:hover{background:#f4f0f8;border-color:#c0aede}
@@ -110,8 +110,8 @@
 .sp-side{display:flex;flex-direction:column;gap:14px}
 
 /* Configurar ciclo sidebar button */
-.sp-config-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:34px;border:0;border-radius:10px;background:#66558f;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background .14s}
-.sp-config-btn:hover{background:#543c78}
+.sp-config-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:34px;border:0;border-radius:10px;background:#66558f;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background .14s,transform .16s var(--ease-out)}
+.sp-config-btn:hover{background:#543c78}.sp-config-btn:active{transform:scale(.96)}
 .sp-config-btn svg{width:18px;height:18px;flex-shrink:0}
 .sp-config-btn--pulse{animation:sp-pulse 2.2s ease-in-out infinite}
 @keyframes sp-pulse{0%,100%{box-shadow:0 4px 16px #66558f30}50%{box-shadow:0 4px 24px #66558f55,0 0 0 5px #9472c818}}
@@ -134,8 +134,8 @@
 .sp-calendar{padding:20px 22px}
 .sp-calendar h2{font-size:16px;margin:0}
 .sp-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.sp-cal-nav{width:32px;height:32px;border:1px solid #e5dfe8;border-radius:9px;background:#fff;color:#66558f;font-size:16px;cursor:pointer;display:grid;place-items:center;transition:background .13s}
-.sp-cal-nav:hover{background:#f0eaf8}
+.sp-cal-nav{width:32px;height:32px;border:1px solid #e5dfe8;border-radius:9px;background:#fff;color:#66558f;font-size:16px;cursor:pointer;display:grid;place-items:center;transition:background .13s,transform .16s var(--ease-out)}
+.sp-cal-nav:hover{background:#f0eaf8}.sp-cal-nav:active{transform:scale(.92)}
 .sp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#ede7f2;border-radius:12px;overflow:hidden}
 .sp-cal-wd{background:#f8f4fc;padding:7px 4px;text-align:center;font-size:9px;font-weight:800;letter-spacing:.06em;color:#9080a8;text-transform:uppercase}
 .sp-cal-cell{appearance:none;border:0;text-align:left;font:inherit;color:inherit;background:#fff;min-height:72px;padding:5px 4px;display:flex;flex-direction:column;gap:2px;cursor:pointer;transition:background .13s}
@@ -157,7 +157,7 @@
 .sp-cal-inline-detail{display:none}
 
 .sp-day-modal-backdrop{position:fixed;inset:0;z-index:300;background:#20162966;display:grid;place-items:center;padding:20px;animation:sp-day-fade .14s ease-out}
-.sp-day-modal{width:min(430px,100%);max-height:min(620px,85vh);overflow:hidden;background:#fff;border:1px solid #e5dfe8;border-radius:18px;box-shadow:0 20px 60px #281b3838;display:flex;flex-direction:column;animation:sp-day-rise .18s ease-out}
+.sp-day-modal{width:min(430px,100%);max-height:min(620px,85vh);overflow:hidden;background:#fff;border:1px solid #e5dfe8;border-radius:18px;box-shadow:0 20px 60px #281b3838;display:flex;flex-direction:column;animation:sp-day-rise .22s var(--ease-spring)}
 .sp-day-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px;border-bottom:1px solid #ede7f2}
 .sp-day-modal-head span{display:block;margin-bottom:4px;color:#8060a8;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .sp-day-modal-head h3{margin:0;color:#241b2d;font-size:17px;text-transform:capitalize}
@@ -194,7 +194,7 @@
 /* ════════════════════════════════════════════
    Plan Config Wizard (full-screen overlay)
    ════════════════════════════════════════════ */
-.sp-wizard{position:fixed;inset:0;z-index:200;background:#f7f4f9;display:flex;flex-direction:column;overflow:hidden;animation:sp-wz-in .22s ease-out}
+.sp-wizard{position:fixed;inset:0;z-index:200;background:#f7f4f9;display:flex;flex-direction:column;overflow:hidden;animation:sp-wz-in .22s var(--ease-spring)}
 @media(min-width:861px){.sp-wizard{left:214px}}
 @media(min-width:769px) and (max-width:860px){.sp-wizard{left:60px}}
 @keyframes sp-wz-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -220,9 +220,9 @@
 .sp-wz-desc{margin:0 0 20px;color:#726b76;font-size:14px}
 
 .sp-wizard-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px clamp(20px,5vw,60px);border-top:1px solid #e5dfe8;background:#fff;flex-shrink:0}
-.sp-wz-back{height:50px;padding:0 20px;border:0;background:transparent;color:#5d4b68;font-weight:800;font-size:13px;cursor:pointer}
-.sp-wz-next{height:50px;padding:0 32px;border:0;border-radius:14px;background:linear-gradient(135deg,#66558f,#9472c8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .13s;box-shadow:0 4px 16px #66558f30}
-.sp-wz-next:hover{opacity:.88}
+.sp-wz-back{height:50px;padding:0 20px;border:0;background:transparent;color:#5d4b68;font-weight:800;font-size:13px;cursor:pointer;transition:background .15s,transform .16s var(--ease-out)}.sp-wz-back:hover{background:#f3eef8;border-radius:14px}.sp-wz-back:active{transform:scale(.96)}
+.sp-wz-next{height:50px;padding:0 32px;border:0;border-radius:14px;background:linear-gradient(135deg,#66558f,#9472c8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .13s,transform .16s var(--ease-out);box-shadow:0 4px 16px #66558f30}
+.sp-wz-next:hover{opacity:.88}.sp-wz-next:active{transform:scale(.97)}
 
 /* Step 1 – Matérias expandable */
 .sp-wz-areas{display:flex;flex-direction:column;gap:8px}
@@ -331,7 +331,7 @@
    Study Topic Drawer
    ════════════════════════════════════════════ */
 /* Topic screen — mesma área e estrutura do configurador do plano */
-.sp-topic-overlay{position:fixed;inset:0;z-index:200;background:#f7f4f9;animation:sp-wz-in .22s ease-out}
+.sp-topic-overlay{position:fixed;inset:0;z-index:200;background:#f7f4f9;animation:sp-wz-in .22s var(--ease-spring)}
 .sp-topic-panel{width:100%;height:100%;background:#f7f4f9;display:flex;flex-direction:column;overflow:hidden}
 @media(min-width:861px){.sp-topic-overlay{left:214px}}
 @media(min-width:769px) and (max-width:860px){.sp-topic-overlay{left:60px}}
@@ -689,4 +689,13 @@
   .sp-plan-summary{flex-wrap:wrap;padding:14px 16px;gap:8px}
   .sp-plan-summary-stat strong{font-size:20px}
   .sp-plan-summary-divider{height:1px;width:100%;background:#ffffff22}
+}
+
+/* ── Reduced motion ── */
+@media(prefers-reduced-motion:reduce){
+  .sp-wizard,.sp-topic-overlay,.sp-topic-resource,.pm-panel,.pm-mini{animation:none!important}
+  .sp-day-modal-backdrop{animation:none!important;opacity:1}
+  .sp-day-modal{animation:none!important;opacity:1;transform:none}
+  .sp-config-btn--pulse{animation:none!important}
+  .pm-panel--alert{animation:none!important}
 }
