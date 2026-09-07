@@ -520,6 +520,23 @@
 }
 
 /* ── Grid ── */
+.cp-delete-btn {
+  align-self: flex-end;
+  margin-top: 12px;
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--error, #ba1a1a);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cp-delete-btn:hover { background: #fff0ee; }
+.cp-delete-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
 .cp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

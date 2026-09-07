@@ -113,7 +113,11 @@ function VideoPlayer({ url }: { url: string }) {
 
 /* ── Capsule Cards ── */
 
-function ScheduledCard({ capsule }: { capsule: Capsule }) {
+function DeleteCapsuleButton({ onDelete }: { onDelete(): void }) {
+  return <button className="cp-delete-btn" type="button" onClick={onDelete}>Apagar cápsula</button>;
+}
+
+function ScheduledCard({ capsule, onDelete }: { capsule: Capsule; onDelete(): void }) {
   return (
     <article className="cp-card cp-card--scheduled">
       <div className="cp-card-top">
@@ -134,11 +138,12 @@ function ScheduledCard({ capsule }: { capsule: Capsule }) {
         </svg>
         <span>{triggerDescription(capsule)}</span>
       </footer>
+      <DeleteCapsuleButton onDelete={onDelete} />
     </article>
   );
 }
 
-function DeliveredCard({ capsule, onReveal }: { capsule: Capsule; onReveal(): void }) {
+function DeliveredCard({ capsule, onReveal, onDelete }: { capsule: Capsule; onReveal(): void; onDelete(): void }) {
   return (
     <article className="cp-card cp-card--delivered">
       <div className="cp-delivered-badge"><span aria-hidden="true">✦</span> Uma cápsula chegou</div>
@@ -150,11 +155,12 @@ function DeliveredCard({ capsule, onReveal }: { capsule: Capsule; onReveal(): vo
       <button className="cp-open-btn" type="button" onClick={onReveal}>
         Abrir cápsula <span aria-hidden="true">→</span>
       </button>
+      <DeleteCapsuleButton onDelete={onDelete} />
     </article>
   );
 }
 
-function OpenedCard({ capsule, onReread }: { capsule: Capsule; onReread(): void }) {
+function OpenedCard({ capsule, onReread, onDelete }: { capsule: Capsule; onReread(): void; onDelete(): void }) {
   const preview = capsule.message.length > 140 ? capsule.message.slice(0, 140) + '…' : capsule.message;
   return (
     <article className="cp-card cp-card--opened">
@@ -178,20 +184,22 @@ function OpenedCard({ capsule, onReread }: { capsule: Capsule; onReread(): void 
         </svg>
         Reler cápsula
       </button>
+      <DeleteCapsuleButton onDelete={onDelete} />
     </article>
   );
 }
 
 export function CapsuleCard({
-  capsule, onReveal, onReread,
+  capsule, onReveal, onReread, onDelete,
 }: {
   capsule: Capsule;
   onReveal(): void;
   onReread(): void;
+  onDelete(): void;
 }) {
-  if (capsule.status === 'DELIVERED') return <DeliveredCard capsule={capsule} onReveal={onReveal} />;
-  if (capsule.status === 'OPENED') return <OpenedCard capsule={capsule} onReread={onReread} />;
-  return <ScheduledCard capsule={capsule} />;
+  if (capsule.status === 'DELIVERED') return <DeliveredCard capsule={capsule} onReveal={onReveal} onDelete={onDelete} />;
+  if (capsule.status === 'OPENED') return <OpenedCard capsule={capsule} onReread={onReread} onDelete={onDelete} />;
+  return <ScheduledCard capsule={capsule} onDelete={onDelete} />;
 }
 
 /* ── Empty State ── */

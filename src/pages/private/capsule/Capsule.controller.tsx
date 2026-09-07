@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { JourneyDetailsResponse } from '../../../../@business/dto/response/journey.response';
 import { journeyService } from '../../../../@business/service/Journey.service';
@@ -15,7 +15,8 @@ export function CapsuleController() {
   const [journey, setJourney] = useState<JourneyDetailsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [capsules, setCapsules] = useState<Capsule[]>([]);
-  const { push } = useCapsuleDelivery();
+  const { push, remove: removeDelivery } = useCapsuleDelivery();
+  const removedIds = useRef(new Set<number>());
 
   useEffect(() => {
     const journeyId = Number(id);
@@ -23,7 +24,10 @@ export function CapsuleController() {
     let active = true;
     setLoading(true);
     journeyService.findById(journeyId)
-      .then(async data => { if (active) { setJourney(data); setCapsules(await timeCapsuleService.list(journeyId)); } })
+      .then(async data => {
+        const items = await timeCapsuleService.list(journeyId);
+        if (active) { setJourney(data); setCapsules(items.filter(item => !removedIds.current.has(item.id))); }
+      })
       .catch(error => { if (active) { setJourney(null); toast.error(getRequestErrorMessage(error, 'Não foi possível carregar as cápsulas.')); } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -32,10 +36,13 @@ export function CapsuleController() {
   useEffect(() => {
     const journeyId = Number(id);
     if (!Number.isSafeInteger(journeyId) || journeyId <= 0) return;
+    let active = true;
     const timer = window.setInterval(() => {
-      void timeCapsuleService.list(journeyId).then(setCapsules).catch(() => {});
+      void timeCapsuleService.list(journeyId).then(items => {
+        if (active) setCapsules(items.filter(item => !removedIds.current.has(item.id)));
+      }).catch(() => {});
     }, 60_000);
-    return () => window.clearInterval(timer);
+    return () => { active = false; window.clearInterval(timer); };
   }, [id]);
 
   const onOpen = useCallback(async (capsuleId: number) => {
@@ -55,6 +62,15 @@ export function CapsuleController() {
     setCapsules(curr => [saved, ...curr]);
   };
 
+  const onDelete = async (capsuleId: number) => {
+    const deleted = await timeCapsuleService.remove(capsuleId);
+    if (!deleted) throw new Error('Não foi possível apagar a cápsula.');
+    removedIds.current.add(capsuleId);
+    removeDelivery(capsuleId);
+    setCapsules(current => current.filter(capsule => capsule.id !== capsuleId));
+    toast.success('Cápsula apagada.');
+  };
+
   return (
     <CapsuleView
       capsules={capsules}
@@ -67,6 +83,7 @@ export function CapsuleController() {
       onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)}
       onCreate={onCreate}
       onOpen={onOpen}
+      onDelete={onDelete}
     />
   );
 }

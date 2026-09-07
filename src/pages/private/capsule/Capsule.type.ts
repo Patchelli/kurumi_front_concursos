@@ -44,4 +44,5 @@ export type CapsuleViewProps = {
   onOpenSimulados(): void;
   onCreate(capsule: Omit<Capsule, 'id' | 'createdAt' | 'status'>): Promise<void>;
   onOpen(id: number): Promise<void>;
+  onDelete(id: number): Promise<void>;
 };

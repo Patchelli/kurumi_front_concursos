@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { MaterialDialog } from '../../../components/dialog/MaterialDialog';
+import { getRequestErrorMessage } from '../../../utils/getRequestErrorMessage';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import type { Capsule, CapsuleViewProps } from './Capsule.type';
@@ -11,12 +13,29 @@ type Tab = 'scheduled' | 'delivered' | 'opened';
 export function CapsuleView({
   capsules, journey, loading,
   onBack, onOverview, onOpenStudyPlan, onOpenContent, onOpenSimulados,
-  onCreate, onOpen,
+  onCreate, onOpen, onDelete,
 }: CapsuleViewProps) {
   const [tab, setTab] = useState<Tab>('scheduled');
   const [createOpen, setCreateOpen] = useState(false);
   const [revealTarget, setRevealTarget] = useState<Capsule | null>(null);
   const [rereadTarget, setRereadTarget] = useState<Capsule | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Capsule | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  async function confirmDelete() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await onDelete(deleteTarget.id);
+      setRevealTarget(current => current?.id === deleteTarget.id ? null : current);
+      setRereadTarget(current => current?.id === deleteTarget.id ? null : current);
+      setDeleteTarget(null);
+    } catch (error) {
+      setDeleteError(getRequestErrorMessage(error, 'Não foi possível apagar a cápsula. Tente novamente.'));
+    } finally { setDeleting(false); }
+  }
 
   const scheduled = capsules.filter(c => c.status === 'SCHEDULED');
   const delivered  = capsules.filter(c => c.status === 'DELIVERED');
@@ -149,6 +168,7 @@ export function CapsuleView({
                 capsule={capsule}
                 onReveal={() => setRevealTarget(capsule)}
                 onReread={() => setRereadTarget(capsule)}
+                onDelete={() => { setDeleteError(''); setDeleteTarget(capsule); }}
               />
             ))}
           </div>
@@ -159,6 +179,16 @@ export function CapsuleView({
 
 
       {/* ── Dialogs ── */}
+      <MaterialDialog
+        open={Boolean(deleteTarget)}
+        title="Apagar cápsula?"
+        description={`A cápsula “${deleteTarget?.title ?? ''}” será apagada permanentemente. Esta ação não pode ser desfeita.`}
+        onClose={() => { if (!deleting) setDeleteTarget(null); }}
+        actions={<>
+          <button className="md-text-button" disabled={deleting} onClick={() => setDeleteTarget(null)}>Cancelar</button>
+          <button className="md-danger-button" disabled={deleting} onClick={() => void confirmDelete()}>{deleting ? 'Apagando…' : 'Apagar cápsula'}</button>
+        </>}
+      >{deleteError && <p role="alert" className="auth-error">{deleteError}</p>}</MaterialDialog>
       <CreateCapsuleDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
