@@ -133,9 +133,10 @@
   .jd-topbar-left h1 { font-size: 23px; line-height: 1.15; }
   .jd-topbar-left p { margin-top: 5px; line-height: 1.45; }
   .jd-topbar-left h1,.jd-topbar-left p { overflow-wrap: anywhere; }
-  .jd-topbar-right { width: 100%; height: 0; justify-content: space-between; }
+  .jd-topbar-right { width: 100%; height: auto; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 12px; }
   .jd-topbar-right .jd-back-link { position: absolute; top: 16px; left: 16px; }
-  .jd-topbar-right .jd-period-filters { position: absolute; top: 16px; right: 16px; margin: 0; }
+  .jd-topbar-right .jd-period-filters { order: 1; }
+  .jd-topbar-right .jd-ai-btn { order: 2; }
   .jd-period-filters { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
   .jd-period-filters::-webkit-scrollbar { display: none; }
   .jd-card-header,.jd-subject-card-header { flex-wrap: wrap; align-items: flex-start; }
@@ -184,7 +185,8 @@
 }
 
 @media (max-width: 420px) {
-  .jd-topbar-right { align-items: stretch; flex-direction: column; }
+  .jd-topbar-right { align-items: flex-start; flex-direction: column; }
+  .jd-topbar-right .jd-ai-btn { align-self: flex-start; }
   .jd-back-link { width: fit-content; }
   .jd-stats-strip { gap: 6px; }
   .jd-stat-pill { align-items: flex-start; flex-direction: column; min-height: 92px; }

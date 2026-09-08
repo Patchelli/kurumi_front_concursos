@@ -199,13 +199,13 @@ export function JourneyView(props: JourneyViewProps) {
             <span>Conteúdo</span>
           </button>
         </nav>
-        <JourneySidebarAccountActions />
         <div className="jd-contest-card">
           <div className="jd-thumb">
             {journey.logoUrl ? <img src={journey.logoUrl} alt="" /> : journey.title.slice(0,2).toUpperCase()}
           </div>
           <div><strong>{journey.title}</strong><small>{journey.institution || stageLabel}</small></div>
         </div>
+        <JourneySidebarAccountActions />
       </aside>
 
       {/* ── Main ── */}

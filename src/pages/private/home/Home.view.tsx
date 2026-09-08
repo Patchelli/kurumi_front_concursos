@@ -43,6 +43,11 @@ export function HomeView(props: HomeViewProps) {
       </section>
     </main>
 
+    <nav className="hub-mobile-nav" aria-label="Navegação mobile">
+      <a className="active" href="/inicio"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>Jornadas</a>
+      <a href="/calendario"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendário</a>
+      <a href="/radar"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M2 12h20"/></svg></span>Radar</a>
+    </nav>
     <button className="hub-fab" type="button" onClick={props.onOpenCreation} aria-label="Nova jornada">＋</button>
     {props.creationOpen && !props.editingContest && <ContestCreationDrawer mode="create" open onClose={props.onCloseCreation} onCreate={props.onCreate} />}
     {props.editingContest && <ContestCreationDrawer mode="edit" open initialData={props.editingContest} onClose={props.onCancelEdit} onSave={props.onSaveEdit} />}

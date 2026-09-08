@@ -4,4 +4,5 @@
 /* ── Reduced motion ── */
 @media(prefers-reduced-motion:reduce){
   .radar-more:active{transform:none!important}
-}@media(max-width:800px){.radar-layout{grid-template-columns:1fr;gap:28px}.radar-preferences{position:static}.radar-preferences fieldset{grid-template-columns:1fr 1fr}.radar-results-heading{align-items:flex-start}.radar-contest{padding:20px}}@media(max-width:480px){.radar-preferences fieldset{grid-template-columns:1fr}.radar-contest footer{align-items:flex-start;flex-direction:column}.radar-results-heading .button{padding:0 16px}.radar-page{padding-top:28px}}
+}@media(max-width:800px){.radar-layout{grid-template-columns:1fr;gap:28px}.radar-preferences{position:static}.radar-preferences fieldset{grid-template-columns:1fr 1fr}.radar-results-heading{align-items:flex-start}.radar-contest{padding:20px}}@media(max-width:850px){.radar-page{padding-bottom:90px}}
+@media(max-width:480px){.radar-preferences fieldset{grid-template-columns:1fr}.radar-contest footer{align-items:flex-start;flex-direction:column}.radar-results-heading .button{padding:0 16px}.radar-page{padding-top:28px}}
