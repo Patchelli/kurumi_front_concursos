@@ -426,12 +426,21 @@
 .sp-subtopic-list .cv-close:hover{background:rgba(255,255,255,.13)}
 @media(max-width:480px){.sp-subtopic-list .cv-external{font-size:0}.sp-subtopic-list .cv-external::before{content:'↗ Abrir';font-size:11px}}
 
+/* Keep completion actions visible while long forms scroll inside the viewport. */
+.sb-review-dialog{display:flex;flex-direction:column;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}
+.sb-review-dialog>header,.sb-review-dialog>footer{flex-shrink:0}
+.sb-review-dialog>header>div{min-width:0}
+.sb-review-dialog header p{overflow-wrap:anywhere;max-height:3.5em;overflow-y:auto}
+.sb-review-dialog>header>button{flex-shrink:0}
+.sb-review-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.sb-review-body>*{flex-shrink:0}
+.sb-review-previous p{overflow-wrap:anywhere}
 /* Review dialog footer must remain inside the modal on narrow screens. */
 .sb-review-dialog>footer button{display:inline-flex;align-items:center;justify-content:center;min-width:0;max-width:100%;white-space:nowrap;line-height:1;text-align:center}
 .sb-review-dialog>footer .sb-review-clear-pending{margin-right:auto;color:#a66b12;background:#fff7e7;border:1px solid #e3bd73}
 @media(max-width:420px){
-  .sb-review-overlay{padding:12px}
-  .sb-review-dialog>footer{display:grid;grid-template-columns:minmax(0,1fr);padding:12px 16px}
+  .sb-review-overlay{padding:12px}.sb-review-dialog{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}.sb-review-body{padding:16px;gap:12px}
+  .sb-review-dialog>footer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 16px}.sb-review-dialog>footer .sb-review-clear-pending{grid-column:1/-1}
   .sb-review-dialog>footer button{width:100%;min-height:42px;height:auto;padding:9px 12px}
 }
 

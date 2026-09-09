@@ -1181,10 +1181,10 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
     setStudiedMinutes(studyState?.studiedMinutes ?? 0);
   }, [studyState?.progress, studyState?.reviewDate, studyState?.studiedMinutes, child.progress, savingStudy]);
 
-  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '') {
+  async function saveStudy(completed: boolean, minutes: number, scheduleReview: boolean, reviewDate: string | null, clearPending = false, summary = '', studyLocation = '') {
     setSavingStudy(true);
     try {
-      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null });
+      const result = await onSaveStudy({ journeyId, syllabusNodeId: child.id, completed, studiedMinutes: minutes, scheduleReview, reviewDate, clearPending, summary: summary || null, studyLocation: studyLocation || null });
       setIsCompleted(isStudyCompleted(result.progress));
       setCurrentProgress(result.progress);
       setRevision(Boolean(result.reviewDate));
@@ -1302,7 +1302,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
           )}
         </div>
       )}
-      {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary); setReviewOpen(false); }} />}
+      {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} previousLocation={studyState?.lastStudyLocation} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary, studyLocation) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary, studyLocation); setReviewOpen(false); }} />}
       {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setQuestionsOpen(false)} />}
     </div>
   );
@@ -1396,6 +1396,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               <div><small>STATUS</small><strong>{statusLabel}</strong></div>
               <div><small>PROGRESSO</small><strong>{progress}%</strong></div>
               <div><small>SUBTÓPICOS</small><strong>{subtopics.length}</strong></div>
+              <div style={{ minWidth: 0 }}><small>ÚLTIMO LOCAL DE ESTUDO</small><strong style={{ overflowWrap: 'anywhere', maxWidth: '100%' }}>{targetStudy?.lastStudyLocation || 'Não informado'}</strong></div>
             </div>
             <span className="sp-dialog-label">Ações do tópico</span>
             <div className="sp-topic-actions">

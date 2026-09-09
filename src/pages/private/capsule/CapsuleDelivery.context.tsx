@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import type { Capsule } from './Capsule.type';
 import { timeCapsuleProgressChangedEvent, timeCapsuleService } from '../../../../@business/service/TimeCapsule.service';
 
+import { authenticationChangedEvent, getAccessToken } from '../../../utils/authenticationStorage';
+
 export type PendingDelivery = {
   capsule: Capsule;
   onOpen(id: number): void;
@@ -25,6 +27,7 @@ const Ctx = createContext<DeliveryCtx>({
 export function CapsuleDeliveryProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<PendingDelivery[]>([]);
   const removedIds = useRef(new Set<number>());
+  const [token, setToken] = useState(getAccessToken);
 
   const push = useCallback((d: PendingDelivery) => {
     if (removedIds.current.has(d.capsule.id)) return;
@@ -43,18 +46,54 @@ export function CapsuleDeliveryProvider({ children }: { children: ReactNode }) {
   }, [dismiss]);
 
   useEffect(() => {
-    const synchronize = () => {
-      const match = window.location.pathname.match(/\/jornadas\/(\d+)/);
-      if (!match) return;
-      void timeCapsuleService.list(Number(match[1])).then(items => {
-        items.filter(item => item.status === 'DELIVERED').forEach(capsule =>
-          push({ capsule, onOpen: capsuleId => { void timeCapsuleService.open(capsuleId); } }));
-      }).catch(() => {});
+    const updateAuthentication = () => setToken(getAccessToken());
+    window.addEventListener(authenticationChangedEvent, updateAuthentication);
+    window.addEventListener('storage', updateAuthentication);
+    return () => {
+      window.removeEventListener(authenticationChangedEvent, updateAuthentication);
+      window.removeEventListener('storage', updateAuthentication);
     };
-    window.addEventListener(timeCapsuleProgressChangedEvent, synchronize);
-    return () => window.removeEventListener(timeCapsuleProgressChangedEvent, synchronize);
-  }, [push]);
+  }, []);
 
+  useEffect(() => {
+    setPending([]);
+    removedIds.current.clear();
+    if (!token) return;
+    let active = true;
+    let inFlight = false;
+    const synchronize = async () => {
+      if (!active || inFlight || document.visibilityState === 'hidden' || getAccessToken() !== token) return;
+      inFlight = true;
+      try {
+        const items = await timeCapsuleService.delivered();
+        if (!active || getAccessToken() !== token) return;
+        items.forEach(capsule => push({
+          capsule,
+          onOpen: capsuleId => {
+            void timeCapsuleService.open(capsuleId).then(() => remove(capsuleId)).catch(() => {});
+          },
+        }));
+      } catch {
+        // Retry on the next interval or when connectivity returns.
+      } finally {
+        inFlight = false;
+      }
+    };
+    void synchronize();
+    const timer = window.setInterval(() => { void synchronize(); }, 15_000);
+    window.addEventListener(timeCapsuleProgressChangedEvent, synchronize);
+    window.addEventListener('focus', synchronize);
+    window.addEventListener('online', synchronize);
+    document.addEventListener('visibilitychange', synchronize);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener(timeCapsuleProgressChangedEvent, synchronize);
+      window.removeEventListener('focus', synchronize);
+      window.removeEventListener('online', synchronize);
+      document.removeEventListener('visibilitychange', synchronize);
+    };
+  }, [token, push, remove]);
   return <Ctx.Provider value={{ pending, push, dismiss, remove }}>{children}</Ctx.Provider>;
 }
 

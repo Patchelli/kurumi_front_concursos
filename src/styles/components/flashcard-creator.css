@@ -38,3 +38,21 @@
   .fc-create-modal>footer button:active,.fc-create-modal>header>button:active,
   .fc-card-edit-actions button:active{transform:none!important}
 }
+
+/* Keep creation controls reachable when the form exceeds the mobile viewport. */
+.fc-create-modal{min-height:0;max-height:calc(100dvh - 40px)}
+.fc-create-modal>header,.fc-create-modal>footer{flex-shrink:0}
+.fc-create-modal>header>div{min-width:0}
+.fc-create-modal>header>button{flex-shrink:0}
+.fc-create-body{flex:1 1 auto;min-height:0;overscroll-behavior:contain;scrollbar-gutter:stable}
+.fc-create-body>*{flex-shrink:0}
+@media(max-width:640px){
+  .fc-create-modal{height:100dvh;max-height:100dvh;width:100%}
+  .fc-create-modal>header{padding:16px;gap:12px}
+  .fc-create-modal h2{font-size:20px}
+  .fc-create-body{padding:16px;gap:16px}
+  .fc-create-modal>footer{flex-direction:column;align-items:stretch;gap:8px;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .fc-create-modal>footer>span{max-width:none}
+  .fc-create-modal>footer>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fc-create-modal>footer button{min-width:0;padding-inline:8px}
+}

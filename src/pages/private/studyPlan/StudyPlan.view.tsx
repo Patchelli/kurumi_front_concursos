@@ -79,13 +79,13 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     return block ? completed.has(block.id) : isStudyCompleted(topic.progress);
   };
 
-  async function completeBlock(id: number, completedMinutes: number, scheduleReview = false, reviewDate: string | null = null, isCompleted = true, clearPending = false, summary = '') {
+  async function completeBlock(id: number, completedMinutes: number, scheduleReview = false, reviewDate: string | null = null, isCompleted = true, clearPending = false, summary = '', studyLocation = '') {
     if (id < 0) {
-      await onSaveNodeStudy({ journeyId: journey!.id, syllabusNodeId: -id, completed: true, studiedMinutes: 0, scheduleReview, reviewDate: scheduleReview ? reviewDate : null, summary: summary || null, isReview: true });
+      await onSaveNodeStudy({ journeyId: journey!.id, syllabusNodeId: -id, completed: true, studiedMinutes: 0, scheduleReview, reviewDate: scheduleReview ? reviewDate : null, summary: summary || null, studyLocation: studyLocation || null, isReview: true });
       return;
     }
     setCompleted(curr => { const next = new Set(curr); isCompleted ? next.add(id) : next.delete(id); return next; });
-    await onCompleteBlock(id, isCompleted, completedMinutes, isCompleted && scheduleReview, isCompleted && scheduleReview ? reviewDate : null, clearPending, summary || null);
+    await onCompleteBlock(id, isCompleted, completedMinutes, isCompleted && scheduleReview, isCompleted && scheduleReview ? reviewDate : null, clearPending, summary || null, studyLocation || null);
   }
   async function uncompleteBlock(id: number) {
     setCompleted(curr => { const next = new Set(curr); next.delete(id); return next; });
@@ -243,6 +243,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
               <div className="sp-block-list">
                 {visibleBlocks.map((block, index) => {
                   const done = completed.has(block.id);
+                  const lastStudyLocation = nodeStudy.find(item => item.syllabusNodeId === (block.scheduledNodeId ?? (block.id < 0 ? -block.id : block.topic.id)))?.lastStudyLocation;
                   const studyingNow = pomodoro.running && pomodoro.activeTopicId === block.topic.id;
                   const slug = TYPE_SLUG[block.type] ?? 'teoria';
                   const scheduleDate = (block as { scheduledFor?: string }).scheduledFor?.slice(0, 10);
@@ -285,6 +286,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                           <span className="sp-block-subject">{block.subject}</span>
                         </div>
                           <strong className="sp-block-title">{(block as { displayTitle?: string }).displayTitle ?? block.topic.title}</strong>
+                        {block.type === 'Revisão' && lastStudyLocation && <span className="sp-block-hint" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>Último local: {lastStudyLocation}</span>}
                         <span className="sp-block-hint">
                           {studyingNow
                             ? '● Pomodoro em andamento'
@@ -369,9 +371,10 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
         mode="revision"
         title={reviewTarget.topic.title}
         previousSummary={nodeStudy.find(item => item.syllabusNodeId === (reviewTarget.id < 0 ? -reviewTarget.id : reviewTarget.topic.id))?.latestSummary}
+        previousLocation={nodeStudy.find(item => item.syllabusNodeId === (reviewTarget.id < 0 ? -reviewTarget.id : reviewTarget.topic.id))?.lastStudyLocation}
         onClose={() => setReviewTarget(null)}
-        onConfirm={(scheduleNext, nextDate, summary) => {
-          void completeBlock(reviewTarget.id, 0, scheduleNext, scheduleNext ? nextDate : null, true, false, summary);
+        onConfirm={(scheduleNext, nextDate, summary, studyLocation) => {
+          void completeBlock(reviewTarget.id, 0, scheduleNext, scheduleNext ? nextDate : null, true, false, summary, studyLocation);
           if (scheduleNext) setRevisions(prev => new Map(prev).set(reviewTarget.id, nextDate));
           setReviewTarget(null);
         }}
@@ -380,10 +383,11 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
       <ReviewDialog
         title={reviewTarget.topic.title}
         previousSummary={nodeStudy.find(item => item.syllabusNodeId === reviewTarget.topic.id)?.latestSummary}
+        previousLocation={nodeStudy.find(item => item.syllabusNodeId === reviewTarget.topic.id)?.lastStudyLocation}
         defaultMinutes={reviewTarget.minutes}
         onClose={() => setReviewTarget(null)}
-        onConfirm={(schedule, date, completedMinutes, isCompleted, summary) => {
-          void completeBlock(reviewTarget.id, completedMinutes, schedule, schedule ? date : null, isCompleted, false, summary);
+        onConfirm={(schedule, date, completedMinutes, isCompleted, summary, studyLocation) => {
+          void completeBlock(reviewTarget.id, completedMinutes, schedule, schedule ? date : null, isCompleted, false, summary, studyLocation);
           if (isCompleted && schedule) setRevisions(prev => new Map(prev).set(reviewTarget.id, date));
           setReviewTarget(null);
         }}

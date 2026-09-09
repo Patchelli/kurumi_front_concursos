@@ -10,6 +10,7 @@ export type SyllabusNodeStudyRequest = {
   reviewDate?: string | null;
   clearPending?: boolean;
   summary?: string | null;
+  studyLocation?: string | null;
   isReview?: boolean;
 };
 
@@ -21,6 +22,7 @@ export type SyllabusNodeStudyResponse = {
   studiedMinutes: number;
   reviewDate?: string | null;
   latestSummary?: string | null;
+  lastStudyLocation?: string | null;
   questionDate?: string | null;
 };
 

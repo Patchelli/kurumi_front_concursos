@@ -15,6 +15,7 @@ const register = (body: TimeCapsuleSaveRequest) => clientRequest<TimeCapsule>({ 
 const update = (id: number, body: Omit<TimeCapsuleSaveRequest, 'journeyId'>) => clientRequest<TimeCapsule>({ url: `/TimeCapsule/${id}`, method: HttpMethod.Put, body });
 const open = (id: number) => clientRequest<TimeCapsule>({ url: `/TimeCapsule/${id}/open`, method: HttpMethod.Put });
 const remove = (id: number) => clientRequest<boolean>({ url: `/TimeCapsule/${id}`, method: HttpMethod.Delete });
-export const timeCapsuleService = { list, register, update, open, remove };
+const delivered = () => clientRequest<TimeCapsule[]>({ url: '/TimeCapsule/delivered', method: HttpMethod.Get });
+export const timeCapsuleService = { list, delivered, register, update, open, remove };
 export const timeCapsuleProgressChangedEvent = 'kurumi:time-capsule-progress-changed';
 export const notifyTimeCapsuleProgressChanged = () => window.dispatchEvent(new Event(timeCapsuleProgressChangedEvent));

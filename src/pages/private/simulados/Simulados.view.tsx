@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import type { SimuladosViewProps } from './Simulados.type';
@@ -203,6 +204,30 @@ export function SimuladosView({
     porMateria:e.breakdown.map(m=>({areaId:m.knowledgeAreaId,areaTitle:areas.find(a=>a.id===m.knowledgeAreaId)?.title??'Matéria',questoes:m.totalQuestions,acertos:m.correctAnswers,anuladas:m.voidedQuestions,motivosErros:Object.fromEntries(MOTIVOS.map(k=>[k,m.errorReasons[k]??0])) as Record<Motivo,number>,observacoes:m.notes??''}))
   })),[storedEntries,areas]);
   const [formOpen, setFormOpen] = useState(false);
+  const [formViewport, setFormViewport] = useState(() => ({
+    height: window.visualViewport?.height ?? window.innerHeight,
+    top: window.visualViewport?.offsetTop ?? 0,
+  }));
+  useEffect(() => {
+    if (!formOpen) return;
+    const viewport = window.visualViewport;
+    const updateViewport = () => setFormViewport({
+      height: viewport?.height ?? window.innerHeight,
+      top: viewport?.offsetTop ?? 0,
+    });
+    updateViewport();
+    viewport?.addEventListener('resize', updateViewport);
+    viewport?.addEventListener('scroll', updateViewport);
+    window.addEventListener('resize', updateViewport);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      viewport?.removeEventListener('resize', updateViewport);
+      viewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [formOpen]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(() => emptyForm(areaIds));
   const [expandedMateria, setExpandedMateria] = useState<Set<number>>(new Set());
@@ -528,20 +553,20 @@ export function SimuladosView({
     </div>
 
     {/* ── Form overlay ── */}
-    {formOpen && (
-      <div className={t.overlay} onMouseDown={() => setFormOpen(false)}>
-        <div className={t.dialog} onMouseDown={e => e.stopPropagation()}>
-          <div className={t.dialogHeader}>
+    {formOpen && createPortal(
+      <div className={t.overlay} style={{ position: 'fixed', top: formViewport.top, bottom: 'auto', left: 0, right: 0, height: formViewport.height, boxSizing: 'border-box', display: 'grid', placeItems: 'center', padding: 12, overflow: 'hidden', zIndex: 1000, animation: 'none' }} onMouseDown={() => setFormOpen(false)}>
+        <div className={t.dialog} style={{ display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', height: '100%', maxHeight: 780, width: '100%', maxWidth: 600, minHeight: 0, overflow: 'hidden' }} role="dialog" aria-modal="true" aria-labelledby="simulado-dialog-title" onMouseDown={e => e.stopPropagation()}>
+          <div className={t.dialogHeader} style={{ flexShrink: 0 }}>
             <div>
               <span className={t.dialogEyebrow}>{editingId !== null ? 'EDITAR' : 'NOVO'}</span>
-              <h2 className={t.dialogTitle}>{editingId !== null ? 'Editar simulado' : 'Novo simulado'}</h2>
+              <h2 id="simulado-dialog-title" className={t.dialogTitle}>{editingId !== null ? 'Editar simulado' : 'Novo simulado'}</h2>
             </div>
             <button className={t.dialogClose} onClick={() => setFormOpen(false)} aria-label="Fechar">
               <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </button>
           </div>
 
-          <div className={t.createForm}>
+          <div className={t.createForm} style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
 
             <div className={t.field}>
               <span className={t.fieldLabel}>Nome do simulado</span>
@@ -626,7 +651,7 @@ export function SimuladosView({
 
           </div>
 
-          <div className={t.dialogFooter}>
+          <div className={t.dialogFooter} style={{ flexShrink: 0, paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
             <button className={t.btnGhost} onClick={() => setFormOpen(false)}>Cancelar</button>
             <button className={t.btnPrimary} disabled={saving} onClick={() => void submitForm()}>
               Salvar
@@ -636,7 +661,7 @@ export function SimuladosView({
             </button>
           </div>
         </div>
-      </div>
+      </div>, document.body
     )}
 
     {journey && <ContestFAB journeyId={journey.id} areas={areas}/>}

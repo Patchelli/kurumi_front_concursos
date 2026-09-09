@@ -37,9 +37,9 @@ export function StudyPlanController() {
     return () => window.removeEventListener(studyTimerFinishedEvent, refresh);
   }, [journeyId, routineId]);
   async function saveConfiguration(value: StudyRoutineConfigurationRequest) { const body = { journeyId, title: 'Plano de estudos', kind: 1 as const, configuration: value }; const result = routineId ? await studyRoutineService.update({ id: routineId, ...body }) : await studyRoutineService.register(body); setRoutineId(result.id); setConfiguration(result.configuration); setRoutineBlocks(await studyRoutineService.generate(result.id, journeyId)); }
-  async function completeBlock(blockId: number, completed: boolean, completedMinutes = 0, scheduleReview = false, reviewDate: string | null = null, clearPending = false, summary: string | null = null) {
+  async function completeBlock(blockId: number, completed: boolean, completedMinutes = 0, scheduleReview = false, reviewDate: string | null = null, clearPending = false, summary: string | null = null, studyLocation: string | null = null) {
     const planned = routineBlocks.find(block => block.id === blockId)?.plannedMinutes ?? 0;
-    const result = await studyRoutineService.complete({ blockId, completed, completedMinutes: completedMinutes > 0 ? completedMinutes : (completed ? planned : 0), scheduleReview, reviewDate, clearPending, summary });
+    const result = await studyRoutineService.complete({ blockId, completed, completedMinutes: completedMinutes > 0 ? completedMinutes : (completed ? planned : 0), scheduleReview, reviewDate, clearPending, summary, studyLocation });
     notifyTimeCapsuleProgressChanged();
     setRoutineBlocks(current => current.map(block => block.id === blockId ? result : block));
     if (routineId) {
