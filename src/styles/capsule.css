@@ -779,6 +779,8 @@
   outline: none;
   transition: border-color .15s, box-shadow .15s;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
   font-family: inherit;
 }
@@ -814,7 +816,7 @@
   padding: 4px 0 0 2px;
 }
 
-.cp-date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cp-date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
 
 /* Trigger options */
 .cp-trigger-options { display: flex; flex-direction: column; gap: 10px; }
