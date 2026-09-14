@@ -4,7 +4,7 @@ import './styles/study-plan.css';
 import './styles/study-topic-dialog.css';
 import './styles/subject.css';
 import './styles/components/study-loading.css';
-import './styles/components/flashcard-creator.css';
+import './styles/components/flashcard-creator.css'; import './styles/components/pwa-install.css';
 import './styles/capsule.css';
 import { CapsuleDeliveryProvider } from './pages/private/capsule/CapsuleDelivery.context';
 import { CapsuleDeliveryPopup } from './pages/private/capsule/Capsule.widgets';
