@@ -10,6 +10,7 @@ import { InputDialog } from '@components/dialog/InputDialog';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
+import { QuestionNotebookDialog } from '@components/practice/QuestionNotebookDialog';
 
 export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onSelectArea, onAddArea, onEditArea, onDeleteArea, onListResources, onSaveResource, onDeleteResource }: SubjectListViewProps) {
   const [addAreaOpen, setAddAreaOpen] = useState(false);
@@ -100,7 +101,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
   );
 }
 
-export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode, onDeleteArea, onAddTopic, onAddSubtopic, onEditArea, onEditNode, nodeStudy, overviewArea, onQuestionsChanged, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onListAreaResources }: SubjectDetailViewProps) {
+export function SubjectDetailView({ journey, area, loading, onBack, onBackToList, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onRemoveNode, onDeleteArea, onAddTopic, onAddSubtopic, onEditArea, onEditNode, nodeStudy, overviewArea, questionCounts, onQuestionsChanged, onSaveNodeStudy, onListResources, onSaveResource, onDeleteResource, onListAreaResources }: SubjectDetailViewProps) {
   const pomodoro = usePomodoro();
   const [addTopicOpen, setAddTopicOpen] = useState(false);
   const [addSubtopicTarget, setAddSubtopicTarget] = useState<{ topicId: number; topicTitle: string } | null>(null);
@@ -111,6 +112,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
   const [deleteAreaOpen, setDeleteAreaOpen] = useState(false);
   const [deleteNodeTarget, setDeleteNodeTarget] = useState<{ id: number; title: string } | null>(null);
   const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [notebookOpen, setNotebookOpen] = useState(false);
   if (loading) return <main className="journey-entry"><p>Carregando…</p></main>;
   if (!journey) return <main className="journey-entry"><button onClick={onBack}>← Voltar</button><h1>Concurso não encontrado</h1></main>;
   if (!area) return <main className="journey-entry"><button onClick={onBackToList}>← Matérias</button><h1>Matéria não encontrada</h1></main>;
@@ -148,7 +150,8 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
             <div className="sb-subject-head">
               <h1 className="sb-subject-title">
                 {area.title}
-                <button className="sb-edit-inline-btn" title="Registrar questões da matéria" onClick={() => setQuestionsOpen(true)}>Q</button>
+                {(() => { const own = questionCounts.get(null) ?? 0; let any = 0; questionCounts.forEach(v => any += v); return <button className={`sb-edit-inline-btn${any > 0 ? ' sb-btn-has-questions' : ''}`} title={any > 0 ? `${own} nesta matéria, ${any} no total` : 'Registrar questões da matéria'} onClick={() => setQuestionsOpen(true)}>Q{own > 0 && <span className="sb-q-badge">{own}</span>}</button>; })()}
+                <button className="sb-edit-inline-btn" title="Caderno de questoes" onClick={() => setNotebookOpen(true)}>T</button>
                 <button className="sb-edit-inline-btn" title="Materiais da matéria" onClick={() => setMaterialsOpen(true)}>
                   <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                 </button>
@@ -198,6 +201,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
                   onListResources={onListResources}
                   onSaveResource={onSaveResource}
                   onDeleteResource={onDeleteResource}
+                  questionCounts={questionCounts}
                   onQuestionsChanged={onQuestionsChanged}
                 />
               ))}
@@ -217,6 +221,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
       <InputDialog open={!!editNodeTarget} title="Editar conteúdo" description="Altere o nome do tópico ou subtópico." placeholder="Nome" defaultValue={editNodeTarget?.title ?? ''} maxLength={300} confirmLabel="Salvar" onConfirm={title => editNodeTarget && onEditNode(editNodeTarget.id, area.id, title)} onClose={() => setEditNodeTarget(null)} />
       {flashcardsOpen && <FlashcardListPanel journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setFlashcardsOpen(false)} />}
       {questionsOpen && <QuestionRegisterDialog journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setQuestionsOpen(false)} onSaved={onQuestionsChanged} />}
+      {notebookOpen && <QuestionNotebookDialog journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onClose={() => setNotebookOpen(false)} />}
       {materialsOpen && <MaterialsPanel journeyId={journey.id} knowledgeAreaId={area.id} title={area.title} onList={() => onListAreaResources(area.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={() => {}} onClose={() => setMaterialsOpen(false)} />}
       <ConfirmDialog open={deleteAreaOpen} title="Excluir matéria?" description={`"${area.title}" e todo seu conteúdo serão removidos permanentemente.`} confirmLabel="Excluir" danger onConfirm={() => { onDeleteArea(area.id); setDeleteAreaOpen(false); }} onClose={() => setDeleteAreaOpen(false)} />
       <ConfirmDialog open={!!deleteNodeTarget} title="Excluir conteúdo?" description={`"${deleteNodeTarget?.title ?? ''}" será removido permanentemente.`} confirmLabel="Excluir" danger onConfirm={() => { if (deleteNodeTarget) onRemoveNode(deleteNodeTarget.id); setDeleteNodeTarget(null); }} onClose={() => setDeleteNodeTarget(null)} />

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { SubjectDetailView, SubjectListView } from './Subject.view';
 import { notifyTimeCapsuleProgressChanged } from '@business/service/TimeCapsule.service';
 import { journeyOverviewService, type JourneyOverviewArea } from '@business/service/JourneyOverview.service';
+import { practiceEntryService } from '@business/service/PracticeEntry.service';
 
 function useJourney(id: string | undefined) {
   const [journey, setJourney] = useState<JourneyDetailsResponse | null>(null);
@@ -76,7 +77,19 @@ export function SubjectDetailController() {
   const { journey, loading, reload } = useJourney(id);
   const [nodeStudy, setNodeStudy] = useState<SyllabusNodeStudyResponse[]>([]);
   const [overviewArea, setOverviewArea] = useState<JourneyOverviewArea>();
+  const [questionCounts, setQuestionCounts] = useState<Map<number | null, number>>(new Map());
   const selectedAreaId = Number(areaId);
+  const reloadQuestionCounts = () => {
+    if (!journeyId || !selectedAreaId) return;
+    practiceEntryService.list(journeyId, selectedAreaId).then(entries => {
+      const map = new Map<number | null, number>();
+      for (const e of entries) {
+        const key = e.syllabusNodeId ?? null;
+        map.set(key, (map.get(key) ?? 0) + e.questionsAnswered);
+      }
+      setQuestionCounts(map);
+    }).catch(() => setQuestionCounts(new Map()));
+  };
   const reloadOverviewArea = () => {
     if (!journeyId || !selectedAreaId) return;
     journeyOverviewService.find(journeyId)
@@ -88,6 +101,7 @@ export function SubjectDetailController() {
     syllabusNodeStudyService.list(journeyId).then(setNodeStudy).catch(() => setNodeStudy([]));
   }, [journeyId]);
   useEffect(reloadOverviewArea, [journeyId, selectedAreaId]);
+  useEffect(reloadQuestionCounts, [journeyId, selectedAreaId]);
   useEffect(() => {
     const refresh = (event: Event) => {
       if ((event as CustomEvent<{ journeyId: number }>).detail?.journeyId !== journeyId) return;
@@ -156,7 +170,8 @@ export function SubjectDetailController() {
       }}
       nodeStudy={nodeStudy}
       overviewArea={overviewArea}
-      onQuestionsChanged={reloadOverviewArea}
+      questionCounts={questionCounts}
+      onQuestionsChanged={() => { reloadOverviewArea(); reloadQuestionCounts(); }}
       onSaveNodeStudy={saveNodeStudy}
       onListResources={nodeId => studyResourceService.list(journeyId, nodeId)}
       onSaveResource={request => studyResourceService.register(request)}

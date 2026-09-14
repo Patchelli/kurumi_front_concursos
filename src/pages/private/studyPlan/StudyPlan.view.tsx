@@ -17,7 +17,7 @@ const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric'
 const localToday = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 const LOCAL_DATE = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 
-export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onSaveCognitivePairing, onQuestionsSaved, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
+export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, questionNotebooks, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onSaveCognitivePairing, onQuestionsSaved, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [revisions, setRevisions] = useState<Map<number, string>>(new Map()); // blockId → date
   const [reviewTarget, setReviewTarget] = useState<typeof blocks[number] | null>(null);
@@ -213,6 +213,10 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                 {visibleBlocks.map((block, index) => {
                   const done = completed.has(block.id);
                   const lastStudyLocation = nodeStudy.find(item => item.syllabusNodeId === (block.scheduledNodeId ?? (block.id < 0 ? -block.id : block.topic.id)))?.lastStudyLocation;
+                  const scheduledNodeId = block.scheduledNodeId ?? (block.id < 0 ? -block.id : block.topic.id);
+                  const tecNotebook = tab === 'questoes'
+                    ? questionNotebooks.find(item => item.syllabusNodeId === scheduledNodeId)
+                    : undefined;
                   const studyingNow = pomodoro.running && pomodoro.activeTopicId === block.topic.id;
                   const slug = TYPE_SLUG[block.type] ?? 'teoria';
                   const scheduleDate = (block as { scheduledFor?: string }).scheduledFor?.slice(0, 10);
@@ -254,23 +258,11 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                           <span className={`sp-type sp-type--${slug}`}>{block.type}</span>
                           <span className="sp-block-subject">{block.subject}</span>
                         </div>
-                          <strong className="sp-block-title">{(block as { displayTitle?: string }).displayTitle ?? block.topic.title}</strong>
+                          <div className="sp-block-title-row">
+                            <strong className="sp-block-title">{(block as { displayTitle?: string }).displayTitle ?? block.topic.title}</strong>
+                            {tab === 'questoes' && tecNotebook && <a className="sp-block-tec-link" href={tecNotebook.url} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} aria-label={`Abrir ${tecNotebook.title} no TecConcursos`}>T</a>}
+                          </div>
                         {block.topic.cognitivePairing && <span className="sp-block-cognitive"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.6 15.2A6.5 6.5 0 1 1 15.4 15.2c-.8.7-1.4 1.6-1.4 2.8h-4c0-1.2-.6-2.1-1.4-2.8Z" /></svg>{block.topic.cognitivePairing}</span>}
-                        {block.type === 'Revisão' && lastStudyLocation && <span className="sp-block-hint" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>Último local: {lastStudyLocation}</span>}
-                        <span className="sp-block-hint">
-                          {studyingNow
-                            ? '● Pomodoro em andamento'
-                            : questionDate
-                            ? `Questões em ${new Date(`${questionDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
-                            : revDate
-                            ? `↻ Revisão em ${new Date(`${revDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
-                            : block.topic.children.length
-                            ? `${block.topic.children.length} subtópico${block.topic.children.length > 1 ? 's' : ''}`
-                            : 'Clique para ver as ações'}
-                        </span>
-                      </div>
-
-                      <div className="sp-block-actions">
                         <time className="sp-block-time">{block.type === 'Revisão' ? 'tempo livre' : block.type === 'Questões' ? 'prática' : `${block.minutes}min`}</time>
                       </div>
                     </article>

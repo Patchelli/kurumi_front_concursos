@@ -417,6 +417,9 @@
 .cv-save-btn:not(:disabled):hover{opacity:.88}
 /* Has material indicator */
 .sb-btn-has-material{color:#a78bfa!important;border-color:rgba(167,139,250,0.4)!important}
+/* Has questions indicator */
+.sb-btn-has-questions{color:#6d9f3b!important;border-color:rgba(109,159,59,0.4)!important;background:rgba(109,159,59,0.08)!important;position:relative}
+.sb-q-badge{position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#6d9f3b;color:#fff;font-size:9px;font-weight:800;line-height:16px;text-align:center;pointer-events:none}
 
 /* Content viewer can be opened from inside a subtopic without inheriting its button layout. */
 .sp-subtopic-list .cv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}

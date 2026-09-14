@@ -38,6 +38,7 @@ export type SubjectDetailViewProps = {
   onEditNode(nodeId: number, knowledgeAreaId: number, title: string): void;
   nodeStudy: SyllabusNodeStudyResponse[];
   overviewArea?: JourneyOverviewArea;
+  questionCounts: Map<number | null, number>;
   onQuestionsChanged(): void;
   onSaveNodeStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
   onListResources(nodeId: number): Promise<StudyResource[]>;

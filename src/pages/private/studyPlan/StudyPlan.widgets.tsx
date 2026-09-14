@@ -14,6 +14,7 @@ import type { StudyTimerSaveRequest, StudyTimerState } from '@business/service/S
 import { MaterialDialog } from '@components/dialog/MaterialDialog';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
+import { QuestionNotebookDialog } from '@components/practice/QuestionNotebookDialog';
 
 /* ════════════════════════════════════════════
    Study Calendar
@@ -1164,6 +1165,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
   const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
   const [reviewOpen, setReviewOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [notebookOpen, setNotebookOpen] = useState(false);
   const [cognitivePairing, setCognitivePairing] = useState('');
   const [cognitivePairingSaving, setCognitivePairingSaving] = useState(false);
   const [savedCognitivePairing, setSavedCognitivePairing] = useState('');
@@ -1251,6 +1253,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
             <button onClick={() => setQuestionsOpen(true)}>
               <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
             </button>
+            <button onClick={() => setNotebookOpen(true)}><span>T</span><strong>Caderno de questoes</strong><small>Link do TecConcursos</small></button>
             <button className={activeTab === 'materials' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'materials' ? null : 'materials')}>
               <span>▤</span><strong>Materiais</strong><small>PDFs, vídeos e links</small>
             </button>
@@ -1308,6 +1311,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
       )}
       {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} previousLocation={studyState?.lastStudyLocation} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary, studyLocation) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary, studyLocation); setReviewOpen(false); }} />}
       {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setQuestionsOpen(false)} />}
+      {notebookOpen && <QuestionNotebookDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setNotebookOpen(false)} />}
     </div>
   );
 }
@@ -1322,6 +1326,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
   const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [notebookOpen, setNotebookOpen] = useState(false);
   const [cognitivePairing, setCognitivePairing] = useState('');
   const [cognitivePairingSaving, setCognitivePairingSaving] = useState(false);
   const [savedCognitivePairing, setSavedCognitivePairing] = useState('');
@@ -1434,6 +1439,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               <button onClick={() => setQuestionsOpen(true)}>
                 <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
               </button>
+            <button onClick={() => setNotebookOpen(true)}><span>T</span><strong>Caderno de questoes</strong><small>Link do TecConcursos</small></button>
               <button className={activeResource === 'materials' ? 'active' : ''} onClick={() => setActiveResource(value => value === 'materials' ? null : 'materials')}>
                 <span>▤</span><strong>Materiais</strong><small>PDFs, vídeos e links</small>
               </button>
@@ -1524,6 +1530,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
 
       </aside>
       {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setQuestionsOpen(false)} />}
+      {notebookOpen && <QuestionNotebookDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setNotebookOpen(false)} />}
     </div>
   );
 }
