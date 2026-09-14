@@ -485,6 +485,7 @@
     transition: color .13s, background .13s;
   }
   .hub-mobile-nav a span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 12px; }
+  .hub-mobile-nav a svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .hub-mobile-nav a.active { color: #49366e; }
   .hub-mobile-nav a.active span { background: #eee7f5; }
   .hub-content { padding-bottom: 90px; }
