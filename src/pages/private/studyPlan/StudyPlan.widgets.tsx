@@ -1141,6 +1141,7 @@ type TopicProps = {
   onToggleComplete(): void;
   nodeStudy: SyllabusNodeStudyResponse[];
   onSaveNodeStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
+  onSaveCognitivePairing(nodeId: number, value: string): Promise<void>;
   onViewSubject(): void;
   onStartPomodoro(subtopicId?: number): void;
   journeyId: number;
@@ -1163,6 +1164,9 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
   const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
   const [reviewOpen, setReviewOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [cognitivePairing, setCognitivePairing] = useState('');
+  const [cognitivePairingSaving, setCognitivePairingSaving] = useState(false);
+  const [savedCognitivePairing, setSavedCognitivePairing] = useState('');
   const [studiedMinutes, setStudiedMinutes] = useState(studyState?.studiedMinutes ?? 0);
   const [savingStudy, setSavingStudy] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(studyState?.progress ?? child.progress);
@@ -1308,8 +1312,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
   );
 }
 
-export function StudyTopicDialog({ target, completed, onClose, onToggleComplete, nodeStudy, onSaveNodeStudy, onViewSubject, onStartPomodoro, journeyId, onListResources, onSaveResource, onDeleteResource }: TopicProps) {
-  const [revision, setRevision] = useState(false);
+export function StudyTopicDialog({ target, completed, onClose, onToggleComplete, nodeStudy, onSaveNodeStudy, onSaveCognitivePairing, onViewSubject, onStartPomodoro, journeyId, onListResources, onSaveResource, onDeleteResource }: TopicProps) {
   const [activeResource, setActiveResource] = useState<'materials' | 'flashcards' | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [resourceKind, setResourceKind] = useState<StudyResourceKind>(99);
@@ -1319,6 +1322,15 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
   const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [cognitivePairing, setCognitivePairing] = useState('');
+  const [cognitivePairingSaving, setCognitivePairingSaving] = useState(false);
+  const [savedCognitivePairing, setSavedCognitivePairing] = useState('');
+
+  useEffect(() => {
+    const value = target?.topic.cognitivePairing ?? '';
+    setCognitivePairing(value);
+    setSavedCognitivePairing(value.trim());
+  }, [target?.topic.id, target?.topic.cognitivePairing]);
 
   useEffect(() => {
     if (!target) return;
@@ -1352,6 +1364,20 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
     } finally { setUrlSaving(false); }
   }
 
+  async function saveCognitivePairingPhrase() {
+    const topicId = target?.topic.id;
+    if (!topicId) return;
+    setCognitivePairingSaving(true);
+    try {
+      await onSaveCognitivePairing(topicId, cognitivePairing);
+      toast.success('Frase cognitiva salva.');
+    } catch {
+      toast.error('Nao foi possivel salvar a frase.');
+    } finally {
+      setCognitivePairingSaving(false);
+    }
+  }
+
   const subtopics = target.topic.children;
   const targetStudy = nodeStudy.find(item => item.syllabusNodeId === target.topic.id);
   const currentTopicProgress = targetStudy?.progress ?? target.topic.progress;
@@ -1381,6 +1407,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
           <div className="sp-topic-drawer-title">
             <span className="eyebrow">{target.area.title}</span>
             <h1>{target.topic.title}</h1>
+            
           </div>
           <button className="sp-wizard-close" onClick={onClose} aria-label="Fechar">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1388,6 +1415,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
             </svg>
             Fechar
           </button>
+          <div className="sp-cognitive-pairing-field"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.6 15.2A6.5 6.5 0 1 1 15.4 15.2c-.8.7-1.4 1.6-1.4 2.8h-4c0-1.2-.6-2.1-1.4-2.8Z" /></svg><input className="sp-cognitive-pairing-input" type="text" value={cognitivePairing} maxLength={500} aria-label="Emparelhamento cognitivo" onChange={event => setCognitivePairing(event.target.value)} onBlur={() => { void saveCognitivePairingPhrase(); }} /></div>
         </header>
 
         <div className="sp-topic-panel-body">
@@ -1412,16 +1440,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
               <button className={activeResource === 'flashcards' ? 'active' : ''} onClick={() => setActiveResource(value => value === 'flashcards' ? null : 'flashcards')}>
                 <span className="flashcard-stack-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="4" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 2h9a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9h5M9 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></span><strong>Flashcard</strong><small>Memorização ativa</small>
               </button>
-              <button className={revision ? 'active' : ''} onClick={() => setRevision(v => !v)}>
-                <span className="sp-revision-icon">
-                  <svg viewBox="0 0 22 14" fill="none" aria-hidden="true">
-                    <path d="M1 5l5 5L14 1" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M8 9l5 5L21 1" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity={revision ? '1' : '0.35'}/>
-                  </svg>
-                </span>
-                <strong>{revision ? 'Revisão agendada' : 'Agendar revisão'}</strong><small>Revisão espaçada</small>
-              </button>
-            </div>
+</div>
             {activeResource === 'materials' && (
               <section className="sp-topic-resource">
                 <header>

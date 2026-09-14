@@ -150,7 +150,7 @@ export function SubjectDetailController() {
         const targetArea = journey?.knowledgeAreas.find(a => a.id === knowledgeAreaId);
         const node = targetArea?.nodes.find(n => n.id === nodeId) ?? targetArea?.nodes.flatMap(n => n.children).find(c => c.id === nodeId);
         if (!node) return;
-        void journeyService.updateNode({ id: nodeId, knowledgeAreaId, parentId: node.parentId, title, order: node.order })
+        void journeyService.updateNode({ id: nodeId, knowledgeAreaId, parentId: node.parentId, title, order: node.order, cognitivePairing: node.cognitivePairing })
           .then(() => { toast.success('Conteúdo atualizado!'); reload(); })
           .catch(error => toast.error(getRequestErrorMessage(error, 'Não foi possível atualizar.')));
       }}

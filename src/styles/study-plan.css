@@ -699,3 +699,35 @@
   .sp-config-btn--pulse{animation:none!important}
   .pm-panel--alert{animation:none!important}
 }
+
+/* Cognitive pairing: a short recall cue attached to each topic. */
+.sp-cognitive-pairing{margin:18px 0;padding:16px;border:1px solid #ddd2e8;border-radius:14px;background:#faf7fd}
+.sp-cognitive-pairing>div{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.sp-cognitive-pairing span{color:#71518d;font-size:10px;font-weight:900;letter-spacing:.08em}
+.sp-cognitive-pairing p{margin:5px 0 12px;color:#766b7d;font-size:12px;line-height:1.45}
+.sp-cognitive-pairing textarea{box-sizing:border-box;width:100%;min-height:76px;padding:10px 11px;border:1px solid #cfc2db;border-radius:10px;background:#fff;color:#30253a;font:inherit;font-size:13px;line-height:1.45;resize:vertical;outline:0}
+.sp-cognitive-pairing textarea:focus{border-color:#8067a8;box-shadow:0 0 0 3px #8067a821}
+.sp-cognitive-pairing footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
+.sp-cognitive-pairing footer small{color:#8a7d91;font-size:10px}
+.sp-cognitive-pairing footer button{min-height:36px;padding:0 13px;border:0;border-radius:9px;background:#66558f;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+.sp-cognitive-pairing footer button:disabled{opacity:.55;cursor:wait}
+.sp-block-cognitive{display:block;margin-top:5px;color:#62516e;font-size:11px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-block-cognitive::before{content:'Lembrete: ';font-weight:800;color:#8067a8}
+@media(max-width:560px){.sp-cognitive-pairing{padding:14px}.sp-cognitive-pairing footer button{min-height:42px}.sp-block-cognitive{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
+
+/* Compact cognitive cue directly under the topic title. */
+.sp-cognitive-pairing-input{display:block;box-sizing:border-box;width:min(100%,520px);height:36px;margin-top:9px;padding:0 10px;border:1px solid #d8cee1;border-radius:9px;background:#faf8fc;color:#45384e;font:inherit;font-size:12px;outline:0}
+.sp-cognitive-pairing-input::placeholder{color:#9b91a1}
+.sp-cognitive-pairing-input:focus{border-color:#8067a8;background:#fff;box-shadow:0 0 0 3px #8067a821}
+@media(max-width:560px){.sp-cognitive-pairing-input{width:100%;height:42px;font-size:13px}}
+.sp-cognitive-pairing-field{position:relative;width:min(100%,520px);margin-top:9px}
+.sp-cognitive-pairing-field svg{position:absolute;z-index:1;top:10px;left:11px;width:16px;height:16px;fill:none;stroke:#8067a8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.sp-cognitive-pairing-field .sp-cognitive-pairing-input{width:100%;margin-top:0;padding-left:36px}
+@media(max-width:560px){.sp-cognitive-pairing-field{width:100%}.sp-cognitive-pairing-field svg{top:13px}}
+
+/* Keep the cue inside the header without squeezing the title row. */
+.sp-topic-panel-header{height:auto;min-height:72px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+.sp-topic-panel-header>.sp-cognitive-pairing-field{flex:0 0 100%;width:100%;margin-top:-3px}
+.sp-block-cognitive{display:flex;align-items:flex-start;gap:5px}
+.sp-block-cognitive svg{flex:0 0 auto;width:14px;height:14px;margin-top:1px;fill:none;stroke:#8067a8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sp-block-cognitive::before{content:none}

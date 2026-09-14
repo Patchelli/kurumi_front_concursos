@@ -47,4 +47,5 @@ export type SyllabusNodeRegisterRequest = {
   parentId?: number | null;
   title: string;
   order: number;
+  cognitivePairing?: string | null;
 };

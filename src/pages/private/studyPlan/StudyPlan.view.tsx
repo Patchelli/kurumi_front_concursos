@@ -17,7 +17,7 @@ const TODAY = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric'
 const localToday = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 const LOCAL_DATE = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 
-export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onQuestionsSaved, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
+export function StudyPlanView({ journey, loading, configuration, routineBlocks, nodeStudy, onSaveConfiguration, onCompleteBlock, onSaveNodeStudy, onSaveCognitivePairing, onQuestionsSaved, onListResources, onSaveResource, onDeleteResource, onBack, onOverview, onOpenContent, onOpenCapsule, onOpenSimulados, onOpenSubject }: StudyPlanViewProps) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [revisions, setRevisions] = useState<Map<number, string>>(new Map()); // blockId → date
   const [reviewTarget, setReviewTarget] = useState<typeof blocks[number] | null>(null);
@@ -229,8 +229,8 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                       className={`sp-block${done ? ' sp-block--done' : ''}${pendingBlockIds.has(block.id) ? ' sp-block--pending' : ''}${studyingNow ? ' sp-block--studying' : ''}`}
                       role="button"
                       tabIndex={0}
-                      onClick={() => openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
-                      onKeyDown={e => e.key === 'Enter' && openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : open(block))}
+                      onClick={() => openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : tab === 'revisao' ? setReviewTarget(block) : open(block))}
+                      onKeyDown={e => e.key === 'Enter' && openScheduledActivity(block, () => tab === 'questoes' ? setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }) : tab === 'revisao' ? setReviewTarget(block) : open(block))}
                     >
                       <button
                         className="sp-check"
@@ -240,7 +240,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                           e.stopPropagation();
                           openScheduledActivity(block, () => {
                             if (tab === 'questoes') { setQuestionTarget({ areaId: block.area.id, nodeId: block.scheduledNodeId ?? block.topic.id, title: block.displayTitle ?? block.topic.title }); return; }
-                            if (block.id < 0) { open(block); return; }
+                            if (tab === 'revisao') { setReviewTarget(block); return; }
                             if (done) uncompleteBlock(block.id);
                             else setReviewTarget(block);
                           });
@@ -255,6 +255,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
                           <span className="sp-block-subject">{block.subject}</span>
                         </div>
                           <strong className="sp-block-title">{(block as { displayTitle?: string }).displayTitle ?? block.topic.title}</strong>
+                        {block.topic.cognitivePairing && <span className="sp-block-cognitive"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.6 15.2A6.5 6.5 0 1 1 15.4 15.2c-.8.7-1.4 1.6-1.4 2.8h-4c0-1.2-.6-2.1-1.4-2.8Z" /></svg>{block.topic.cognitivePairing}</span>}
                         {block.type === 'Revisão' && lastStudyLocation && <span className="sp-block-hint" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>Último local: {lastStudyLocation}</span>}
                         <span className="sp-block-hint">
                           {studyingNow
@@ -338,7 +339,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
     {reviewTarget && reviewTarget.type === 'Revisão' ? (
       <ReviewDialog
         mode="revision"
-        title={reviewTarget.topic.title}
+        title={(reviewTarget as { displayTitle?: string }).displayTitle ?? reviewTarget.topic.title}
         previousSummary={nodeStudy.find(item => item.syllabusNodeId === (reviewTarget.id < 0 ? -reviewTarget.id : reviewTarget.topic.id))?.latestSummary}
         previousLocation={nodeStudy.find(item => item.syllabusNodeId === (reviewTarget.id < 0 ? -reviewTarget.id : reviewTarget.topic.id))?.lastStudyLocation}
         onClose={() => setReviewTarget(null)}
@@ -385,6 +386,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
       onListResources={onListResources}
       nodeStudy={nodeStudy}
       onSaveNodeStudy={onSaveNodeStudy}
+      onSaveCognitivePairing={onSaveCognitivePairing}
       onSaveResource={onSaveResource}
       onDeleteResource={onDeleteResource}
       onViewSubject={() => { if (selectedTopic) { setSelectedTopic(null); onOpenSubject(selectedTopic.area.id); } }}

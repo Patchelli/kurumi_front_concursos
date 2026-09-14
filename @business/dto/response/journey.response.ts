@@ -42,6 +42,7 @@ export type SyllabusNodeResponse = {
   id: number;
   parentId?: number | null;
   title: string;
+  cognitivePairing?: string | null;
   order: number;
   progress: number | string;
   studyStartedOn?: string | null;

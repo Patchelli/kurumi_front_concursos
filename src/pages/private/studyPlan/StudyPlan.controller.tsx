@@ -72,5 +72,22 @@ export function StudyPlanController() {
     }
     return result;
   }
-  return <StudyPlanView journey={journey} loading={loading} configuration={configuration} routineBlocks={routineBlocks} nodeStudy={nodeStudy} onQuestionsSaved={async () => setNodeStudy(await syllabusNodeStudyService.list(journeyId))} onSaveConfiguration={saveConfiguration} onCompleteBlock={completeBlock} onSaveNodeStudy={saveNodeStudy} onListResources={nodeId => studyResourceService.list(journeyId, nodeId)} onSaveResource={request => studyResourceService.register(request)} onDeleteResource={async resourceId => { await studyResourceService.remove(resourceId); }} onBack={() => navigate('/inicio')} onOverview={() => navigate(`/jornadas/${id}`)} onOpenContent={() => navigate(`/jornadas/${id}/materias`)} onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)} onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)} onOpenSubject={areaId => navigate(`/jornadas/${id}/materias/${areaId}`)} />;
+  async function saveCognitivePairing(nodeId: number, value: string) {
+    const area = journey?.knowledgeAreas.find(item => item.nodes.some(node => node.id === nodeId || node.children.some(child => child.id === nodeId)));
+    const node = area?.nodes.find(item => item.id === nodeId) ?? area?.nodes.flatMap(item => item.children).find(item => item.id === nodeId);
+    if (!area || !node) throw new Error('Tópico não encontrado.');
+
+    const cognitivePairing = value.trim() || null;
+    await journeyService.updateNode({ id: node.id, knowledgeAreaId: area.id, parentId: node.parentId, title: node.title, order: node.order, cognitivePairing });
+    setJourney(current => current ? {
+      ...current,
+      knowledgeAreas: current.knowledgeAreas.map(currentArea => currentArea.id !== area.id ? currentArea : {
+        ...currentArea,
+        nodes: currentArea.nodes.map(currentNode => currentNode.id === nodeId
+          ? { ...currentNode, cognitivePairing }
+          : { ...currentNode, children: currentNode.children.map(child => child.id === nodeId ? { ...child, cognitivePairing } : child) })
+      })
+    } : current);
+  }
+  return <StudyPlanView journey={journey} loading={loading} configuration={configuration} routineBlocks={routineBlocks} nodeStudy={nodeStudy} onQuestionsSaved={async () => setNodeStudy(await syllabusNodeStudyService.list(journeyId))} onSaveConfiguration={saveConfiguration} onCompleteBlock={completeBlock} onSaveNodeStudy={saveNodeStudy} onSaveCognitivePairing={saveCognitivePairing} onListResources={nodeId => studyResourceService.list(journeyId, nodeId)} onSaveResource={request => studyResourceService.register(request)} onDeleteResource={async resourceId => { await studyResourceService.remove(resourceId); }} onBack={() => navigate('/inicio')} onOverview={() => navigate(`/jornadas/${id}`)} onOpenContent={() => navigate(`/jornadas/${id}/materias`)} onOpenCapsule={() => navigate(`/jornadas/${id}/capsulas`)} onOpenSimulados={() => navigate(`/jornadas/${id}/simulados`)} onOpenSubject={areaId => navigate(`/jornadas/${id}/materias/${areaId}`)} />;
 }
