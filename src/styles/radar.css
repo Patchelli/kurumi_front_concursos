@@ -6,3 +6,24 @@
   .radar-more:active{transform:none!important}
 }@media(max-width:800px){.radar-layout{grid-template-columns:1fr;gap:28px}.radar-preferences{position:static}.radar-preferences fieldset{grid-template-columns:1fr 1fr}.radar-results-heading{align-items:flex-start}.radar-contest{padding:20px}}@media(max-width:850px){.radar-page{padding-bottom:90px}}
 @media(max-width:480px){.radar-preferences fieldset{grid-template-columns:1fr}.radar-contest footer{align-items:flex-start;flex-direction:column}.radar-results-heading .button{padding:0 16px}.radar-page{padding-top:28px}}
+
+/* On tablets and phones, keep the Radar form usable inside the visible viewport. */
+@media(max-width:800px){
+  .radar-preferences{
+    max-height:calc(100dvh - 96px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+  }
+  .radar-preferences fieldset>button[type=submit]{
+    position:sticky;
+    bottom:0;
+    z-index:1;
+    width:100%;
+    box-shadow:0 -10px 18px #f2ecf4;
+  }
+}
+@media(max-width:480px){
+  .radar-preferences{max-height:calc(100dvh - 82px);padding:18px}
+  .radar-preferences fieldset{margin-top:18px}
+}

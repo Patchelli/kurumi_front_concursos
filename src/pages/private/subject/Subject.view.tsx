@@ -1,3 +1,4 @@
+import { JourneySidebar } from '@components/layout/JourneySidebar';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SubjectDetailViewProps, SubjectListViewProps } from './Subject.type';
@@ -7,53 +8,8 @@ import { usePomodoro } from '../../../components/fab/Pomodoro.context';
 import { isStudyCompleted } from '@business/studyProgress';
 import { InputDialog } from '@components/dialog/InputDialog';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
-import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
-
-function Sidebar({ active, journeyTitle, journeyInstitution, logoUrl, onOverview, onStudyPlan, onOpenCapsule, onOpenSimulados }: {
-  active: 'overview' | 'plan' | 'content' | 'capsule';
-  journeyTitle: string; journeyInstitution?: string | null; logoUrl?: string | null;
-  onOverview(): void; onStudyPlan(): void; onOpenCapsule(): void; onOpenSimulados(): void;
-}) {
-  return (
-    <aside className="jd-sidebar">
-      <div className="jd-brand"><span>K</span><strong>Kurumí</strong></div>
-      <nav className="jd-nav">
-        <button className={active === 'overview' ? 'active' : ''} onClick={onOverview}>
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-          <span>Visão geral</span>
-        </button>
-        <button className={active === 'plan' ? 'active' : ''} onClick={onStudyPlan}>
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-          <span>Plano de estudos</span>
-        </button>
-        <button onClick={onOpenSimulados}>
-          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-          <span>Simulados</span>
-        </button>
-        <button className={active === 'capsule' ? 'active' : ''} onClick={onOpenCapsule}>
-          <svg viewBox="0 0 24 24"><path d="M5 2h14M5 22h14M7 2v6l5 4-5 4v6M17 2v6l-5 4 5 4v6"/></svg>
-          <span>Cápsula</span>
-        </button>
-        <button className={active === 'content' ? 'active' : ''}>
-          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-          <span>Conteúdo</span>
-        </button>
-      </nav>
-      <JourneySidebarAccountActions />
-      <div className="jd-contest-card">
-        <div className="jd-thumb">
-          {logoUrl ? <img src={logoUrl} alt="" /> : journeyTitle.slice(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <strong>{journeyTitle}</strong>
-          <small>{journeyInstitution || 'Concurso'}</small>
-        </div>
-      </div>
-    </aside>
-  );
-}
 
 export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onOpenOverview, onOpenCapsule, onOpenSimulados, onSelectArea, onAddArea, onEditArea, onDeleteArea, onListResources, onSaveResource, onDeleteResource }: SubjectListViewProps) {
   const [addAreaOpen, setAddAreaOpen] = useState(false);
@@ -70,7 +26,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
   return (
     <div className="jd-shell">
       <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
-      <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
+      <JourneySidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={() => {}} />
       <main className="sb-main">
         <div className="sb-topbar">
           <div>
@@ -179,7 +135,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
   return (
     <div className="jd-shell">
       <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
-      <Sidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onOpenCapsule={onOpenCapsule} onOpenSimulados={onOpenSimulados} />
+      <JourneySidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={() => {}} />
       <main className="sb-main">
 
         {/* Topbar */}

@@ -207,32 +207,48 @@
   border: 1px solid color-mix(in srgb, var(--card-accent, #65558f) 12%, transparent);
 }
 
-/* Card actions — reveal on hover */
+/* Card actions stay visible so every device can edit or remove a journey. */
 .card-actions {
   display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 150ms var(--ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .journey-card:hover .card-actions {
-    opacity: 1;
-  }
+  flex-shrink: 0;
+  gap: 6px;
+  opacity: 1;
 }
 
 .card-actions button {
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: #9088a0;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #e6dfea;
+  border-radius: 11px;
+  background: #f8f5fa;
+  color: #66558f;
   cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
   transition: background 120ms var(--ease-out), color 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.card-actions .edit-icon,
+.card-actions .trash-icon {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-actions button:last-child {
+  color: #9b3445;
+  border-color: #f0d8de;
+  background: #fff7f8;
 }
 
 .card-actions button:active {
@@ -537,6 +553,10 @@
   .drag-tip { font-size: 10px; }
 
   .card-actions { opacity: 1; }
+  .card-actions button {
+    min-width: 44px;
+    height: 44px;
+  }
 }
 
 @media (max-width: 400px) {

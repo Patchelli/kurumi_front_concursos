@@ -107,3 +107,6 @@
   .filled-button:active,.icon-button:active,.card-menu:active,.open-journey:active,
   .hub-create:active,.journey-add-card:active{transform:none!important}
 }
+
+/* Shared main navigation */
+.hub-nav a{display:inline-flex;align-items:center;gap:7px;padding:11px 17px;border-radius:999px;color:#625d68;font-weight:700;text-decoration:none}.hub-nav a svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.hub-nav a.active{background:#eee7f5;color:#49366e}

@@ -1,9 +1,9 @@
+import { JourneySidebar } from '@components/layout/JourneySidebar';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ContestFAB } from '../../../components/fab/ContestFAB';
 import { StudyLoading } from '../../../components/loading/StudyLoading';
 import type { SimuladosViewProps } from './Simulados.type';
-import { JourneySidebarAccountActions } from '@components/layout/JourneyProfileLink';
 import { JourneyMobileMenu } from '@components/layout/JourneyMobileMenu';
 import { simuladosTokens as t } from './Simulados.tokens';
 import { ConfirmDialog } from '@components/dialog/ConfirmDialog';
@@ -385,38 +385,7 @@ export function SimuladosView({
     <div className={t.shell}>
       <JourneyMobileMenu active="simulados" onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
 
-      <aside className="jd-sidebar">
-        <div className="jd-brand"><span>K</span><strong>Kurumí</strong></div>
-        <nav className="jd-nav">
-          <button onClick={onOverview}>
-            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <span>Visão geral</span>
-          </button>
-          <button onClick={onOpenStudyPlan}>
-            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            <span>Plano de estudos</span>
-          </button>
-          <button className="active">
-            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <span>Simulados</span>
-          </button>
-          <button onClick={onOpenCapsule}>
-            <svg viewBox="0 0 24 24"><path d="M5 2h14M5 22h14M7 2v6l5 4-5 4v6M17 2v6l-5 4 5 4v6"/></svg>
-            <span>Cápsula</span>
-          </button>
-          <button onClick={onOpenContent}>
-            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-            <span>Conteúdo</span>
-          </button>
-        </nav>
-        <JourneySidebarAccountActions />
-        <div className="jd-contest-card">
-          <div className="jd-thumb">
-            {journey.logoUrl ? <img src={journey.logoUrl} alt=""/> : journey.title.slice(0, 2).toUpperCase()}
-          </div>
-          <div><strong>{journey.title}</strong><small>{journey.institution || 'Concurso'}</small></div>
-        </div>
-      </aside>
+      <JourneySidebar active="simulados" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={() => {}} onCapsule={onOpenCapsule} onContent={onOpenContent} />
 
       <main className={t.main}>
         <header className={t.header}>

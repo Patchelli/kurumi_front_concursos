@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AppHubNavigation } from '@components/layout/AppHubNavigation';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { UserMenu } from '@components/layout/UserMenu';
 import type { ProfileViewProps } from './Profile.type';
 
@@ -11,15 +12,7 @@ export function ProfileView(props: ProfileViewProps) {
 
   return (
     <div className="journey-hub">
-      <header className="hub-topbar">
-        <Link className="hub-brand" to="/inicio" aria-label="Kurumí"><span className="hub-logo">K</span><span>Kurumí</span></Link>
-        <nav className="hub-nav" aria-label="Navegação principal">
-          <a href="/inicio">Jornadas</a>
-          <a href="/calendario">Calendário</a>
-          <a href="/radar">Radar</a>
-        </nav>
-        <UserMenu firstName={props.firstName} onLogout={props.onLogout} />
-      </header>
+      <AppHubNavigation active={null} firstName={props.firstName} onLogout={props.onLogout} />
 
       <main className="profile-page">
         <div className="profile-container">
