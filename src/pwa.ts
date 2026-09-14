@@ -1,4 +1,4 @@
-﻿import { registerSW } from 'virtual:pwa-register';
+import { registerSW } from 'virtual:pwa-register';
 import { toast } from 'sonner';
 
 export type InstallPromptEvent = Event & {
@@ -16,7 +16,7 @@ function notifyInstallListeners() { installListeners.forEach(listener => listene
 export function subscribeInstallPrompt(listener: InstallListener) {
   installListeners.add(listener);
   listener(installPrompt);
-  return () => installListeners.delete(listener);
+  return () => { installListeners.delete(listener); };
 }
 
 export async function installPwa() {
