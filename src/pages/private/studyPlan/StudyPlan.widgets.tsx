@@ -1293,7 +1293,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
                       <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
                         <strong>{resource.title}</strong><small>{resource.url}</small>
                       </button>
-                      <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(c => c.filter(i => i.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material">×</button>
+                      <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(c => c.filter(i => i.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
                     </div>)}
                   </div>
                 )}
@@ -1491,7 +1491,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
                         <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
                           <strong>{resource.title}</strong><small>{resource.url}</small>
                         </button>
-                        <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(current => current.filter(item => item.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material">×</button>
+                        <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(current => current.filter(item => item.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
                       </div>)}
                     </div>
                   )}
