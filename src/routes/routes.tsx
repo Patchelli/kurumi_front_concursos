@@ -5,10 +5,11 @@ import { Login, Register } from './imports/public.imports';
 import { AdminUsers } from './imports/admin.imports';
 import { AdminRoute, PrivateRoute } from './security_routes';
 import { StudyLoading } from '../components/loading/StudyLoading';
+import { getAccessToken } from '../utils/authenticationStorage';
 
 export default function RoutesApp() {
   return <Suspense fallback={<StudyLoading delayMs={0} label="Abrindo sua área de estudos…" />}><Routes>
-    <Route path="/" element={<Navigate to="/entrar" replace />} />
+    <Route path="/" element={<Navigate to={getAccessToken() ? '/inicio' : '/entrar'} replace />} />
     <Route path="/entrar" element={<Login />} /><Route path="/cadastro" element={<Register />} />
     <Route path="/inicio" element={<PrivateRoute><Home /></PrivateRoute>} />
     <Route path="/radar" element={<PrivateRoute><Radar /></PrivateRoute>} />
