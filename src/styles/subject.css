@@ -202,8 +202,8 @@
 .sb-actions-trigger:hover{color:#66558f}
 .sb-actions-wrap.open .sb-actions-trigger{color:#66558f;transform:rotate(180deg)}
 .sb-action-bar,.sb-subtopic-actions{max-width:0;overflow:hidden;opacity:0;transition:max-width .3s ease,opacity .2s}
-.sb-actions-wrap:hover .sb-action-bar,.sb-actions-wrap:hover .sb-subtopic-actions,
 .sb-actions-wrap.open .sb-action-bar,.sb-actions-wrap.open .sb-subtopic-actions{max-width:500px;opacity:1}
+@media (hover: hover) and (pointer: fine){.sb-actions-wrap:hover .sb-action-bar,.sb-actions-wrap:hover .sb-subtopic-actions{max-width:500px;opacity:1}}
 
 /* ── Action bar (inline in header) ── */
 .sb-action-bar { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
