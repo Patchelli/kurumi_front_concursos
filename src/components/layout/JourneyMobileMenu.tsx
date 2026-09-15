@@ -6,6 +6,8 @@ export type JourneyMobileMenuActive = 'overview' | 'plan' | 'simulados' | 'capsu
 
 interface JourneyMobileMenuProps {
   active: JourneyMobileMenuActive;
+  journeyTitle?: string;
+  journeyInstitution?: string | null;
   onOverview?: () => void;
   onStudyPlan?: () => void;
   onSimulados?: () => void;
@@ -71,6 +73,8 @@ export function JourneyMobileMenu(props: JourneyMobileMenuProps) {
             <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>
+
+        {props.journeyTitle && <div className="jm-contest-card"><strong>{props.journeyTitle}</strong><small>{props.journeyInstitution || 'Concurso'}</small></div>}
 
         <div className="jm-nav-list">
           {NAV_ITEMS.map(item => (

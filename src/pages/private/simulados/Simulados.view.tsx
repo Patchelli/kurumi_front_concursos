@@ -383,7 +383,7 @@ export function SimuladosView({
   return (
     <>
     <div className={t.shell}>
-      <JourneyMobileMenu active="simulados" onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
+      <JourneyMobileMenu active="simulados" journeyTitle={journey.title} journeyInstitution={journey.institution} onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
 
       <JourneySidebar active="simulados" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={() => {}} onCapsule={onOpenCapsule} onContent={onOpenContent} />
 

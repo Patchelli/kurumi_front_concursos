@@ -32,6 +32,9 @@
 .jm-drawer-header>button{border:0;background:transparent;color:#cfc4d7;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
 .jm-drawer-header>button:hover{background:#3d3050}
 .jm-drawer-header>button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.jm-contest-card{padding:12px 18px;border-bottom:1px solid #3d3050;display:flex;flex-direction:column;gap:2px}
+.jm-contest-card>strong{font-size:13px;font-weight:700;color:#e9ddff;line-height:1.3}
+.jm-contest-card>small{font-size:11px;color:#9b8fb0;font-weight:500}
 .jm-nav-list{display:flex;flex-direction:column;gap:4px;padding:14px 12px;flex:1}
 .jm-nav-item{display:flex;align-items:center;gap:12px;border:0;background:transparent;color:#cfc4d7;padding:12px 14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;width:100%;text-align:left;transition:background .15s var(--ease-out),color .15s,transform .16s var(--ease-out)}.jm-nav-item:active{transform:scale(.97)}
 .jm-nav-item svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

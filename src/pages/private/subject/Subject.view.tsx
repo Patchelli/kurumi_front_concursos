@@ -26,7 +26,7 @@ export function SubjectListView({ journey, loading, onBack, onOpenStudyPlan, onO
 
   return (
     <div className="jd-shell">
-      <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
+      <JourneyMobileMenu active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
       <JourneySidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={() => {}} />
       <main className="sb-main">
         <div className="sb-topbar">
@@ -136,7 +136,7 @@ export function SubjectDetailView({ journey, area, loading, onBack, onBackToList
 
   return (
     <div className="jd-shell">
-      <JourneyMobileMenu active="content" onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
+      <JourneyMobileMenu active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onBack={onBack} />
       <JourneySidebar active="content" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOpenOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={() => {}} />
       <main className="sb-main">
 

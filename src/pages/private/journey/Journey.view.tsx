@@ -172,7 +172,7 @@ export function JourneyView(props: JourneyViewProps) {
 
   return (
     <div className="jd-shell">
-      <JourneyMobileMenu active="overview" onStudyPlan={props.onOpenStudyPlan} onSimulados={props.onOpenSimulados} onCapsule={props.onOpenCapsule} onContent={props.onOpenContent} onBack={onBack} />
+      <JourneyMobileMenu active="overview" journeyTitle={journey.title} journeyInstitution={journey.institution || stageLabel} onStudyPlan={props.onOpenStudyPlan} onSimulados={props.onOpenSimulados} onCapsule={props.onOpenCapsule} onContent={props.onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar ── */}
       <JourneySidebar active="overview" journeyTitle={journey.title} journeyInstitution={journey.institution || stageLabel} logoUrl={journey.logoUrl} onOverview={() => {}} onStudyPlan={props.onOpenStudyPlan} onSimulados={props.onOpenSimulados} onCapsule={props.onOpenCapsule} onContent={props.onOpenContent} />

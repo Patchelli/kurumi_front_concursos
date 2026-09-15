@@ -432,7 +432,7 @@
   .jd-card { padding: 16px; }
   .jd-card-header { margin-bottom: 12px; }
   .jd-subject-card-header { padding: 12px 14px 10px; }
-  .jd-ring-stat { grid-template-columns: 80px 1fr 32px; padding: 8px 10px; }
+  .jd-ring-stat { grid-template-columns: auto 1fr 32px; padding: 8px 10px; }
   .jd-floating-actions { right: 12px; bottom: 82px; }
   .jd-fab-action { width: 43px; height: 43px; padding: 0; justify-content: center; }
   .jd-fab-action > span { width: auto; height: auto; background: transparent; font-size: 19px; }
@@ -465,8 +465,10 @@
   .jd-today-strip { margin-inline: 12px; padding: 14px; border-radius: 14px; }
   .jd-today-strip-stats { gap: 7px; }
   .jd-today-strip-stat { min-height: 62px; padding: 9px 10px; }
-  .jd-evol-chart { gap: 5px; height: 165px; }
+  .jd-evol-chart { gap: 4px; height: 165px; grid-template-columns: repeat(8,1fr); }
   .jd-evol-bar-track { width: 23px; }
+  .jd-evol-label { font-size: 7.5px; writing-mode: vertical-lr; transform: rotate(180deg); white-space: nowrap; }
+  .jd-evol-col { grid-template-rows: 16px minmax(80px,1fr) 40px; }
 }
 .flashcard-stack-icon{display:inline-flex;align-items:center;justify-content:center}.flashcard-stack-icon svg{width:22px;height:22px;display:block}
 

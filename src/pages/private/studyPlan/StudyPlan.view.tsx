@@ -126,7 +126,7 @@ export function StudyPlanView({ journey, loading, configuration, routineBlocks, 
   return (
     <>
     <div className="jd-shell sp-shell">
-      <JourneyMobileMenu active="plan" onOverview={onOverview} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
+      <JourneyMobileMenu active="plan" journeyTitle={journey.title} journeyInstitution={journey.institution} onOverview={onOverview} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar ── */}
       <JourneySidebar active="plan" journeyTitle={journey.title} journeyInstitution={journey.institution} logoUrl={journey.logoUrl} onOverview={onOverview} onStudyPlan={() => {}} onSimulados={onOpenSimulados} onCapsule={onOpenCapsule} onContent={onOpenContent} />

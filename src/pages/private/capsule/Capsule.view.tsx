@@ -52,7 +52,7 @@ export function CapsuleView({
 
   return (
     <div className="jd-shell">
-      <JourneyMobileMenu active="capsule" onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onContent={onOpenContent} onBack={onBack} />
+      <JourneyMobileMenu active="capsule" journeyTitle={journey?.title} journeyInstitution={journey?.institution} onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onContent={onOpenContent} onBack={onBack} />
 
       {/* ── Sidebar estática ── */}
       <JourneySidebar active="capsule" journeyTitle={journey?.title ?? 'Jornada'} journeyInstitution={journey?.institution} logoUrl={journey?.logoUrl} onOverview={onOverview} onStudyPlan={onOpenStudyPlan} onSimulados={onOpenSimulados} onCapsule={() => {}} onContent={onOpenContent} />
