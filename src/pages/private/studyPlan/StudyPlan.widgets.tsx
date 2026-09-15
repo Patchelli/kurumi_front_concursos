@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ContentViewer } from '../../../components/viewer/ContentViewer';
+import { MaterialsPanel } from '../subject/Subject.widgets';
 import { toast } from 'sonner';
 import type { StudyRoutineConfigurationRequest } from '@business/dto/request/studyRoutine.request';
 import type { KnowledgeAreaResponse, SyllabusNodeResponse } from '@business/dto/response/journey.response';
 import type { StudyRoutineBlockResponse } from '@business/service/StudyRoutine.service';
-import type { StudyResource, StudyResourceKind, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
+import type { StudyResource, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
 import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
 import { isStudyCompleted, isStudyPending, studyProgressLabel, studyProgressPercent } from '@business/studyProgress';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
@@ -1161,7 +1161,8 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
   onSaveStudy(request: SyllabusNodeStudyRequest): Promise<SyllabusNodeStudyResponse>;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'materials' | 'flashcards' | null>(null);
+  const [flashcardsOpen, setFlashcardsOpen] = useState(false);
+  const [materialsOpen, setMaterialsOpen] = useState(false);
   const [revision, setRevision] = useState(Boolean(studyState?.reviewDate));
   const [reviewOpen, setReviewOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
@@ -1202,34 +1203,6 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
     } catch { toast.error('Não foi possível salvar o estudo do subtópico.'); }
     finally { setSavingStudy(false); }
   }
-  const [resources, setResources] = useState<StudyResource[]>([]);
-  const [resourcesLoading, setResourcesLoading] = useState(false);
-  const [resourceKind, setResourceKind] = useState<StudyResourceKind>(99);
-  const [urlLabel, setUrlLabel] = useState('');
-  const [urlInput, setUrlInput] = useState('');
-  const [urlSaving, setUrlSaving] = useState(false);
-  const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
-
-  useEffect(() => {
-    if (!expanded) return;
-    let active = true;
-    setResourcesLoading(true);
-    onListResources(child.id).then(data => active && setResources(data)).catch(() => {}).finally(() => active && setResourcesLoading(false));
-    return () => { active = false; };
-  }, [expanded, child.id]);
-
-  async function saveUrl() {
-    const url = urlInput.trim(); if (!url) return;
-    setUrlSaving(true);
-    try {
-      const saved = await onSaveResource({ journeyId, syllabusNodeId: child.id, kind: resourceKind, title: urlLabel.trim() || url, url });
-      setResources(prev => [...prev, saved]);
-      setUrlInput(''); setUrlLabel('');
-      toast.success('Material salvo.');
-    } catch { toast.error('Não foi possível salvar.'); }
-    finally { setUrlSaving(false); }
-  }
-
   return (
     <div className={`sp-subtopic-item${expanded ? ' sp-subtopic-item--expanded' : ''}${pending ? ' sp-subtopic-item--pending' : ''}`}>
       <div className="sp-subtopic-header">
@@ -1254,10 +1227,10 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
               <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
             </button>
             <button onClick={() => setNotebookOpen(true)}><span>T</span><strong>Caderno de questoes</strong><small>Link do TecConcursos</small></button>
-            <button className={activeTab === 'materials' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'materials' ? null : 'materials')}>
+            <button onClick={() => setMaterialsOpen(true)}>
               <span>▤</span><strong>Materiais</strong><small>PDFs, vídeos e links</small>
             </button>
-            <button className={activeTab === 'flashcards' ? 'active' : ''} onClick={() => setActiveTab(v => v === 'flashcards' ? null : 'flashcards')}>
+            <button className={flashcardsOpen ? 'active' : ''} onClick={() => setFlashcardsOpen(v => !v)}>
               <span className="flashcard-stack-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="4" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 2h9a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9h5M9 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></span><strong>Flashcard</strong><small>Memorização ativa</small>
             </button>
             <button className={revision ? 'active' : ''} onClick={() => setReviewOpen(true)} disabled={savingStudy}>
@@ -1270,38 +1243,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
               <strong>{revision ? 'Revisão agendada' : 'Agendar revisão'}</strong><small>Revisão espaçada</small>
             </button>
           </div>
-          {activeTab === 'materials' && (
-            <section className="sp-topic-resource">
-              <header>
-                <div><span className="sp-dialog-label">Material do subtópico</span><strong>PDF, vídeo ou link de estudo</strong></div>
-              </header>
-              {resourcesLoading ? <p className="sp-dialog-empty">Carregando materiais…</p> : <>
-                <div className="sp-material-url-form">
-                  <div className="sp-material-type-row">
-                    {([{ value: 1, label: 'PDF' }, { value: 2, label: 'Vídeo' }, { value: 3, label: 'Apostila' }, { value: 5, label: 'Site' }, { value: 99, label: 'Outro' }] as const).map(item => (
-                      <button key={item.value} type="button" className={`sp-material-type-pill${resourceKind === item.value ? ' active' : ''}`} onClick={() => setResourceKind(item.value)}>{item.label}</button>
-                    ))}
-                  </div>
-                  <input className="sp-material-label-input" type="text" placeholder="Descrição (ex: Apostila do QConcursos, Cap. 3)" value={urlLabel} onChange={e => setUrlLabel(e.target.value)} />
-                  <input className="sp-material-url-input" type="url" placeholder="https://..." value={urlInput} onChange={e => setUrlInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !urlSaving && void saveUrl()} />
-                  <button className="sp-material-save-btn" type="button" disabled={urlSaving || !urlInput.trim()} onClick={() => void saveUrl()}>{urlSaving ? '…' : 'Salvar'}</button>
-                </div>
-                {resources.length > 0 && (
-                  <div className="sp-material-list">
-                    {resources.map(resource => <div key={resource.id}>
-                      <span>{resource.kind === 1 ? 'PDF' : resource.kind === 2 ? 'Vídeo' : resource.kind === 3 ? 'Apostila' : resource.kind === 5 ? 'Site' : 'Outro'}</span>
-                      <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
-                        <strong>{resource.title}</strong><small>{resource.url}</small>
-                      </button>
-                      <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(c => c.filter(i => i.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
-                    </div>)}
-                  </div>
-                )}
-              </>}
-              {viewerResource && <ContentViewer url={viewerResource.url} title={viewerResource.title} onClose={() => setViewerResource(null)} />}
-            </section>
-          )}
-          {activeTab === 'flashcards' && (
+          {flashcardsOpen && (
             <section className="sp-topic-resource">
               <header><div><span className="sp-dialog-label">Flashcards</span><strong>Revisão rápida</strong></div></header>
               <FlashcardManager journeyId={journeyId} areaId={areaId} nodeId={child.id} />
@@ -1310,6 +1252,7 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
         </div>
       )}
       {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} previousLocation={studyState?.lastStudyLocation} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary, studyLocation) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary, studyLocation); setReviewOpen(false); }} />}
+      {materialsOpen && <MaterialsPanel journeyId={journeyId} knowledgeAreaId={areaId} nodeId={child.id} title={child.title} onList={() => onListResources(child.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={() => {}} onClose={() => setMaterialsOpen(false)} />}
       {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setQuestionsOpen(false)} />}
       {notebookOpen && <QuestionNotebookDialog journeyId={journeyId} knowledgeAreaId={areaId} syllabusNodeId={child.id} title={child.title} onClose={() => setNotebookOpen(false)} />}
     </div>
@@ -1317,14 +1260,8 @@ function SubtopicItem({ child, topicTitle, totalSubtopics, journeyId, areaId, st
 }
 
 export function StudyTopicDialog({ target, completed, onClose, onToggleComplete, nodeStudy, onSaveNodeStudy, onSaveCognitivePairing, onViewSubject, onStartPomodoro, journeyId, onListResources, onSaveResource, onDeleteResource }: TopicProps) {
-  const [activeResource, setActiveResource] = useState<'materials' | 'flashcards' | null>(null);
-  const [urlInput, setUrlInput] = useState('');
-  const [resourceKind, setResourceKind] = useState<StudyResourceKind>(99);
-  const [urlLabel, setUrlLabel] = useState('');
-  const [urlSaving, setUrlSaving] = useState(false);
-  const [resources, setResources] = useState<StudyResource[]>([]);
-  const [resourcesLoading, setResourcesLoading] = useState(false);
-  const [viewerResource, setViewerResource] = useState<StudyResource | null>(null);
+  const [activeResource, setActiveResource] = useState<'flashcards' | null>(null);
+  const [materialsOpen, setMaterialsOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [cognitivePairing, setCognitivePairing] = useState('');
@@ -1337,37 +1274,7 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
     setSavedCognitivePairing(value.trim());
   }, [target?.topic.id, target?.topic.cognitivePairing]);
 
-  useEffect(() => {
-    if (!target) return;
-    let active = true;
-    setResources([]);
-    setUrlInput('');
-    setUrlLabel('');
-    setViewerResource(null);
-    setResourcesLoading(true);
-    onListResources(target.topic.id)
-      .then(items => active && setResources(items))
-      .catch(() => active && toast.error('Não foi possível carregar os materiais.'))
-      .finally(() => active && setResourcesLoading(false));
-    return () => { active = false; };
-  }, [target?.topic.id]);
-
   if (!target) return null;
-  async function saveUrl() {
-    const trimmed = urlInput.trim();
-    if (!trimmed) return;
-    setUrlSaving(true);
-    try {
-      const saved = await onSaveResource({ title: urlLabel.trim() || target!.topic.title, url: trimmed, kind: resourceKind, journeyId, knowledgeAreaId: target!.area.id, syllabusNodeId: target!.topic.id });
-      setResources(current => [saved, ...current]);
-      setViewerResource(saved);
-      setUrlInput('');
-      setUrlLabel('');
-      toast.success('Material salvo.');
-    } catch {
-      toast.error('Não foi possível salvar.');
-    } finally { setUrlSaving(false); }
-  }
 
   async function saveCognitivePairingPhrase() {
     const topicId = target?.topic.id;
@@ -1440,65 +1347,13 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
                 <span>✓</span><strong>Registrar questões</strong><small>Acertos e erros</small>
               </button>
             <button onClick={() => setNotebookOpen(true)}><span>T</span><strong>Caderno de questoes</strong><small>Link do TecConcursos</small></button>
-              <button className={activeResource === 'materials' ? 'active' : ''} onClick={() => setActiveResource(value => value === 'materials' ? null : 'materials')}>
+              <button onClick={() => setMaterialsOpen(true)}>
                 <span>▤</span><strong>Materiais</strong><small>PDFs, vídeos e links</small>
               </button>
               <button className={activeResource === 'flashcards' ? 'active' : ''} onClick={() => setActiveResource(value => value === 'flashcards' ? null : 'flashcards')}>
                 <span className="flashcard-stack-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="4" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 2h9a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9h5M9 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></span><strong>Flashcard</strong><small>Memorização ativa</small>
               </button>
 </div>
-            {activeResource === 'materials' && (
-              <section className="sp-topic-resource">
-                <header>
-                  <div><span className="sp-dialog-label">Material do tópico</span><strong>PDF, vídeo ou link de estudo</strong></div>
-                </header>
-                {resourcesLoading ? <p className="sp-dialog-empty">Carregando materiais…</p> : <>
-                  <div className="sp-material-url-form">
-                    <div className="sp-material-type-row">
-                      {([{ value: 1, label: 'PDF' }, { value: 2, label: 'Vídeo' }, { value: 3, label: 'Apostila' }, { value: 5, label: 'Site' }, { value: 99, label: 'Outro' }] as const).map(item => (
-                        <button
-                          key={item.value}
-                          type="button"
-                          className={`sp-material-type-pill${resourceKind === item.value ? ' active' : ''}`}
-                          onClick={() => setResourceKind(item.value)}
-                        >{item.label}</button>
-                      ))}
-                    </div>
-                    <input
-                      className="sp-material-label-input"
-                      type="text"
-                      placeholder="Descrição (ex: Apostila do QConcursos, Cap. 3)"
-                      value={urlLabel}
-                      onChange={e => setUrlLabel(e.target.value)}
-                    />
-                    <input
-                      className="sp-material-url-input"
-                      type="url"
-                      placeholder="https://..."
-                      autoFocus
-                      value={urlInput}
-                      onChange={e => setUrlInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && !urlSaving && void saveUrl()}
-                    />
-                    <button className="sp-material-save-btn" type="button" disabled={urlSaving || !urlInput.trim()} onClick={() => void saveUrl()}>
-                      {urlSaving ? '…' : 'Salvar'}
-                    </button>
-                  </div>
-                  {resources.length > 0 && (
-                    <div className="sp-material-list">
-                      {resources.map(resource => <div key={resource.id}>
-                        <span>{resource.kind === 1 ? 'PDF' : resource.kind === 2 ? 'Vídeo' : resource.kind === 3 ? 'Apostila' : resource.kind === 5 ? 'Site' : 'Outro'}</span>
-                        <button className="sp-resource-open" type="button" onClick={() => setViewerResource(resource)}>
-                          <strong>{resource.title}</strong><small>{resource.url}</small>
-                        </button>
-                        <button className="sp-resource-delete" type="button" onClick={() => void onDeleteResource(resource.id).then(() => { setResources(current => current.filter(item => item.id !== resource.id)); if (viewerResource?.id === resource.id) setViewerResource(null); toast.success('Material removido.'); })} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
-                      </div>)}
-                    </div>
-                  )}
-                </>}
-                {viewerResource && <ContentViewer url={viewerResource.url} title={viewerResource.title} onClose={() => setViewerResource(null)} />}
-              </section>
-            )}
             {activeResource === 'flashcards' && (
               <section className="sp-topic-resource">
                 <header><div><span className="sp-dialog-label">Flashcards do tópico</span><strong>{target.topic.title}</strong></div></header>
@@ -1529,8 +1384,12 @@ export function StudyTopicDialog({ target, completed, onClose, onToggleComplete,
         </footer>
 
       </aside>
-      {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setQuestionsOpen(false)} />}
-      {notebookOpen && <QuestionNotebookDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setNotebookOpen(false)} />}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- stop overlay mousedown from closing drawer */}
+      <div onMouseDown={e => e.stopPropagation()}>
+        {materialsOpen && <MaterialsPanel journeyId={journeyId} knowledgeAreaId={target.area.id} nodeId={target.topic.id} title={target.topic.title} onList={() => onListResources(target.topic.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={() => {}} onClose={() => setMaterialsOpen(false)} />}
+        {questionsOpen && <QuestionRegisterDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setQuestionsOpen(false)} />}
+        {notebookOpen && <QuestionNotebookDialog journeyId={journeyId} knowledgeAreaId={target.area.id} syllabusNodeId={target.topic.id} title={target.topic.title} onClose={() => setNotebookOpen(false)} />}
+      </div>
     </div>
   );
 }

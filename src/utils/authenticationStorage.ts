@@ -7,6 +7,7 @@ export const authenticationChangedEvent = 'kurumi-authentication-changed';
 
 type JwtPayload = {
   exp?: number;
+  permission?: string | string[];
 };
 
 function getTokenPayload(token: string): JwtPayload | null {
@@ -31,6 +32,12 @@ function getTokenPayload(token: string): JwtPayload | null {
 export function getTokenExpiration(token: string): number | null {
   const expiration = getTokenPayload(token)?.exp;
   return typeof expiration === 'number' ? expiration * 1000 : null;
+}
+
+export function hasPrivateMaterialsPermission() {
+  const token = getAccessToken();
+  const permission = token ? getTokenPayload(token)?.permission : undefined;
+  return Array.isArray(permission) ? permission.includes('PRIVATE_MATERIALS') : permission === 'PRIVATE_MATERIALS';
 }
 
 export function saveAuthentication(authentication: AuthenticationResponse) {

@@ -9,6 +9,8 @@ import { FlashcardManager } from '@components/flashcard/FlashcardManager';
 import { ContentViewer } from '@components/viewer/ContentViewer';
 import { QuestionRegisterDialog } from '@components/practice/QuestionRegisterDialog';
 import { QuestionNotebookDialog } from '@components/practice/QuestionNotebookDialog';
+import { PrivateMaterialsPanel } from '@components/privateMaterials/PrivateMaterialsPanel';
+import { hasPrivateMaterialsPermission } from '@utils/authenticationStorage';
 
 const unavail = (feature: string) => toast.info(`${feature} será conectado ao backend.`);
 
@@ -126,17 +128,17 @@ export function MaterialsPanel({ journeyId, knowledgeAreaId, nodeId, title, onLi
           <label className="cv-form-label">Materiais salvos
             <span className="cv-form-hint">PDF, vídeo, apostila ou qualquer link de estudo.</span>
           </label>
-          {loading ? <p className="cv-form-hint">Carregando materiais…</p> : resources.length ? (
-            <div className="sp-material-list">
-              {resources.map(resource => <div key={resource.id}>
-                <span>{resourceKindLabel(resource.kind)}</span>
-                <button className="sp-resource-open" type="button" onClick={() => setViewer(resource)}>
-                  <strong>{resource.title}</strong><small>{resource.url}</small>
-                </button>
-                <button className="sp-resource-delete" type="button" onClick={() => void remove(resource)} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
-              </div>)}
-            </div>
-          ) : <p className="cv-form-hint">Nenhum material cadastrado.</p>}
+          {loading && <p className="cv-form-hint">Carregando materiais…</p>}
+          <div className="sp-material-list">
+            {resources.map(resource => <div key={resource.id}>
+              <span>{resourceKindLabel(resource.kind)}</span>
+              <button className="sp-resource-open" type="button" onClick={() => setViewer(resource)}>
+                <strong>{resource.title}</strong><small>{resource.url}</small>
+              </button>
+              <button className="sp-resource-delete" type="button" onClick={() => void remove(resource)} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
+            </div>)}
+            {hasPrivateMaterialsPermission() && <PrivateMaterialsPanel owner={nodeId ? 'topic' : 'area'} ownerId={nodeId ?? knowledgeAreaId} />}
+          </div>
           <div className="sp-material-type-row">
             {resourceKinds.map(item => <button key={item.value} type="button" className={`sp-material-type-pill${kind === item.value ? ' active' : ''}`} onClick={() => setKind(item.value)}>{item.label}</button>)}
           </div>
