@@ -68,15 +68,17 @@ export function ContentViewer({ url, title, onClose }: { url: string; title: str
           </div>
         )}
 
-        <iframe
-          ref={iframeRef}
-          src={url}
-          title={title || 'Conteúdo externo'}
-          className={`cv-frame${status === 'ok' ? ' cv-frame--visible' : ''}`}
-          onLoad={handleLoad}
-          onError={handleError}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        />
+        <div className="cv-frame-wrap">
+          <iframe
+            ref={iframeRef}
+            src={url}
+            title={title || 'Conteúdo externo'}
+            className={`cv-frame${status === 'ok' ? ' cv-frame--visible' : ''}`}
+            onLoad={handleLoad}
+            onError={handleError}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
       </div>
     </div>
   );

@@ -166,6 +166,8 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, totalSubtopics, studyS
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  useEffect(() => { if (!actionsOpen) return; const h = () => setActionsOpen(false); document.addEventListener('click', h); return () => document.removeEventListener('click', h); }, [actionsOpen]);
   const [currentProgress, setCurrentProgress] = useState(studyState?.progress ?? child.progress);
   const pending = isStudyPending(currentProgress);
   const weightPercent = totalSubtopics > 0 ? Number((100 / totalSubtopics).toFixed(1)) : 100;
@@ -191,7 +193,9 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, totalSubtopics, studyS
     <div className={`sb-subtopic-row${pending ? ' sb-subtopic-row--pending' : ''}`}>
       <span className="sb-subtopic-arrow">↳</span>
       <span className={`sb-subtopic-name${done ? ' sb-done-text' : ''}`}><strong>{child.title}</strong><small>{weightPercent}% do tópico · {studiedMinutes} min estudados</small></span>
-      <div className="sb-subtopic-actions">
+      <div className={`sb-actions-wrap${actionsOpen ? ' open' : ''}`} onClick={e => e.stopPropagation()}>
+        <button className="sb-actions-trigger" type="button" onClick={() => setActionsOpen(v => !v)} aria-label="Ações">‹</button>
+        <div className="sb-subtopic-actions">
         <button data-pomodoro-trigger className="sb-subtopic-btn" title="Iniciar estudo" onClick={onStartStudy} disabled={saving}>◷</button>
         <button className={`sb-subtopic-btn${hasMaterial ? ' sb-btn-has-material' : ''}`} title={hasMaterial ? 'Ver material' : 'Adicionar material'} onClick={() => setMaterialsOpen(true)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -209,7 +213,7 @@ function SubtopicRow({ journeyId, knowledgeAreaId, child, totalSubtopics, studyS
         <button className="sb-subtopic-btn sb-delete-btn" title="Apagar subtópico" onClick={onRemove}>
           <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
-      </div>
+      </div></div>
       {reviewOpen && <ReviewDialog title={child.title} previousSummary={studyState?.latestSummary} previousLocation={studyState?.lastStudyLocation} defaultMinutes={Math.max(1, studiedMinutes || 60)} pending={pending} onClearPending={() => { void saveStudy(false, 0, false, null, true); setReviewOpen(false); }} onClose={() => setReviewOpen(false)} onConfirm={(schedule, date, minutes, completed, summary, studyLocation) => { void saveStudy(completed, minutes, completed && schedule, completed && schedule ? date : null, false, summary, studyLocation); setReviewOpen(false); toast.success(completed ? (schedule ? 'Revisão agendada.' : 'Subtópico concluído.') : 'Tempo do subtópico registrado.'); }} />}
       {materialsOpen && <MaterialsPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} nodeId={child.id} title={child.title} onList={() => onListResources(child.id)} onSave={onSaveResource} onDelete={onDeleteResource} onLoaded={count => setHasMaterial(count > 0)} onClose={() => setMaterialsOpen(false)} />}
       {flashcardsOpen && <FlashcardListPanel journeyId={journeyId} knowledgeAreaId={knowledgeAreaId} syllabusNodeId={child.id} title={child.title} onClose={() => setFlashcardsOpen(false)} />}
@@ -261,6 +265,8 @@ export function TopicRow({ journeyId, knowledgeAreaId, topic, onAddSubtopic, onS
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  useEffect(() => { if (!actionsOpen) return; const h = () => setActionsOpen(false); document.addEventListener('click', h); return () => document.removeEventListener('click', h); }, [actionsOpen]);
   const progress = topicProgress;
   useEffect(() => setDone(topicCompleted), [topicCompleted]);
   useEffect(() => {
@@ -285,7 +291,9 @@ export function TopicRow({ journeyId, knowledgeAreaId, topic, onAddSubtopic, onS
           <svg className={`sb-chevron-svg${open ? ' sb-chevron-svg--open' : ''}`} viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div className="sb-topic-text"><span className="sb-topic-name">{topic.title}</span><span className="sb-topic-progress">{progress}% concluído{topic.children.length ? ` · ${topic.children.length} subtópico${topic.children.length > 1 ? 's' : ''}` : ''}</span></div>
-        <div className="sb-action-bar" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
+        <div className={`sb-actions-wrap${actionsOpen ? ' open' : ''}`} onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
+          <button className="sb-actions-trigger" type="button" onClick={() => setActionsOpen(v => !v)} aria-label="Ações">‹</button>
+          <div className="sb-action-bar">
           <button data-pomodoro-trigger className="sb-action-btn" title="Iniciar estudo" onClick={() => onStartStudy()} disabled={saving}>◷</button>
           <button className={`sb-action-btn${hasMaterial ? ' sb-btn-has-material' : ''}`} title={hasMaterial ? 'Ver material' : 'Adicionar material'} onClick={() => setMaterialsOpen(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -305,7 +313,7 @@ export function TopicRow({ journeyId, knowledgeAreaId, topic, onAddSubtopic, onS
           <button className="sb-options-btn sb-delete-btn" title="Apagar tópico" onClick={onRemove}>
             <svg viewBox="0 0 24 24" fill="none" width="14" height="14" aria-hidden><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2"/></svg>
           </button>
-        </div>
+        </div></div>
       </div>
       {open && <div className="sb-topic-body">
         <div className="sb-questions-block"><div className="sb-questions-head"><span className="sb-questions-label">◈ QUESTÕES</span><button className="sb-register-btn" onClick={() => setQuestionsOpen(true)}>Registrar questões</button></div><p className="sb-questions-empty">Abra para registrar ou consultar o histórico.</p></div>
