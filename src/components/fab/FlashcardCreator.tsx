@@ -4,6 +4,7 @@ import type { KnowledgeAreaResponse } from '../../../@business/dto/response/jour
 import { flashcardService } from '../../../@business/service/Flashcard.service';
 import { getRequestErrorMessage } from '../../utils/getRequestErrorMessage';
 import { FlashcardPractice } from './FlashcardPractice';
+import { FlashcardReviewIntervalsModal } from './FlashcardReviewIntervalsModal';
 type Association = 'subject' | 'topic' | 'subtopic';
 
 export function FlashcardCreator({ journeyId, open, onClose, areas, initialAreaId, initialTopicId }: { journeyId: number; open: boolean; onClose(): void; areas: KnowledgeAreaResponse[]; initialAreaId?: number; initialTopicId?: number }) {
@@ -18,6 +19,7 @@ export function FlashcardCreator({ journeyId, open, onClose, areas, initialAreaI
   const backRef = useRef<HTMLTextAreaElement>(null);
   const [correctAnswer, setCorrectAnswer] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
     setMode(initialTopicId ? 'create' : 'practice');
@@ -68,7 +70,7 @@ export function FlashcardCreator({ journeyId, open, onClose, areas, initialAreaI
   return <div className="fc-create-overlay" onMouseDown={onClose}><section className="fc-create-modal" onMouseDown={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="fc-create-title">
     <header><div><span>FLASHCARDS</span><h2 id="fc-create-title">{mode === 'create' ? 'Criar novo flashcard' : 'Praticar flashcards'}</h2><p>{mode === 'create' ? 'Monte o cartão e associe-o ao conteúdo do edital.' : 'Escolha todo o conteúdo ou filtre sua sessão de prática.'}</p></div><button onClick={onClose} aria-label="Fechar">×</button></header>
     <div className="fc-create-body">
-      <div className="fc-mode-tabs"><button className={mode === 'practice' ? 'active' : ''} onClick={() => setMode('practice')}>▷ Praticar</button><button className={mode === 'create' ? 'active' : ''} onClick={() => setMode('create')}>＋ Criar</button></div>
+      <div className="fc-mode-tabs"><button className={mode === 'practice' ? 'active' : ''} onClick={() => setMode('practice')}>▷ Praticar</button><button className={mode === 'create' ? 'active' : ''} onClick={() => setMode('create')}>＋ Criar</button><span aria-hidden="true" style={{ width: 1, margin: '5px 2px', background: '#d7cce0' }} /><button className="fc-settings-tab" style={{ flex: '0 0 38px', padding: 0, fontSize: 17 }} onClick={() => setSettingsOpen(true)} aria-label="Configurar intervalos de revisão" title="Intervalos de revisão">⚙</button></div>
       {mode === 'create' ? <>
       <section><label>Modelo</label><div className="fc-choice-grid">{['Básico', 'Omissão de palavras', 'Verdadeiro ou falso'].map(item => <button className={model === item ? 'selected' : ''} onClick={() => setModel(item)} key={item}><strong>{item}</strong><small>{item === 'Básico' ? 'Frente e verso' : item === 'Omissão de palavras' ? 'Complete a lacuna' : 'Julgue a afirmação'}</small></button>)}</div></section>
       {model === 'Verdadeiro ou falso' && <section><label>Resposta correta</label><div className="fc-type-row"><button className={correctAnswer === true ? 'selected' : ''} onClick={() => setCorrectAnswer(true)}>Verdadeiro</button><button className={correctAnswer === false ? 'selected' : ''} onClick={() => setCorrectAnswer(false)}>Falso</button></div></section>}
@@ -78,5 +80,6 @@ export function FlashcardCreator({ journeyId, open, onClose, areas, initialAreaI
       </> : <FlashcardPractice journeyId={journeyId} areas={areas} onClose={onClose} />}
     </div>
     {mode === 'create' && <footer><span>O flashcard será salvo nesta jornada</span><div><button onClick={onClose} disabled={saving}>Cancelar</button><button className="filled-button" disabled={saving} onClick={save}>{saving ? 'Criando…' : 'Criar flashcard'}</button></div></footer>}
+    {settingsOpen && <FlashcardReviewIntervalsModal onClose={() => setSettingsOpen(false)} />}
   </section></div>;
 }

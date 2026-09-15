@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { KnowledgeAreaResponse } from '../../../@business/dto/response/journey.response';
-import { flashcardService, type FlashcardPracticeResponse, type FlashcardResponse } from '../../../@business/service/Flashcard.service';
+import { flashcardService, type FlashcardPracticeResponse, type FlashcardResponse, type FlashcardReviewIntervals } from '../../../@business/service/Flashcard.service';
 import { getRequestErrorMessage } from '../../utils/getRequestErrorMessage';
 import { notifyTimeCapsuleProgressChanged } from '../../../@business/service/TimeCapsule.service';
 
 type Scope = 'all' | 'subject' | 'topic' | 'subtopic';
-const empty: FlashcardPracticeResponse = { totalCards: 0, reviewCards: 0, newCards: 0, correctToday: 0, cards: [] };
+const defaultIntervals: FlashcardReviewIntervals = { againHours: 24, hardHours: 5, goodHours: 72, easyHours: 168 };
+const empty: FlashcardPracticeResponse = { totalCards: 0, reviewCards: 0, newCards: 0, correctToday: 0, cards: [], intervals: defaultIntervals };
+
+function formatInterval(hours: number) {
+  if (hours % 24 === 0) {
+    const days = hours / 24;
+    return `${days} dia${days === 1 ? '' : 's'}`;
+  }
+  return `${hours} hora${hours === 1 ? '' : 's'}`;
+}
 
 function question(card: FlashcardResponse, revealed: boolean) {
   if (card.model !== 'Omissão de palavras') return card.front;
@@ -91,7 +100,7 @@ export function FlashcardPractice({ journeyId, areas, onClose }: { journeyId: nu
         {isTrueFalse && !revealed && <div className="fc-true-false"><button className={trueFalseChoice === true ? 'selected' : ''} onClick={() => setTrueFalseChoice(true)}>Verdadeiro</button><button className={trueFalseChoice === false ? 'selected' : ''} onClick={() => setTrueFalseChoice(false)}>Falso</button></div>}
         {revealed && <div className="fc-session-answer">{isTrueFalse && card.correctAnswer != null && <em className={choiceCorrect ? 'correct' : 'wrong'}>{choiceCorrect ? 'Você acertou' : `Resposta: ${card.correctAnswer ? 'Verdadeiro' : 'Falso'}`}</em>}<p>{card.back}</p></div>}
       </article>
-      {!revealed ? <button className="fc-reveal" disabled={isTrueFalse && trueFalseChoice == null} onClick={() => setRevealed(true)}>{isTrueFalse ? 'Confirmar resposta' : 'Mostrar resposta'}</button> : <div className="fc-grades"><span>Como foi lembrar?</span><div><button onClick={() => void grade(1)}>De novo<small>1 dia</small></button><button onClick={() => void grade(2)}>Difícil<small>intervalo curto</small></button><button onClick={() => void grade(3)}>Bom<small>intervalo normal</small></button><button onClick={() => void grade(4)}>Fácil<small>intervalo maior</small></button></div></div>}
+      {!revealed ? <button className="fc-reveal" disabled={isTrueFalse && trueFalseChoice == null} onClick={() => setRevealed(true)}>{isTrueFalse ? 'Confirmar resposta' : 'Mostrar resposta'}</button> : <div className="fc-grades"><span>Como foi lembrar?</span><div><button onClick={() => void grade(1)}>De novo<small>{formatInterval(data.intervals.againHours)}</small></button><button onClick={() => void grade(2)}>Difícil<small>{formatInterval(data.intervals.hardHours)}</small></button><button onClick={() => void grade(3)}>Bom<small>{formatInterval(data.intervals.goodHours)}</small></button><button onClick={() => void grade(4)}>Fácil<small>{formatInterval(data.intervals.easyHours)}</small></button></div></div>}
     </section>;
   }
 

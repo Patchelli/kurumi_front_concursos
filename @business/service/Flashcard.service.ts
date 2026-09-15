@@ -13,12 +13,19 @@ export type FlashcardRegisterRequest = {
 };
 
 export type FlashcardResponse = FlashcardRegisterRequest & { id: number; nextReviewOn?: string | null };
+export type FlashcardReviewIntervals = {
+  againHours: number;
+  hardHours: number;
+  goodHours: number;
+  easyHours: number;
+};
 export type FlashcardPracticeResponse = {
   totalCards: number;
   reviewCards: number;
   newCards: number;
   correctToday: number;
   cards: FlashcardResponse[];
+  intervals: FlashcardReviewIntervals;
 };
 
 const register = (body: FlashcardRegisterRequest) =>
@@ -30,6 +37,12 @@ const practice = (params: { journeyId: number; knowledgeAreaId?: number; syllabu
 const recall = (cardId: number, grade: 1 | 2 | 3 | 4) =>
   clientRequest<FlashcardResponse>({ url: '/Flashcard/recall', method: HttpMethod.Post, body: { cardId, grade } });
 
+const reviewIntervals = () =>
+  clientRequest<FlashcardReviewIntervals>({ url: '/Flashcard/review-intervals', method: HttpMethod.Get });
+
+const saveReviewIntervals = (body: FlashcardReviewIntervals) =>
+  clientRequest<boolean>({ url: '/Flashcard/review-intervals', method: HttpMethod.Put, body });
+
 const list = (journeyId: number, knowledgeAreaId?: number, syllabusNodeId?: number) =>
   clientRequest<FlashcardResponse[]>({ url: '/Flashcard/list', method: HttpMethod.Get, axiosConfig: { params: { journeyId, knowledgeAreaId, syllabusNodeId } } });
 
@@ -39,4 +52,4 @@ const update = (body: Pick<FlashcardResponse, 'id' | 'model' | 'type' | 'front' 
 const remove = (id: number) =>
   clientRequest<boolean>({ url: `/Flashcard/${id}`, method: HttpMethod.Delete });
 
-export const flashcardService = { register, practice, recall, list, update, remove };
+export const flashcardService = { register, practice, recall, reviewIntervals, saveReviewIntervals, list, update, remove };
