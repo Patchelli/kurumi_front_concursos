@@ -1,10 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
 
 type Status = 'loading' | 'ok' | 'blocked';
 
 export function ContentViewer({ url, title, onClose }: { url: string; title: string; onClose(): void }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [status, setStatus] = useState<Status>('loading');
+
+  // On mobile/touch, open directly in browser — iframes can't scroll PDFs
+  useEffect(() => { if (isTouchDevice()) { window.open(url, '_blank'); onClose(); } }, []);
 
   function handleLoad() {
     try {
