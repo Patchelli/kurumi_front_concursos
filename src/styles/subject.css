@@ -435,6 +435,7 @@
 .cv-form-body .sp-resource-delete{background:#231b30!important;border-color:rgba(255,255,255,0.1)!important;color:#f87171!important}
 .cv-form-body .sp-resource-delete{display:flex;align-items:center;justify-content:center;width:30px;min-width:30px;height:30px;min-height:30px;padding:0;line-height:1}
 .cv-form-body .sp-resource-delete:hover{background:#2d1525!important;border-color:#f8717144!important}
+.cv-form-body .sp-bookmark-input{color:#6ee7b7}.cv-form-body .sp-bookmark-input::placeholder{color:#6b6078}.cv-form-body .sp-bookmark-input:focus{background:rgba(124,58,237,0.1);border-color:rgba(167,139,250,0.3)}
 .cv-form-body .sp-material-type-pill{background:#231b30;border-color:rgba(255,255,255,0.12);color:#c4b5fd}
 .cv-form-body .sp-material-type-pill:hover{background:#2d2438;border-color:#7c3aed}
 .cv-form-body .sp-material-type-pill.active{background:#7c3aed;border-color:#7c3aed;color:#fff}

@@ -11,6 +11,7 @@ export type StudyResource = {
   title: string;
   url: string;
   kind: StudyResourceKind;
+  studyLocation?: string | null;
 };
 
 export type StudyResourceRegisterRequest = {
@@ -35,4 +36,7 @@ const list = (journeyId: number, syllabusNodeId?: number, knowledgeAreaId?: numb
 const remove = (id: number) =>
   clientRequest<boolean>({ url: `/StudyResource/${id}`, method: HttpMethod.Delete });
 
-export const studyResourceService = { register, list, remove };
+const updateStudyLocation = (id: number, studyLocation: string | null) =>
+  clientRequest<StudyResource>({ url: `/StudyResource/${id}/study-location`, method: HttpMethod.Put, body: { studyLocation } });
+
+export const studyResourceService = { register, list, remove, updateStudyLocation };

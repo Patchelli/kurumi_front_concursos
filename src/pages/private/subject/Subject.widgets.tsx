@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import type { SyllabusNodeResponse } from '@business/dto/response/journey.response';
-import type { StudyResource, StudyResourceKind, StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
+import { studyResourceService, type StudyResource, type StudyResourceKind, type StudyResourceRegisterRequest } from '@business/service/StudyResource.service';
 import type { SyllabusNodeStudyRequest, SyllabusNodeStudyResponse } from '@business/service/SyllabusNodeStudy.service';
 import { isStudyCompleted, isStudyPending, studyProgressPercent } from '@business/studyProgress';
 import { ReviewDialog } from '@components/dialog/ReviewDialog';
@@ -35,6 +35,20 @@ export function FlashcardListPanel({ journeyId, knowledgeAreaId, syllabusNodeId,
       </div>
     </div>
   );
+}
+
+function BookmarkInput({ value, onSave }: { value?: string | null; onSave(value: string | null): Promise<void> }) {
+  const [val, setVal] = useState(value ?? '');
+  const [savedValue, setSavedValue] = useState(value ?? '');
+  useEffect(() => { setVal(value ?? ''); setSavedValue(value ?? ''); }, [value]);
+  const persist = async () => {
+    const next = val.trim();
+    setVal(next);
+    if (next === savedValue) return;
+    try { await onSave(next || null); setSavedValue(next); }
+    catch { setVal(savedValue); toast.error('Não foi possível salvar onde você parou.'); }
+  };
+  return <input className="sp-bookmark-input" placeholder="Onde parou? ex: p.45 — Introdução" value={val} onChange={e => setVal(e.target.value)} onBlur={persist} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} onClick={e => e.stopPropagation()} />;
 }
 
 const resourceKinds: Array<{ value: StudyResourceKind; label: string }> = [
@@ -132,9 +146,15 @@ export function MaterialsPanel({ journeyId, knowledgeAreaId, nodeId, title, onLi
           <div className="sp-material-list">
             {resources.map(resource => <div key={resource.id}>
               <span>{resourceKindLabel(resource.kind)}</span>
-              <button className="sp-resource-open" type="button" onClick={() => setViewer(resource)}>
-                <strong>{resource.title}</strong><small>{resource.url}</small>
-              </button>
+              <div className="sp-resource-wrap">
+                <button className="sp-resource-open" type="button" onClick={() => setViewer(resource)}>
+                  <strong><span>{resource.title}</span></strong><small>{resource.url}</small>
+                </button>
+                <BookmarkInput value={resource.studyLocation} onSave={async studyLocation => {
+                  const saved = await studyResourceService.updateStudyLocation(resource.id, studyLocation);
+                  setResources(current => current.map(item => item.id === saved.id ? saved : item));
+                }} />
+              </div>
               <button className="sp-resource-delete" type="button" onClick={() => void remove(resource)} aria-label="Remover material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14}}><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg></button>
             </div>)}
             {hasPrivateMaterialsPermission() && <PrivateMaterialsPanel owner={nodeId ? 'topic' : 'area'} ownerId={nodeId ?? knowledgeAreaId} />}
